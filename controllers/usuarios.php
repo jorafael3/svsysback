@@ -29,4 +29,10 @@ class Usuarios extends Controller
         // echo json_encode($param1);
         $Ventas =  $this->model->Consultar_Accesos($param1);
     }
+    function Guardar_Accesos()
+    {
+        $param1 = $_POST['param'];
+        // echo json_encode($param1);
+        $Ventas =  $this->model->Guardar_Accesos($param1);
+    }
 }
