@@ -38,9 +38,19 @@ time.sleep(1)
 
 btn = driver.find_element(By.XPATH, '//*[@id="login"]')
 btn.click()
-time.sleep(100)
+time.sleep(40)
 
 driver.get('https://www.portaldisensa.com/b2b_new/b2b/zDocumentosElectronicos.do')
+time.sleep(5)
+
+btn_b = driver.find_element(By.XPATH, '//*[@id="aceptar_Cookies"]')
+btn_b.click()
+time.sleep(2)
+
+btn_b = driver.find_element(By.XPATH, '//*[@id="btn_consultar_docs_electronicos"]')
+btn_b.click()
+
+time.sleep(10)
 
 driver.quit()
 
