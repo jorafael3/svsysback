@@ -1,0 +1,133 @@
+/** CUSTOM * */
+function getMainButton() {
+	return $("#btn_consultar_docs_electronicos");
+}
+
+function getForm() {
+	return $("#formDocsElectronicos");
+}
+
+function getConsultaUrl() {
+	return "../b2b/zDocumentosElectronicos.do";
+}
+
+function handleErrorMsg(html) {
+}
+
+function reloadFunctionsConsulta() {
+	// getMainButton().click(handleBtnConsultarDocsElectronicos);
+
+	$(".chkbox_all").click(function() {
+		$(".chkbox").prop('checked', this.checked);
+	});
+
+	$(".chkbox").click(function() {
+		// $(".chbox").prop('checked', this.checked);
+		var qtd = 0;
+		$(".chkbox").each(function() {
+			if (this.checked) {
+				qtd++;
+			}
+		});
+
+		if (qtd == $(".chkbox").length)
+			$(".chkbox_all").prop('checked', true);
+		else
+			$(".chkbox_all").prop('checked', false);
+	});
+
+	$(".link_docs_electronicos_pedido").click(downloadPDF);
+	$(".link_docs_electronicos_nrdoc").click(downloadXML);
+	$(".link_docs_electronicos_ride").click(downloadRide);
+	$("#btn_descargar").click(handleDescargarDocsElectronicos);
+
+	$("#btn_descargar_report_pagina").click(function() {
+		var params = "action=" + "generateReport";
+		var url = getConsultaUrl();
+		var currentPage = getFormAux().find("[name='currentPage']");
+		if (currentPage && currentPage.length > 0) {
+			params += "&exportPage=" + currentPage.val();
+		}
+
+		$.download(url, params);
+	});
+
+	$("#btn_descargar_report_todo").click(function() {
+		var params = "action=" + "generateReport" + "&todas_paginas=1";
+		var url = getConsultaUrl();
+
+		$.download(url, params);
+	});
+}
+
+function downloadPDF() {
+	var tr = $(this).closest("tr");
+	var docProveedor = tr.find(".doc_proveedor").html();
+	var docTpEntr = tr.find(".doc_tp_entr").html();
+	if (docProveedor.trim().toUpperCase() == "HOLCIM" && docTpEntr.trim() == "01") {
+		var docTransportista = tr.find(".doc_transportista").html();
+		var icone = "<img src='assets/img/ico_warning_big.png' width='40px' height='40px' />&nbsp;&nbsp;";
+		var titulo = "Alerta";
+		var mensagem = "Usted ha creado este pedido con la opci&oacute;n de Entrega y no es necesario descargar la gu&iacute;a de despacho, ya la recibir&aacute; el transportista " + docTransportista.trim() + " y usted podr&aacute; retirar en la bodega, cercana asignada en su zona.";
+		showGenericModal(icone + titulo, mensagem, $(this).attr("id"));
+		return false;
+	}
+
+	downloadFile("pdf", $(this));
+}
+
+function downloadXML() {
+	downloadFile("xml", $(this));
+}
+
+function downloadRide() {
+	downloadFile("ride", $(this));
+}
+
+function downloadFile(fileType, objLink) {
+	var url = "../b2b/zDownloadDocElectronico.do";
+	var params = getDocElectronico(fileType, objLink);
+
+	$.download(url, params);
+}
+
+function getDocElectronico(fileType, objLink) {
+	var tr = objLink.closest("tr");
+
+	var indexLista = tr.find(".doc_index_lista").html();
+	return {
+		indexLista : indexLista,
+		fileType : fileType
+	};
+}
+
+function handleDescargarDocsElectronicos() {
+	// var arraySelected = [];
+	var fileType = "zip";
+	var params = "fileType=" + fileType;
+	// var aux = 0;
+	$(".chkbox:checked").closest("tr").find(".doc_index_lista").each(function(i, obj) {
+		params += "&indexLista=" + $(obj).html();
+		// arraySelected[aux++] = $(obj).html();
+	});
+
+	var url = "../b2b/zDownloadDocElectronico.do";
+
+	$.download(url, params);
+}
+
+var superValidateForm = validateForm;
+validateForm = function() {
+	var ok = superValidateForm();
+
+	if (!ok) {
+		var nrPedidoFrom = $("#doc_desde").val();
+		var nrPedidoTo = $("#doc_hasta").val();
+
+		if (nrPedidoFrom && nrPedidoFrom != "" && nrPedidoTo && nrPedidoTo != "") {
+			ok = true;
+		}
+	}
+
+	return ok;
+};

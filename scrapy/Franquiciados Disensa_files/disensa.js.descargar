@@ -1,0 +1,913 @@
+/** ON READY **/
+//$(document).on("ready", function() {
+$(function() {
+//    $(".chosen-select").chosen();
+
+	initAjaxLoading();
+
+	// Load Messages
+	loadMessages();
+
+	initDatepicker($("#inputfdesde"));
+	initDatepicker($("#inputfhasta"));
+
+	//reloadFunctionsDisensa();
+	reloadFunctions();
+
+	// load solicitante
+	loadCambiarSolicitante();
+
+	if ($("#strTexto") && $("#strTexto").length > 0)
+		$("#strTexto").html(fixHtmlTags($("#strTexto").html()));
+
+	if ($("#content_principal") && $("#content_principal").length > 0)
+		doThingsToLoadNoticiasInDiv($("#content_principal"));
+
+	if ($(".strTexto") && $(".strTexto").length > 0) {
+		$(".strTexto").css("display", "block"); /* Fallback for non-webkit */
+		$(".strTexto").css("display", "-webkit-box");
+		$(".strTexto").css("height", "80px"); /* Fallback for non-webkit */
+		$(".strTexto").css("font-size", "14px");
+		$(".strTexto").css("line-height", "1.4285");
+		$(".strTexto").css("-webkit-line-clamp", "3");
+		$(".strTexto").css("-webkit-box-orient", "vertical");
+		$(".strTexto").css("overflow", "hidden");
+		$(".strTexto").css("text-overflow", "ellipsis");
+	}
+
+	$("#divGeneric").keypress(function(e) { handleModalKeyPress(e, this); } );
+	$("#divGeneric_2").keypress(function(e) { handleModalKeyPress(e, this); } );
+
+	$(".menuNoticias").click(loadMenuNoticias);
+
+	var condPagoDiv = $(".pago span");
+	if (condPagoDiv && condPagoDiv.length > 0 ) {
+		condPagoDiv.each(function(){
+			var codeNumDias = $(this).html();
+			var dias = getNumDias(codeNumDias);
+			$(this).html(dias);
+		});
+		condPagoDiv.show();
+	}
+
+	$('.fa-calendar-alt').click(function() {
+		$(this).parent().parent().parent().find(':input').focus();
+	});
+});
+
+$(document).on("change", "#bodega", function() {
+    var contenedor;
+    var produtoDetalhe = false;
+
+    if ($(".cuadro_producto").length > 0) {
+	contenedor = $("[id='" + $("#codigoPopUP").html() + "']").closest("div");
+    } else {
+	if ($(".lista_producto").length > 0) {
+	    contenedor = $("[id='" + $("#codigoPopUP").html() + "']").closest("tr");
+	} else {
+	    contenedor = $(".porta_contenido_producto");
+	    produtoDetalhe = true;
+	}
+    }
+
+    var optionsTpEntr;
+    if ($(this).val() == "D1") {
+	if (produtoDetalhe) {
+	    optionsTpEntr = $(contenedor).find('[name="prodCarrito.tpEntrProv"]').html();
+	} else {
+	    optionsTpEntr = $(contenedor).find('[name="_tpEntrProv"]').html();
+	}
+    } else {
+	if (produtoDetalhe) {
+	    optionsTpEntr = $(contenedor).find('[name="prodCarrito.tpEntrDisen"]').html();
+	} else {
+	    optionsTpEntr = $(contenedor).find('[name="_tpEntrDisen"]').html();
+	}
+    }
+
+    $("#tpEntr").html("");
+    $("#tpEntr").append(optionsTpEntr);
+
+});
+
+//$(document).on("click", "#cambiarSolicitante", function() {
+function loadCambiarSolicitante() {
+	$.ajax({
+		type : "POST",
+		url : "../b2b/zGetSolicitante.do",
+		dataType : "html",
+		error : function(xhr, ajaxOptions, thrownError) {
+//			$("#modalCambiarSolicitante").modal("hide");
+		},
+		success : function(responseXML) {
+			populateDropDrownSolicitante(responseXML);
+			loadDestinatarios();
+//			$("#modalCambiarSolicitante").modal({
+//				backdrop : "static"
+//			});
+
+//			$("#cambiado_container").hide();
+//			$(".chosen-select").chosen("destroy");
+//			$(".chosen-select").chosen();
+		}
+	});
+//});
+}
+
+function loadDestinatarios() {
+	$.ajax({
+		type : "POST",
+		url : "../b2b/zGetDestinatario.do",
+		dataType : "html",
+		error : function(xhr, ajaxOptions, thrownError) {
+//			$("#modalCambiarSolicitante").modal("hide");
+		},
+		success : function(responseXML) {
+			populateDropDrownDestinatario(responseXML);
+		}
+	});
+}
+
+function populateDropDrownSolicitante(xml) {
+	$("#dropdownSolicitante").find("a").remove();
+
+	$(xml).find("solicitante").each(function(indexSolicitante, solicitante) {
+		var value = $(solicitante).attr("value");
+		var label = $(solicitante).attr("label");
+		var selectedIndex = $(solicitante).attr("selectedIndex");
+		if (selectedIndex == "true") {
+			$("#solicitanteSelected").text(label + " - " + value);
+		}
+		$("#dropdownSolicitante").append('<a class="dropdown-item dropdown-item-solicitante" href="javascript: cambiarSolicitante(' + value + ')">' + label + " - " + value + "</a>");
+	});
+}
+
+function populateDropDrownDestinatario(xml) {
+    $("#dropdownDestinatario").find("a").remove();
+
+    $(xml).find("destinatario").each(function (indexDestinatario, destinatario) {
+        var value = $(destinatario).attr("value");
+        var label = $(destinatario).attr("label");
+        var selectedIndex = $(destinatario).attr("selectedIndex");
+        if (value && label && selectedIndex && value != "" && label != "") {
+            if (selectedIndex == "true") {
+                $("#destinatarioSelected").text(label + " - " + value);
+            }
+            $("#dropdownDestinatario").append('<a class="dropdown-item" href="javascript: cambiarDestinatario(' + value + ')">' + label + " - " + value + "</a>");
+        }
+    });
+}
+
+//$(document).on("click", "#btnCambiarSolicitante", function() {
+function cambiarSolicitante(value) {
+	$("#cambiado_container").hide();
+
+	$.ajax({
+		type : "POST",
+		url : "../b2b/zCambiarSolicitante.do",
+		data : {
+			action : "cambiar",
+//			soliPartner : $("#dropdownSolicitante").val()
+			soliPartner : value
+		},
+		dataType : "xml",
+		error : function(xhr, ajaxOptions, thrownError) {
+//			$("#modalCambiarSolicitante").modal("hide");
+		},
+		success : function(responseXML) {
+			var result = $(responseXML).find("result");
+			var value = $(result).attr("value");
+			var label = $(result).attr("label");
+
+			if (value == "success") {
+//				$("#modalCambiarSolicitante").modal("hide");
+				loadDestinatarios();
+				showGenericModal("Mensaje",label);
+				$("#cambiarSolicitanteForm").submit();
+				/*
+				if (label != "") {
+					var icone = "<img src='assets/img/ico_warning_big.png' width='40px' height='40px' />&nbsp;&nbsp;";
+					var titulo = "Cuenta bloqueada";
+					var msg = "�Estimado Cliente: Su cuenta apresenta ag�n problema de cr�dito, por favor contatar o Servicio ao Cliente.";
+					showGenericModal(icone + titulo, msg, "");
+					$("#cambiado_container b").html(label);
+					$("#cambiado_container").show();
+				}
+				*/
+			} else {
+//				$("#cambiado_container b").html(label);
+//				$("#cambiado_container").show();
+				showGenericModal("Mensaje", label );
+			}
+		}
+	});
+//});
+}
+
+function cambiarDestinatario(value) {
+	$("#cambiado_container").hide();
+
+	$.ajax({
+		type : "POST",
+		url : "../b2b/zCambiarDestinatario.do",
+		data : {
+			action : "cambiar",
+			destPartner : value
+		},
+		dataType : "xml",
+		error : function(xhr, ajaxOptions, thrownError) {
+			console.log(xhr);
+			console.log(thrownError);
+		},
+		success : function(responseXML) {
+			var result = $(responseXML).find("result");
+			var value = $(result).attr("value");
+			var label = $(result).attr("label");
+
+			if (value == "success") {
+				$(".logo").click();
+			} else {
+				showGenericModal("Mensaje", label );
+			}
+		}
+	});
+
+}
+
+function filterFunctionSolicitante() {
+  var input, filter, ul, li, a, i;
+  input = document.getElementById("inputSolicitante");
+  filter = input.value.toUpperCase();
+  div = document.getElementById("dropdownSolicitante");
+  a = div.getElementsByTagName("a");
+  for (i = 0; i < a.length; i++) {
+    txtValue = a[i].textContent || a[i].innerText;
+    if (txtValue.toUpperCase().indexOf(filter) > -1) {
+      a[i].style.display = "";
+    } else {
+      a[i].style.display = "none";
+    }
+  }
+}
+
+function filterFunctionDestinatario(){
+  var input, filter, ul, li, a, i;
+  input = document.getElementById("inputDestinatario");
+  filter = input.value.toUpperCase();
+  div = document.getElementById("dropdownDestinatario");
+  a = div.getElementsByTagName("a");
+  for (i = 0; i < a.length; i++) {
+    txtValue = a[i].textContent || a[i].innerText;
+    if (txtValue.toUpperCase().indexOf(filter) > -1) {
+      a[i].style.display = "";
+    } else {
+      a[i].style.display = "none";
+    }
+  }
+}
+
+//$(document).on("click", "#btnCerrarModalCambiarSolicitante", function() {
+//	$("#modalCambiarSolicitante").modal("hide");
+//});
+
+var isQualidade = false;
+
+function handleModalKeyPress(e, obj) {
+	if (!obj)
+		return;
+
+	if (isEnter(e)) {
+		  var href = $(obj).find(".btn-red:visible a");
+		  if (href && href.length > 0)
+			  click();
+	}
+}
+
+function reloadFunctionsDisensa() {
+	initBtnAmpliar();
+}
+
+function initBtnAmpliar() {
+	$(".btn-ampliar").click(function () {
+//		var codigo = $("#codigoPopUP_2").html();
+//		var imgSrc = "product_" + codigo + ".jpg";
+		var imgSrc = $("#zoom_01").attr("src");
+		imgSrc = getZoomedImgSrc(imgSrc);
+		showImagemModal(imgSrc);
+	});
+}
+
+var ZOOMED_IN_SUFFIX = "LARGE";
+
+function getZoomedImgSrc(imgSrc) {
+	if (imgSrc)
+		imgSrc = imgSrc.replace(/_(SMALL|MEDIUM)\.jpg/g, "_" + ZOOMED_IN_SUFFIX + ".jpg");
+	return imgSrc;
+}
+
+function initDatepicker(obj) {
+	if (obj && obj.length > 0) {
+		obj.datepicker({dateFormat: 'dd/mm/yy'});
+		i18n();
+	}
+}
+
+/** gambi **/
+/** found on http://stackoverflow.com/questions/19288546/how-can-i-prevent-body-scrollbar-and-shifting-when-twitter-bootstrap-modal-dialo **/
+function initFixModal() {
+	(function($) {
+
+	$(document)
+	    .on( "hidden.bs.modal", ".modal", function() {
+	        $(document.body).removeClass( "modal-scrollbar" );
+	    })
+	    .on( "show.bs.modal", ".modal", function() {
+	        // Bootstrap's .modal-open class hides any scrollbar on the body, so if there
+	        // IS a scrollbar on the body at modal open time, then add a right margin to
+	        // take its place.
+	        if ( $(window).height() < $(document).height() ) {
+	            $(document.body).addClass( "modal-scrollbar" );
+	        }
+	    });
+
+	})(window.jQuery);
+}
+
+function doInit() {
+	initFixModal();
+}
+
+doInit();
+
+/** end gambi **/
+
+function isEnter(e) {
+	return e.which == 13;
+}
+
+function initAjaxLoading() {
+	//$("#modalLoading").show();
+
+	$(document).ajaxStart(function () {
+		showAjaxWheel();
+	})
+	.ajaxStop(function () {
+		hideAjaxWheel();
+
+		// Monta Carousel ap�s terminar todos os ajax da tela
+		categoriaCarousel();
+		produtosNovosCarousel();
+		produtosDestacadosCarousel();
+		// apos montar carrossel limita o label dos destaques
+		limitaLabelDestaques();
+	});
+}
+
+function showAjaxWheel() {
+	$("#modalLoading").show();
+}
+
+function hideAjaxWheel() {
+	$("#modalLoading").hide();
+}
+
+function canAjax(qtd) {
+	if (!qtd)
+		qtd = 0;
+	return $(".modal-backdrop.fade").length <= qtd;
+}
+
+function loadMessages() {
+    $.ajax({
+		type : "POST",
+		url : "../b2b/zMensagem.do",
+		dataType : "html",
+		success : function(responseHTML) {
+		    var contentMessage = $(responseHTML).filter("#content_mensagem");
+//		    var html = $(contentMessage).html();
+		    if (contentMessage) {
+		    	var html = '';
+		    	var qtdMensagens = $(contentMessage).find("#qtdMensagem").val();
+		    	$(contentMessage).remove('#notificaciones');
+		    	$(contentMessage).find("a").each(function( index ) {
+		    		$(this).addClass('dropdown-item');
+	    		});
+		    	$(contentMessage).find("li").each(function( index ) {
+		    		//console.log( index + ": " + $(this).html() );
+		    		html += $(this).html();
+	    		});
+
+		    	// trim da mensagem e tirar tabs e quebras de linha
+		    	html = html.trim().replace(/\t/g, "").replace(/\n/g, "");
+		    	html = fixHtmlTags2(html);
+
+		    	if (qtdMensagens > 0 ) {
+		    		$("#badgeQtdMensagem").text(qtdMensagens);
+		    		$("#badgeQtdMensagem").show();
+		    	} else {
+		    		$("#badgeQtdMensagem").text(qtdMensagens);
+		    		$("#badgeQtdMensagem").hide();
+		    	}
+		    }
+		    $("#listaNotificaciones").html(html);
+
+		    $(".spanTxtMensagem").each(function() {
+		    	var msg = $(this).text();
+		    	if (msg.length > 30) {
+		    		$(this).text(msg.substring(0, 30) + ' ...');
+		    	}
+		    });
+
+			loadMsgPopup();
+		}
+    });
+}
+
+function loadMsgPopup() {
+	var popup = $(".divMsgGenerica a");
+	if (popup.length > 0) {
+		popup.click();
+	}
+}
+
+function setMessageRead(mandt, zzaudiencia, vkorg, regio, bzirk, kunnr, begdat, enddat, zzauto, zznum, zztpmsg, zzicone, zzidTexto, zzlido, zzdtLido, erdat, zzpopup, vbeln, strTexto, linkObj, event) {
+    var formNotificaciones = {
+	    MANDT: mandt,
+	    ZZAUDIENCIA: zzaudiencia,
+	    VKORG: vkorg,
+	    REGIO: regio,
+	    BZIRK: bzirk,
+	    KUNNR: kunnr,
+	    BEGDAT: begdat,
+	    ENDDAT: enddat,
+	    ZZAUTO: zzauto,
+	    ZZNUM: zznum,
+	    ZZTPMSG: zztpmsg,
+	    ZZICONE: zzicone,
+	    ZZID_TEXTO: zzidTexto,
+	    ZZLIDO: zzlido,
+	    ZZDT_LIDO: zzdtLido,
+	    ERDAT: erdat,
+	    ZZPOPUP: zzpopup,
+	    VBELN: vbeln,
+	    STR_TEXTO: strTexto
+    };
+
+    var imgSrc = $(linkObj).find("img").attr("src");
+    var bigImgSrc = imgSrc.replace(/(\.[png|jpeg|jpg|gif])/g, "_big$1");
+
+	var runMensagemLida = true;
+
+    if ((event && event.ctrlKey) || zzpopup == "X") {
+    	runMensagemLida = false;
+    }
+
+    if (runMensagemLida) {
+        $.ajax({
+        	type : "POST",
+        	url : "../b2b/zMensagemLida.do",
+        	data : formNotificaciones,
+        	dataType : "html",
+        	error : function (responseHTML) {
+        	},
+        	success : function(responseHTML) {
+    			showMensagemModal("" + zztpmsg + "<BR /><BR />", strTexto, bigImgSrc);
+
+        	    var mensagemLida = $(responseHTML).filter("#mensagemLida");
+        	    var okSave = $.trim(mensagemLida.html());
+        	    if (okSave == "true") {
+        			// Load Messages
+        			loadMessages();
+        	    }
+        	}
+            });
+    } else {
+    	showMensagemModal("<!-- Mensaje - **NO LEIDO** -->" + zztpmsg + "<BR /><BR />", strTexto, bigImgSrc);
+		loadMessages();
+    }
+    return false;
+}
+
+function showMensagemModal(titulo, texto, imgSrc) {
+	$("#modal_comunicado_titulo").html(titulo);
+	$("#modal_comunicado_texto").html(texto);
+	$("#modal_comunicado_img").attr("src", imgSrc);
+
+	$("#notificacionDetalle").modal("show");
+}
+
+function showGenericModal(titulo, msg, fieldToFocusId, width) {
+	$("#genericModalTitulo").html(titulo);
+	$("#divMensagem").html(msg);
+	$("#divGeneric").modal("show");
+
+	if (!width)
+		width = "";
+	$("#divGeneric .modal-dialog").css("width", width);
+
+	if (fieldToFocusId)
+		$("#divGeneric").on("hidden.bs.modal", function() { $("#" + fieldToFocusId).focus(); $("#" + fieldToFocusId).select(); } );
+}
+
+function showPedidoDetalle(titulo, msg) {
+	$("#genericModalTitulo_3").html(titulo);
+	$("#divMensagem_3").html(msg);
+	$("#divGeneric_3").modal("show");
+}
+
+function showAlerta(msg, fieldToFocusId) {
+	var icone = "<img src='assets/img/ico_warning_big.png' width='40px' height='40px' />&nbsp;&nbsp;";
+	var titulo = "Alerta";
+	msg = msg + "<BR />Por favor revisar y corregir.";
+	showGenericModal(icone + titulo, msg, fieldToFocusId);
+}
+
+function showImagemModal(imgSrc, baseDir) {
+	if (!baseDir)
+		baseDir = "";
+	imgSrc = baseDir + imgSrc;
+	var html = "<img src='" + imgSrc + "' style='width: 100%;height: 100%;' />";
+	$("#divMensagem_2").html(html);
+
+	$("#divGeneric_2").modal("show");
+}
+
+function toDate(ddMMyyyy) {
+	return new Date( ddMMyyyy.replace( /(\d{1,2})\/(\d{1,2})\/(\d{4})/, "$2/$1/$3") );
+}
+
+function fromSAPtoDate(yyyy_MM_dd) {
+	return new Date( yyyy_MM_dd.replace( /(\d{4})-(\d{1,2})-(\d{1,2})/, "$2/$3/$1") );
+}
+
+function isValidDate(objDate) {
+	var ok = false;
+	if ( Object.prototype.toString.call(objDate) === "[object Date]" ) {
+		// it is a date
+		if ( isNaN( objDate.getTime() ) ) {  // d.valueOf() could also work
+		  // date is not valid
+		}
+		else {
+			ok = true;
+		}
+	}
+	else {
+	  // not a date
+	}
+	return ok;
+}
+
+var TP_BANNER_LOAD_CATEGORIA = "C";
+var TP_BANNER_LOAD_PROD = "P";
+var TP_BANNER_LOAD_URL_EXTERNA = "U";
+var TP_BANNER_LOAD_IMAGEM = "I";
+
+function handleBannerLink(tpbanner, zzlink) {
+	switch(tpbanner) {
+		case TP_BANNER_LOAD_CATEGORIA:
+			loadProductsOnDiv(zzlink);
+			break;
+		case TP_BANNER_LOAD_PROD:
+			loadProducto(zzlink);
+			break;
+		case TP_BANNER_LOAD_URL_EXTERNA:
+			window.open(zzlink, "banner_url_externa");
+			break;
+		case TP_BANNER_LOAD_IMAGEM:
+			showImagemModal(zzlink, $("#baseDirBanner").val());
+			break;
+		default:
+			alert("outro tpbanner: [" + tpbanner + ";" + zzlink + "]");
+	}
+}
+
+function fixHtmlTagsIn(div, findWhichClass) {
+	if (!findWhichClass)
+		findWhichClass = ".contenido .strTexto";
+	div.find(findWhichClass).each(function(i, obj) {
+		var newHtml = truncateNoticia(fixHtmlTags($(obj).html()));
+		$(obj).html(newHtml);
+	});
+}
+
+var pattern = /&lt;[B|b][r|R]( |\/|&nbsp;)*&gt;/g;
+var BREAK_LINE = "<BR />";
+function fixHtmlTags(html) {
+	return html.replace(pattern, BREAK_LINE);
+}
+
+function fixHtmlTags2(html) {
+	return html.replace(pattern, "&nbsp;");
+}
+
+function disableForm(formId) {
+	$(formId + " :input").attr("readonly", true);
+}
+function enableForm(formId) {
+	$(formId + " :input").attr("readonly", false);
+}
+
+function getNumDias(codeNumDias) {
+	var condicionPago = "";
+
+	var numDias = "";
+	var numDiasBanco = "";
+
+	if (codeNumDias) {
+		numDias = codeNumDias.substr(0, 4).replace(/[A-Z|a-z]/g, "").trim();
+		numDias = parseInt(numDias);
+
+		numDiasBanco = codeNumDias.substr(6, 3).replace(/[A-Z|a-z]/g, "").trim();
+		if (numDiasBanco.length == 0 || isNaN(numDiasBanco)) {
+			condicionPago = numDias + " dias";
+		} else {
+			numDiasBanco = parseInt(numDiasBanco);
+			if (numDiasBanco > 0) {
+				condicionPago = numDias + " dias + " + numDiasBanco + " dias";
+			} else {
+				condicionPago = numDias + " dias";
+			}
+		}
+	}
+
+	return condicionPago;
+}
+
+
+/** NOTICIAS - extraido de jqueryxmlstore.js **/
+
+function loadHistorialNoticia() {
+	var obj = $(this).closest(".erdat_container");
+    //var url = "../b2b/zHistorialNoticia.do";
+
+    //var data = getMesAnoNoticia(obj);
+    var idxBanner = obj.find("[name='idxBanner']").val();
+    /*
+    var data = { loadSingleIndexFromBannerNoticia: idxBanner };
+
+    $.ajax({
+	url: url,
+	dataType: 'html',
+	data: data,
+	success: function(html) {
+	    var divHistorialNoticia = $(html).filter("#content_historial_noticia");
+	    $("#content_principal").html("");
+	    fixHtmlTagsIn(divHistorialNoticia);
+	    $("#content_principal").html($(divHistorialNoticia).html());
+
+	    reloadFunctions();
+	    $("#content_principal").fadeIn(300);
+	}
+    });
+    */
+
+    loadMenuNoticias(null, idxBanner);
+}
+
+var regex_data = /([0-9]{4})-([0-9]{1,2})-([0-9]{1,2})/g;
+function getMesAnoNoticia(obj) {
+	var data= {};
+	if (obj && obj.length > 0) {
+		var erdat = obj.find("[name='erdat']").val();
+		var mes = erdat.replace(regex_data, "$2");
+		var ano = erdat.replace(regex_data, "$1");
+		data = { mes: mes, ano: ano };
+	}
+
+	return data;
+}
+
+function getMes() {
+	return $('[name="mes"]');
+}
+
+function getAno() {
+	return $('[name="ano"]');
+}
+
+var maxLineas = 5;
+var charsPorLinea = 80;
+
+function truncateNoticia(str) {
+	var qtdLineas = maxLineas;
+	var length = qtdLineas * charsPorLinea;
+	str = str.substring(0, length);
+	var split = str.split(BREAK_LINE);
+	var qtdBR = split.length;
+	while (qtdBR > 1 && qtdBR - 1 + str.length / charsPorLinea > maxLineas) {
+		str = str.substring(0, str.lastIndexOf(BREAK_LINE));
+		split = str.split(BREAK_LINE);
+		qtdBR = split.length;
+	}
+
+	return str;
+}
+
+function reloadFunctions() {
+	runOnLoadNoticias();
+	$("#bt_regresar").click(loadHistorialNoticia);
+	reloadFunctionsDisensa();
+}
+
+function runOnLoadNoticias() {
+	var mes = getMes().val();
+	var ano = getAno().val();
+	marcarMesAno(mes, ano);
+}
+
+var mesAnoSelectedClassName = "mes_ano_seleccionado";
+var tipoNoticiaSelectedClassName = "tipo_noticia_seleccionada";
+var tipoCategoriaSelectedClassName = "tipo_categoria_seleccionada";
+
+function marcarMesAno(mes, ano) {
+	var linkId = "#hist_" + parseInt(mes) + "_" + ano;
+	var obj = $(linkId);
+
+	$(".mes_ano").closest("a").removeClass(mesAnoSelectedClassName);
+
+	obj.addClass(mesAnoSelectedClassName);
+
+	if (mes && ano)
+		$("body").scrollTop(0);
+}
+
+function marcarTipoNoticia(tipo) {
+	if (tipo) {
+		var id = "#link_load_" + tipo;
+		var obj = $(id);
+
+		$(".link_load a").removeClass(tipoNoticiaSelectedClassName);
+
+		obj.addClass(tipoNoticiaSelectedClassName);
+	}
+}
+
+function marcarCategoria(id) {
+	var catId = "#cat_key_" + id;
+	var obj = $(catId);
+
+	$(".item_principal a").removeClass(tipoCategoriaSelectedClassName);
+
+	obj.addClass(tipoCategoriaSelectedClassName);
+}
+
+function loadNoticiasDoPeriodo(zztpnotice, mes, ano) {
+	if (!zztpnotice)
+		zztpnotice = "";
+	if (!mes)
+		mes = getMes().val();
+	if (!ano)
+		ano = getAno().val();
+
+	marcarMesAno(mes, ano);
+
+    getMes().val(mes);
+    getAno().val(ano);
+
+	var url = $("#formBuscaNoticia").attr("action");
+    var formHistorialNoticia = {mes: mes, ano: ano, zztpnotice: zztpnotice};
+
+    $.ajax({
+	type: "POST",
+	url: url, //"../b2b/zNoticia.do",
+	data: formHistorialNoticia,
+	dataType : "html",
+	success: function(html) {
+		doThingsToLoadNoticiasInDiv(html, zztpnotice);
+	}
+    });
+}
+
+function doThingsToLoadNoticiasInDiv(html, zztpnotice) {
+    var divNoticiasPontePilas = $(html).find("#noticiasYpontePilas");
+    $("#noticiasYpontePilas").fadeOut(300, function() {
+        //$("#noticiasYpontePilas").html("");
+        fixHtmlTagsIn( divNoticiasPontePilas );
+        $("#noticiasYpontePilas").html($(divNoticiasPontePilas).html());
+        reloadFunctions();
+        marcarTipoNoticia(zztpnotice);
+        $("#noticiasYpontePilas").fadeIn(300);
+    });
+}
+
+function loadNoticias() {
+	loadNoticiasDoPeriodo("N");
+}
+
+function loadPontePilas() {
+	loadNoticiasDoPeriodo("P");
+}
+
+function loadNoticiaOrPontePilaPopUp(idx) {
+	if (idx) {
+		var form = $("#formBuscaNoticia");
+		var data = form.serialize() + "&loadSingleIndex=" + idx;
+
+		$.ajax({
+		    type : "POST",
+		    url : "../b2b/zHistorialNoticia.do",
+		    data: data,
+		    dataType : "html",
+		    success : function(responseHTML) {
+		    	loadSelectedNoticia(responseHTML);
+		    }
+		});
+	}
+}
+
+function loadSelectedNoticia(responseHTML) {
+	var div = $(responseHTML).find(".row");
+
+	var obj = $(div);
+	var strTexto = fixHtmlTags(obj.find("#strTexto").html());
+	obj.find("#strTexto").html(strTexto);
+	var html = obj.html();
+
+    $("#content_principal").html("");
+    $("#content_principal").html(html);
+    reloadFunctions();
+    $("#content_principal").fadeIn(300);
+}
+
+
+function loadMenuNoticias(e, idxBanner) {
+	try {
+		showAjaxWheel();
+		var url = "../b2b/zHistorialNoticia.do";
+		/*
+	    var form = "<FORM METHOD='post' id='formMenuNoticia' action='" + url + "'>";
+	    if (idxBanner)
+	    	form+= "<input type='hidden' name='loadSingleIndexFromBannerNoticia' value='" + idxBanner + "' />";
+	    else
+		    form+= "<input type='hidden' name='fromLinkMenu' value='YES' />";
+	    form+= "</form>";
+		$(form).submit();
+		*/
+		if (idxBanner)
+		    url += "?loadSingleIndexFromBannerNoticia=" + idxBanner;
+		else
+		    url += "?fromLinkMenu=YES";
+		document.location.href = url;
+	} catch (exc) {
+		hideAjaxWheel();
+	}
+}
+
+function printDiv(elem) {
+    Popup($("#" + elem).html());
+}
+
+function Popup(data) {
+    var mywindow = window.open("", "FRANQUICIADO DISENSA", "");
+    mywindow.document.write("<html>");
+    mywindow.document.write("<head>");
+    mywindow.document.write("<title>FRANQUICIADO DISENSA</title>");
+    /* Optional Stylesheet */
+    // mywindow.document.write("<link rel=\"stylesheet\" href=\"main.css\" type=\"text/css\" />");
+    mywindow.document.write("</head>");
+    mywindow.document.write("<body>");
+    mywindow.document.write(data);
+    mywindow.document.write("</body>");
+    mywindow.document.write("</html>");
+
+    mywindow.print();
+    mywindow.close();
+
+    return true;
+}
+
+/** END NOTICIAS **/
+
+function i18n() {
+
+	 $.datepicker.regional['es'] = {
+		closeText : 'Guardar',
+		prevText : '< Ant',
+		nextText : 'Sig >',
+		currentText : 'Hoy',
+		monthNames : [ 'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+				'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre',
+				'Diciembre' ],
+		monthNamesShort : [ 'Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul',
+				'Ago', 'Sep', 'Oct', 'Nov', 'Dic' ],
+		dayNames : [ 'Domingo', 'Lunes', 'Martes', 'Mi&eacute;rcoles', 'Jueves',
+						'Viernes', 'S&aacute;bado' ],
+		dayNamesShort : [ 'Dom', 'Lun', 'Mar', 'Mi&eacute;', 'Juv', 'Vie', 'S�b' ],
+		dayNamesMin : [ 'Do', 'Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'S&aacute;' ],
+		weekHeader : 'Sm',
+		dateFormat : 'dd/mm/yy',
+		firstDay : 1,
+		isRTL : false,
+		showMonthAfterYear : false,
+		yearSuffix : ''
+	};
+	$.datepicker.setDefaults($.datepicker.regional['es']);
+}
+
+function formatNumber(campo) {
+	if (campo !== undefined && campo.trim().length > 0 && !isNaN(campo)) {
+		return campo % 1 === 0 ? parseInt(campo): parseFloat(campo);
+	} else {
+		return campo;
+	}
+}
