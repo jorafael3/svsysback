@@ -24,7 +24,7 @@ options.add_argument("--start-maximized")
 # options.add_argument("--headless")
 # options.add_argument('--no-sandbox')
 options.add_experimental_option('excludeSwitches', ['enable-logging'])
-path = os.path.dirname(os.path.abspath(__file__))
+path = os.path.dirname(os.path.abspath(__file__),'C:/xampp/htdocs/svsysback/scrapy/pdf')
 prefs = {"download.default_directory": path}
 options.add_experimental_option("prefs", prefs)
 ser = Service()
@@ -115,9 +115,7 @@ def Buscar_Documentos():
                     print("")
                 print(celda.text)
     driver.quit()
-
-# login()
-# Buscar_Documentos()
+    Leer_pdf()
 
 def Obtener_tabla(texto):
     texto_limpio = texto.replace("PRODUCTO", "").replace("CANTIDAD", "")
@@ -367,7 +365,6 @@ def Guadar_detalle(datos,PEDIDO):
             cursor.close()
             return 1
 
-
 def Guardar_Guias(array_datos):
 
     for row in array_datos:
@@ -378,7 +375,5 @@ def Guardar_Guias(array_datos):
             pedido  =cabecera["PEDIDO_INTERNO"].strip()
             pedido = pedido.replace(" ","")
             Guadar_detalle(detalle,pedido)
-       
-Leer_pdf()
 
  
