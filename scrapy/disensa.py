@@ -134,10 +134,10 @@ def Obtener_tabla(texto):
 
     informacion_producto = {
             'ORD': palabras[0],
-            'CÓDIGO': palabras[1],
-            'DESCRIPCIÓN': ' '.join(palabras[2:-2]),
+            'CODIGO': palabras[1],
+            'DESCRIPCION': ' '.join(palabras[2:-2]),
             'UNIDAD': unidad,
-            'POR DESPACHAR': cantidad_por_despachar,
+            'POR_DESPACHAR': cantidad_por_despachar,
             'DESPACHADA': "",
             'ENTREGADA': ""
         } 
@@ -240,94 +240,145 @@ def Leer_pdf():
 
 def Guardar_Cabecera(datos):
     cursor = conexion.cursor()
-    consulta = """
-        INSERT INTO GUIAS (
-            FECHA_DE_EMISION,
-            FACTURA,
-            TELEFONO,
-            FECHA_VALIDEZ,
+    numero = datos["PEDIDO_INTERNO"].strip()
+    numero = numero.replace(" ","")
 
-            CLIENTE,
-            CLIENTE_RUC,
-            SOLICITANTE,
-            DIRECCION_1,
+    val = Validar_Cabecera(numero)
+    if val == 0:
+        consulta = """
+            INSERT INTO GUIAS (
+                FECHA_DE_EMISION,
+                FACTURA,
+                TELEFONO,
+                FECHA_VALIDEZ,
 
-            PTO_DE_PARTIDA,
-            PTO_DE_LLEGADA,
-            DIRECCION_2,
+                CLIENTE,
+                CLIENTE_RUC,
+                SOLICITANTE,
+                DIRECCION_1,
 
-            TIPO_DE_ENTREGA,
-            PEDIDO_INTERNO,
-            PED_COMPRA
-            ) VALUES (
-                %s, %s, %s , %s,
-                %s, %s, %s , %s,
-                %s, %s, %s , 
-                %s, %s, %s
-                )
-    """
-    fecha_emision = datetime.strptime(datos["FECHA_EMISIÓN"].strip(), "%d.%m.%Y")
-    fecha_emision = fecha_emision.strftime("%Y/%m/%d")
+                PTO_DE_PARTIDA,
+                PTO_DE_LLEGADA,
+                DIRECCION_2,
 
-    fecha_val = datetime.strptime(datos["FECHA_VALIDEZ"].strip(), "%d.%m.%Y")
-    fecha_val = fecha_val.strftime("%Y/%m/%d")
+                TIPO_DE_ENTREGA,
+                PEDIDO_INTERNO,
+                PED_COMPRA
+                ) VALUES (
+                    %s, %s, %s , %s,
+                    %s, %s, %s , %s,
+                    %s, %s, %s , 
+                    %s, %s, %s
+                    )
+        """
+        fecha_emision = datetime.strptime(datos["FECHA_EMISIÓN"].strip(), "%d.%m.%Y")
+        fecha_emision = fecha_emision.strftime("%Y/%m/%d")
 
+        fecha_val = datetime.strptime(datos["FECHA_VALIDEZ"].strip(), "%d.%m.%Y")
+        fecha_val = fecha_val.strftime("%Y/%m/%d")
+
+        valores = (
+                fecha_emision, 
+                datos["FACTURA"].strip(),           
+                datos["TELÉFONO"].strip(),
+                fecha_val,
+
+                datos["CLIENTE"].strip(),
+                datos["RUC"].strip(),
+                datos["SOLICITANTE"].strip(),
+                datos["DIRECCION"].strip(),
+
+                datos["PTO_DE_PARTIDA"].strip(),
+                datos["PTO_DE_LLEGADA"].strip(),
+                datos["DIRECCIÓN"].strip(),
+
+                datos["TIPO_DE_ENTREGA"].strip(),
+                numero,
+                datos["PED_COMPRA"].strip(),
+        )
+        try:
+        # Intenta ejecutar la consulta con los valores
+        
+            cursor.execute(consulta,valores)
+            # resultados = cursor.fetchall()
+            # for fila in resultados:
+            #     print(fila)
+        # Realiza la confirmación para guardar los cambios en la base de datos
+            print("Inserción exitosa")
+        except Exception as e:
+            # Captura cualquier excepción que ocurra durante la inserción
+            print("Error durante la inserción:", str(e))
+        finally:
+            # Cierra el cursor y la conexión
+            cursor.close()
+            return 1
+    else:
+        return 0
+
+def Validar_Cabecera(numero):
+    # print(numero)
+    cursor = conexion.cursor()
+    consulta = 'SELECT PEDIDO_INTERNO FROM GUIAS WHERE PEDIDO_INTERNO = %s'
+    valores = (numero,)
+    cursor.execute(consulta,valores)
+    resultados = cursor.fetchall()
+    return len(resultados)
+
+def Guadar_detalle(datos,PEDIDO):
+
+    
     valores = (
-            fecha_emision, 
-            datos["FACTURA"].strip(),           
-            datos["TELÉFONO"].strip(),
-            fecha_val,
-
-            datos["CLIENTE"].strip(),
-            datos["RUC"].strip(),
-            datos["SOLICITANTE"].strip(),
-            datos["DIRECCION"].strip(),
-
-            datos["PTO_DE_PARTIDA"].strip(),
-            datos["PTO_DE_LLEGADA"].strip(),
-            datos["DIRECCIÓN"].strip(),
-
-            datos["TIPO_DE_ENTREGA"].strip(),
-            datos["PEDIDO_INTERNO"].strip(),
-            datos["PED_COMPRA"].strip(),
-    )
+                PEDIDO,
+                datos["ORD"].strip(),           
+                datos["CODIGO"].strip(),
+                datos["DESCRIPCION"].strip(),
+                datos["UNIDAD"].strip(),
+                datos["POR_DESPACHAR"].strip(),
+                datos["DESPACHADA"].strip(),
+                datos["ENTREGADA"].strip(),
+        )
+    
+    consulta = """
+            INSERT INTO GUIAS_DETALLE (
+                PEDIDO_INTERNO,
+                ORD,
+                CODIGO,
+                DESCRIPCION,
+                UNIDAD,
+                POR_DESPACHAR,
+                DESPACHADA,
+                ENTREGADA
+                ) VALUES (
+                    %s, %s, %s , %s,
+                    %s, %s, %s , %s
+                    )
+        """
     try:
-    # Intenta ejecutar la consulta con los valores
-        cursor.execute(consulta,valores)
-        # resultados = cursor.fetchall()
-        # for fila in resultados:
-        #     print(fila)
-    # Realiza la confirmación para guardar los cambios en la base de datos
-        conexion.commit()
-        print("Inserción exitosa")
+            cursor = conexion.cursor()
+            cursor.execute(consulta,valores)
+            conexion.commit()
+            print("detalle guardado exitosa")
     except Exception as e:
-        # Captura cualquier excepción que ocurra durante la inserción
-        print("Error durante la inserción:", str(e))
+            # Captura cualquier excepción que ocurra durante la inserción
+            print("Error durante la inserción:", str(e))
+            return 0
     finally:
-        # Cierra el cursor y la conexión
-        cursor.close()
-
-
+            # Cierra el cursor y la conexión
+            cursor.close()
+            return 1
 
 
 def Guardar_Guias(array_datos):
-    # print(array_datos)
-#     cursor = conexion.cursor()
-#     consulta = "SELECT * FROM usuarios"
-#     cursor.execute(consulta)
-#     resultados = cursor.fetchall()
-#     for fila in resultados:
-#         print(fila)
-# # Cierra el cursor y la conexión
-#     cursor.close()
-#     conexion.close()
+
     for row in array_datos:
         cabecera = row[0]
         detalle =  row[1]
-        Guardar_Cabecera(cabecera)
-        # for val in row[0]: 
-        #     print(val[0]["MATRIZ"])
-
+        cab = Guardar_Cabecera(cabecera)
+        if(cab == 1):
+            pedido  =cabecera["PEDIDO_INTERNO"].strip()
+            pedido = pedido.replace(" ","")
+            Guadar_detalle(detalle,pedido)
+       
 Leer_pdf()
 
  
