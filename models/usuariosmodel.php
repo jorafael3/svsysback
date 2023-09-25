@@ -252,4 +252,41 @@ class Usuariosmodel extends Model
             exit();
         }
     }
+
+    function Validar_sesion_mobil($param)
+    {
+        try {
+            $USUARIO = $param["USUARIO"];
+            $PASS = $param["PASS"];
+            $query = $this->db->connect_dobra()->prepare('SELECT
+                Usuario,
+                password
+            FROM usuarios
+            WHERE
+                Usuario = :usuario
+                and password = :pass
+            ');
+            $query->bindParam(":usuario", $USUARIO, PDO::PARAM_STR);
+            $query->bindParam(":pass", $PASS, PDO::PARAM_STR);
+            // $query->bindParam(":submenu_ID", $SUBMENU_ID, PDO::PARAM_STR);
+            if ($query->execute()) {
+                $result = $query->fetchAll(PDO::FETCH_ASSOC);
+                if (count($result) > 0) {
+                    echo json_encode([true,$result]);
+                    exit();
+                }else{
+                    echo json_encode([false,"USUARIO INCORRECTO"]);
+                    exit();
+                }
+            } else {
+                $err = $query->errorInfo();
+                echo json_encode($err);
+                exit();
+            }
+        } catch (PDOException $e) {
+            $e = $e->getMessage();
+            echo json_encode($e);
+            exit();
+        }
+    }
 }

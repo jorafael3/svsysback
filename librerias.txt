@@ -1,1 +1,7 @@
 pip install mysql-connector-python
+npm install expo
+expo upgrade
+expo build:ios
+expo build:android
+npm install @react-native-async-storage/async-storage
+
