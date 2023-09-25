@@ -1,3 +1,4 @@
+#!/usr/bin/env python3.5
 import time
 import click
 # from numpy import can_cast
@@ -74,7 +75,7 @@ def login():
     btn.click()
     time.sleep(2)
     guardar_log("INICIANDO SESION",1)
-    Buscar_Documentos()
+    # Buscar_Documentos()
 
 def Buscar_Documentos():
     # driver.get('file:///C:/xampp/htdocs/svsysback/scrapy/dis.html')
@@ -289,7 +290,6 @@ def Leer_pdf():
         Guardar_Guias(array_datos)
     else:
         guardar_log("NO HAY ARCHIVOS EN EL DIRECTORIO",1)
-
 
 def Guardar_Cabecera(datos):
     try: 
