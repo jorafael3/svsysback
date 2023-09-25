@@ -440,5 +440,5 @@ def Guardar_Guias(array_datos):
     guardar_log("FINALIZADO DATOS "+str(cantidad_datos) ,1)
 
 # login()
-# Leer_pdf()
-Limpiar_directorio()
+Leer_pdf()
+# Limpiar_directorio()

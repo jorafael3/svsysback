@@ -23,15 +23,7 @@ class Usuarios extends Controller
         $Ventas =  $this->model->Consultar_Cliente($param1);
     }
 
-    function Cargar_Usuarios_p()
-    {
-        $json_data = file_get_contents('php://input');
-        $data = json_decode($json_data, true);
-        $param1 = $data['param1'];
-        $Ventas =  $this->model->Consultar_Cliente($param1);
-        echo json_encode($Ventas);
-        exit();
-    }
+  
 
     function Consultar_Accesos()
     {

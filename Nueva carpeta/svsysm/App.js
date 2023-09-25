@@ -1,5 +1,5 @@
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View, TouchableOpacity, TextInput, Alert } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, TextInput, Alert, ScrollView } from 'react-native';
 import React, { useState, Component, useEffect } from 'react';
 import $ from 'jquery';
 import { CameraKitCameraScreen, CameraKitCamera, CameraKitGalleryView } from 'react-native-camera-kit';
@@ -20,24 +20,51 @@ export default function App() {
   const [scannedData, setScannedData] = useState(null);
   const [isScannerVisible, setIsScannerVisible] = useState(false);
   const [isManualInputVisible, setIsManualInputVisible] = useState(false);
+  const [isFormVisible, setisFormVisible] = useState(false);
   const [data, setData] = useState(null);
 
-  const Cargar_guia = () => {
-    console.log("asdasd");
-    let url = 'usuarios/Cargar_Usuarios_p';
-    // AjaxSendReceiveData(url, "", function (x) {
-    //   console.log('x: ', x);
-    // }
-    let pedido = '505420824-020'
-    fetchData(url,pedido)
+  const [cliente, setCliente] = useState('');
+  const [ruc, setRuc] = useState('');
+  const [solicitante, setSolicitante] = useState('');
+  const [direccion, setDireccion] = useState('');
+  const [fecha_emision, setfecha_emision] = useState('');
+  const [pedido, setpedido] = useState('');
+  const [data_detalle, setdata_detalle] = useState([]);
+
+  const Cargar_guia = (pedido) => {
+    let url = 'despacho/Cargar_Guia_p';
+    pedido = pedido.trim()
+    // pedido = pedido.replace("-","");
+    if (pedido.length >= 20) {
+      pedido = pedido.slice(0, -8)
+      // Alert.alert("asdasd", JSON.stringify(pedido));
+    } else {
+      pedido = pedido.slice(0, -8)
+      // Alert.alert("asdasd", JSON.stringify(pedido));
+    }
+
+    fetchData(url, pedido)
   };
 
+  function scanner() {
+    let url = 'despacho/Cargar_Guia_p';
+    let pedido = '505420198-09001092023'
+    pedido = pedido.trim()
+    // pedido = pedido.replace("-","");
+    if (pedido.length >= 20) {
+      pedido = pedido.slice(0, -8)
+      // Alert.alert("asdasd", JSON.stringify(pedido));
+    } else {
+      pedido = pedido.slice(0, -8)
+      // Alert.alert("asdasd", JSON.stringify(pedido));
+    }
+    fetchData(url, pedido)
+  }
 
-
-  async function fetchData(url,pedido) {
+  async function fetchData(url, pedido) {
     try {
       const param = {
-        param1: pedido,
+        PEDIDO_INTERNO: pedido,
       };
       const response = await fetch(URL + url, {
         method: 'POST',
@@ -47,14 +74,37 @@ export default function App() {
         body: JSON.stringify(param),
       });
       const data = await response.json();
-      console.log(data);
-      Alert.alert("asdasd", JSON.stringify(data));
+      Llenar_Guia(data)
+      // console.log(data);
     } catch (error) {
       console.error(error);
     }
   }
 
-  function scanner() {
+  function Llenar_Guia(data) {
+    // let DATOS = JSON.stringify(data);
+    let CABECERA = data[0][0];
+    let DETALLE = data[1];
+    if (data[0].length == 0) {
+
+    } else {
+      setisFormVisible(true);
+      setfecha_emision(CABECERA["FECHA_DE_EMISION"]);
+      setpedido(CABECERA["PEDIDO_INTERNO"])
+      setdata_detalle(DETALLE)
+      // Alert.alert("asdasd", data[0][0]["ID"]);
+
+    }
+
+
+
+
+
+
+
+  }
+
+  function scanner_() {
     setIsScannerVisible(true);
     setScanned(false);
     setIsManualInputVisible(false);
@@ -70,14 +120,34 @@ export default function App() {
     setIsScannerVisible(false);
 
   }
-  // useEffect(() => {
+  useEffect(() => {
 
-  // }, []);
+  }, []);
+
+  async function Cargar_Clientes() {
+    try {
+      const param = {
+        PEDIDO_INTERNO: pedido,
+      };
+      const response = await fetch(URL + url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(param),
+      });
+      const data = await response.json();
+      Llenar_Guia(data)
+      // console.log(data);
+    } catch (error) {
+      console.error(error);
+    }
+  }
   const handleBarCodeScanned = ({ type, data }) => {
     setScanned(true);
     setScannedData({ type, data });
     setIsScannerVisible(false);
-    Cargar_guia()
+    Cargar_guia(data)
   };
 
   const toggleScanner = () => {
@@ -145,7 +215,43 @@ export default function App() {
               <Text>Codigo: {scannedData?.data}</Text>
             </View>
           )}
-          {/* Tu contenido de tabla aquí */}
+          {isFormVisible ? (
+            <View style={styles.scanResultContainer}>
+              <Text style={styles.label}>FECHA_DE EMISION:</Text>
+              <Text style={styles.text}>{fecha_emision}</Text>
+              <Text style={styles.label}>PEDIDO INTERNO:</Text>
+              <Text style={styles.text}>{pedido}</Text>
+              <ScrollView horizontal={true}>
+                <View style={styles_tabla.container}>
+                  {/* Table headers */}
+                  <View style={styles_tabla.tableRow}>
+                    <Text style={[styles_tabla.headerCell, styles_tabla.cell]}>Cliente</Text>
+                    <Text style={[styles_tabla.headerCell, styles_tabla.cell]}>RUC</Text>
+                    <Text style={[styles_tabla.headerCell, styles_tabla.cell]}>Solicitante</Text>
+                    <Text style={[styles_tabla.headerCell, styles_tabla.cell]}>Dirección</Text>
+                  </View>
+
+                  {/* Table rows */}
+                  {data_detalle.map((item, index) => (
+                    <View style={styles_tabla.tableRow} key={index}>
+                      <Text style={styles_tabla.cell}>{item.ORD}</Text>
+                      <Text style={styles_tabla.cell}>{item.CODIGO}</Text>
+                      <Text style={styles_tabla.cell}>{item.DESCRIPCION}</Text>
+                      <Text style={styles_tabla.cell}>{item.UNIDAD}</Text>
+                    </View>
+                  ))}
+                </View>
+              </ScrollView>
+            </View>
+
+          )
+            : (
+              <Text style={styles.label}></Text>
+
+            )
+          }
+
+
         </View>
       </View>
     </View>
@@ -239,4 +345,27 @@ const styles_con = StyleSheet.create({
     color: 'white',
   },
   // ... Otros estilos ...
+});
+
+const styles_tabla = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 16,
+    backgroundColor: '#fff',
+  },
+  tableRow: {
+    flexDirection: 'row',
+    borderBottomWidth: 1,
+    borderColor: '#ccc',
+    paddingVertical: 12,
+  },
+  headerCell: {
+    flex: 1,
+    fontWeight: 'bold',
+  },
+  cell: {
+    flex: 1,
+    paddingHorizontal: 8,
+    textAlign: 'center', // Alinea el contenido al centro horizontalmente
+  },
 });

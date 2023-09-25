@@ -21,4 +21,14 @@ class Despacho extends Controller
         $param1 = $_POST['param'];
         $Ventas =  $this->model->Cargar_Guia($param1);
     }
+
+    function Cargar_Guia_p()
+    {
+        $json_data = file_get_contents('php://input');
+        $data = json_decode($json_data, true);
+        // $param1 = $data['param1'];
+        $Ventas =  $this->model->Cargar_Guia($data);
+        echo json_encode($Ventas);
+        exit();
+    }
 }
