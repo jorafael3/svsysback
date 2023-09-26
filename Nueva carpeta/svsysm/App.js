@@ -46,10 +46,11 @@ export default function App() {
     fetchData(url, pedido)
   };
 
-  function scanner() {
+  function scanner_() {
     let url = 'despacho/Cargar_Guia_p';
     let pedido = '505420198-09001092023'
     pedido = pedido.trim()
+    pedido = parseInt(pedido).toString()
     // pedido = pedido.replace("-","");
     if (pedido.length >= 20) {
       pedido = pedido.slice(0, -8)
@@ -93,18 +94,11 @@ export default function App() {
       setpedido(CABECERA["PEDIDO_INTERNO"])
       setdata_detalle(DETALLE)
       // Alert.alert("asdasd", data[0][0]["ID"]);
-
     }
-
-
-
-
-
-
 
   }
 
-  function scanner_() {
+  function scanner() {
     setIsScannerVisible(true);
     setScanned(false);
     setIsManualInputVisible(false);

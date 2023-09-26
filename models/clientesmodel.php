@@ -14,7 +14,7 @@ class ClientesModel extends Model
     function Cargar_Clientes()
     {
         try {
-            $query = $this->db->connect_dobra()->prepare('SELECT * FROM
+            $query = $this->db->connect_dobra()->prepare('SELECT  ID as key1 , CLIENTE_NOMBRE as label FROM
             clientes
             ');
             // $query->bindParam(":CLIENTE_RUC", $CLI_RUC, PDO::PARAM_STR);

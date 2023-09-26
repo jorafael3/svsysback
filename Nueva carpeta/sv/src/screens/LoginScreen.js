@@ -44,31 +44,29 @@ export default function LoginScreen({ navigation }) {
       USUARIO: (email.value).toUpperCase(),
       PASS: password.value,
     };
-    fetchData(url, param, function (x) {
-      // Alert.alert("sesion inciada", JSON.stringify(x));
-      if (x[0] == true) {
-        let usu = x[1][0]["Usuario"]
-        const sesion = {
-          usuario: usu,
-        };
-        const datos_sesion = ["datos_usuario", JSON.stringify(sesion)];
-        saveData(datos_sesion)
-
-        // Alert.alert("sesion inciada", usu);
-        // let u = getMultipleData();
-
-        // Alert.alert("asd", u)
-
-        navigation.reset({
-          index: 0,
-          routes: [{ name: 'Dashboard' }],
-        })
-      } else {
-        Alert.alert("Error de inicio de secion", x[1]);
-      }
+    navigation.reset({
+      index: 0,
+      routes: [{ name: 'Dashboard' }],
     })
+    // fetchData(url, param, function (x) {
+    //   // Alert.alert("sesion inciada", JSON.stringify(x));
+    //   if (x[0] == true) {
+    //     let usu = x[1][0]["Usuario"]
+    //     const sesion = {
+    //       usuario: usu,
+    //     };
+    //     const datos_sesion = ["datos_usuario", JSON.stringify(sesion)];
+    //     saveData(datos_sesion)
+    //     navigation.reset({
+    //       index: 0,
+    //       routes: [{ name: 'Dashboard' }],
+    //     })
+    //   } else {
+    //     Alert.alert("Error de inicio de secion", x[1]);
+    //   }
+    // })
   }
- 
+
 
   // const getData = async (key) => {
   //   try {

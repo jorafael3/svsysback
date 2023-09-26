@@ -18,6 +18,12 @@ class Clientes extends Controller
         $param1 = $_POST['param'];
         $Ventas =  $this->model->Cargar_Clientes();
     }
+    function Cargar_Clientes_m()
+    {
+        $json_data = file_get_contents('php://input');
+        $data = json_decode($json_data, true);
+        $Ventas =  $this->model->Cargar_Clientes();
+    }
 
     function Nuevo_Cliente()
     {
