@@ -24,13 +24,19 @@ function MyComponent() {
         data={CLIENTES}
         initValue="Select an option"
         onChange={(option) => {
-          
+
           // Handle the selected option here
         }}
       />
     </View>
   );
 }
+const data = [
+  { id: 1, name: 'John', age: 28, gender: 'Male' },
+  { id: 2, name: 'Jane', age: 22, gender: 'Female' },
+  { id: 3, name: 'Tom', age: 35, gender: 'Male' },
+  { id: 4, name: 'Lucy', age: 23, gender: 'Female' }
+];
 export default function Dashboard({ navigation }) {
   const [selectedOption, setSelectedOption] = useState("");
   const [datos_usuario, setdatos_usuario] = useState([]);
@@ -52,11 +58,11 @@ export default function Dashboard({ navigation }) {
       const savedData = await AsyncStorage.multiGet(["datos_usuario"]);
       setdatos_usuario(savedData[0])
       SESION = savedData[0][1]
-      
+
 
       // Alert.alert("sesion inciada", JSON.stringify(savedData));
     } catch (error) {
-      
+
     }
   };
 
@@ -98,10 +104,10 @@ export default function Dashboard({ navigation }) {
     const param = {
       PEDIDO_INTERNO: pedido,
     };
-    
+
 
     fetchData(url, param, function (x) {
-      
+
       Llenar_Guia(x)
     });
 
@@ -138,7 +144,7 @@ export default function Dashboard({ navigation }) {
   //********** CLIENTES */
   const handleOptionChange = (value) => {
     console.log('value: ', value.key);
-    
+
     setSelectedOption(value);
   };
 
@@ -146,12 +152,12 @@ export default function Dashboard({ navigation }) {
     let url = "clientes/Cargar_Clientes_m"
 
     fetchData(url, [], function (x) {
-      
+
       let t = [];
-      x.map(function(x){
+      x.map(function (x) {
         let b = {
-          key:x.key1,
-          label:x.label
+          key: x.key1,
+          label: x.label
         }
         t.push(b)
       })
@@ -160,6 +166,10 @@ export default function Dashboard({ navigation }) {
     })
   }
 
+  const handleRowClick = (rowData) => {
+    // Aquí puedes llamar a la función con los datos de la fila
+    console.log('Datos de la fila:', rowData);
+  };
   return (
 
     <View style={styles.container}>
@@ -235,13 +245,42 @@ export default function Dashboard({ navigation }) {
                   ))}
                 </View>
               </ScrollView>
+              <View style={styles.container}>
+                {/* Encabezado de la tabla */}
+                <View style={styles.tableRow}>
+                  <Text style={styles.headerCell}>ID</Text>
+                  <Text style={styles.headerCell}>Nombre</Text>
+                  <Text style={styles.headerCell}>Edad</Text>
+                  <Text style={styles.headerCell}>Género</Text>
+                </View>
+
+                {/* Datos de la tabla */}
+                <FlatList
+                  data={data}
+                  keyExtractor={(item) => item.id.toString()}
+                  renderItem={({ item }) => (
+                    <View style={styles.tableRow}>
+                      <Text style={styles.cell}>{item.id}</Text>
+                      <Text style={styles.cell}>{item.name}</Text>
+                      <Text style={styles.cell}>{item.age}</Text>
+                      <Text style={styles.cell}>{item.gender}</Text>
+                      <TouchableOpacity
+                        onPress={() => handleRowClick(item)}
+                        style={styles.button}
+                      >
+                        <Text style={styles.buttonText}>Ver Detalles</Text>
+                      </TouchableOpacity>
+                    </View>
+                  )}
+                />
+              </View>
               <View>
                 <Text>Seleccione un cliente</Text>
                 <ModalSelector
                   data={datos_clientes}
                   initValue="Seleccione"
                   onChange={(option) => {
-                    
+
                     handleOptionChange(option);
                     // Handle the selected option here
                   }}
