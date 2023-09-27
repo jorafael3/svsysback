@@ -8,8 +8,6 @@ import Button from '../components/Button'
 import TextInput from '../components/TextInput'
 import BackButton from '../components/BackButton'
 import { theme } from '../core/theme'
-import { emailValidator } from '../helpers/emailValidator'
-import { passwordValidator } from '../helpers/passwordValidator'
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import fetchData from "../config/config"
@@ -44,10 +42,10 @@ export default function LoginScreen({ navigation }) {
       USUARIO: (email.value).toUpperCase(),
       PASS: password.value,
     };
-    // navigation.reset({
-    //   index: 0,
-    //   routes: [{ name: 'Dashboard' }],
-    // })
+    navigation.reset({
+      index: 0,
+      routes: [{ name: 'Dashboard' }],
+    })
     const sesion = {
       usuario: email.value,
       acceso:1,

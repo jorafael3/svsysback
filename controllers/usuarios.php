@@ -43,7 +43,7 @@ class Usuarios extends Controller
         $json_data = file_get_contents('php://input');
         $data = json_decode($json_data, true);
         // $param1 = $data['param1'];
-        $Ventas =  $this->model->Validar_sesion_mobil($data);
+        $Ventas =  $this->model->Validar_Usuario_movil($data);
        
     }
 }

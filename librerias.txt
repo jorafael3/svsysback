@@ -4,4 +4,6 @@ expo upgrade
 expo build:ios
 expo build:android
 npm install @react-native-async-storage/async-storage
+https://docs.expo.dev/build/setup/
+npx create-expo-app svsysapp
 

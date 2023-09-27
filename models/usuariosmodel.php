@@ -253,18 +253,20 @@ class Usuariosmodel extends Model
         }
     }
 
-    function Validar_sesion_mobil($param)
+    function Validar_Usuario_movil($param)
     {
         try {
             $USUARIO = $param["USUARIO"];
             $PASS = $param["PASS"];
             $query = $this->db->connect_dobra()->prepare('SELECT
                 Usuario,
-                password
+                password,
+                Usuario_ID
             FROM usuarios
             WHERE
                 Usuario = :usuario
                 and password = :pass
+                and Estado = 1
             ');
             $query->bindParam(":usuario", $USUARIO, PDO::PARAM_STR);
             $query->bindParam(":pass", $PASS, PDO::PARAM_STR);
