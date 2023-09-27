@@ -130,34 +130,34 @@ export default function Dashboard({ navigation }) {
 
   function Cargar_Clientes() {
     let url = "clientes/Cargar_Clientes_m"
-    let t = [];
-    let b = {
-      key: 17,
-      label: "CLIENTE 1"
-    }
-    t.push(b)
-    setdatos_clientes(t)
-    // fetchData(url, [], function (x) {
-    //   console.log('x: ', x);
+    // let t = [];
+    // let b = {
+    //   key: 17,
+    //   label: "CLIENTE 1"
+    // }
+    // t.push(b)
+    // setdatos_clientes(t)
+    fetchData(url, [], function (x) {
+      console.log('x: ', x);
 
-    //   if (x.length == 0) {
+      if (x.length == 0) {
        
 
-    //   } else {
+      } else {
 
-    //     let t = [];
-    //     x.map(function (x) {
-    //       let b = {
-    //         key: x.key1,
-    //         label: x.label
-    //       }
-    //       t.push(b)
-    //     })
-    //     setdatos_clientes(t)
-    //   }
+        let t = [];
+        x.map(function (x) {
+          let b = {
+            key: x.key1,
+            label: x.label
+          }
+          t.push(b)
+        })
+        setdatos_clientes(t)
+      }
 
-    //   // CLIENTES = x
-    // })
+      // CLIENTES = x
+    })
   }
 
   const handleRowClick = (rowData) => {
