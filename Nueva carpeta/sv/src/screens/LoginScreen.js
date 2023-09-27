@@ -48,6 +48,13 @@ export default function LoginScreen({ navigation }) {
       index: 0,
       routes: [{ name: 'Dashboard' }],
     })
+    const sesion = {
+      usuario: email.value,
+      acceso:1,
+      placa:"GHS-1233"
+    };
+    const datos_sesion = ["datos_usuario", JSON.stringify(sesion)];
+    saveData(datos_sesion)
     // fetchData(url, param, function (x) {
     //   // Alert.alert("sesion inciada", JSON.stringify(x));
     //   if (x[0] == true) {

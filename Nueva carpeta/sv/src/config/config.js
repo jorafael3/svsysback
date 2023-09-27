@@ -1,10 +1,10 @@
 import React from 'react'
 
 
-// const host = "192.168.0.122";
-const host = "10.5.0.238";
+const host = "192.168.0.122";
+// const host = "10.5.0.238";
 const protocol = "http:";
-const port = ":8080";
+const port = ":80";
 const URL = protocol + "//" + host + port + "/svsysback/"
 
 async function fetchData(url, param,callback) {
