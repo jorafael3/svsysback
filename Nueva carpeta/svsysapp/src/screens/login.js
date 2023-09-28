@@ -17,25 +17,25 @@ export default function LoginScreen({ navigation }) {
             PASS: password,
         };
         console.log('param: ', param);
-        // navigation.navigate('Guias', { username: 'jorge.' });
+        navigation.navigate('Guias', { Usuario: 'jorge', Usuario_ID: 1, Acceso: 1 });
 
-        fetchData(url, param, function (x) {
-            console.log('x: ', x);
-            // Alert.alert("sesion inciada", JSON.stringify(x));
-            if (x[0] == true) {
-                let datos = x[1][0]
-                let datos_sesion = {
-                    Usuario: datos["Usuario"],
-                    Usuario_ID: datos["Usuario_ID"],
-                    Acceso: 1
-                }
-                console.log('datos_sesion: ', datos_sesion);
+        // fetchData(url, param, function (x) {
+        //     console.log('x: ', x);
+        //     // Alert.alert("sesion inciada", JSON.stringify(x));
+        //     if (x[0] == true) {
+        //         let datos = x[1][0]
+        //         let datos_sesion = {
+        //             Usuario: datos["Usuario"],
+        //             Usuario_ID: datos["Usuario_ID"],
+        //             Acceso: 1
+        //         }
+        //         console.log('datos_sesion: ', datos_sesion);
 
-                // navigation.navigate('Guias', datos_sesion);
-            } else {
-                Alert.alert("Error de inicio de secion", x[1]);
-            }
-        })
+        //         // navigation.navigate('Guias', datos_sesion);
+        //     } else {
+        //         Alert.alert("Error de inicio de secion", x[1]);
+        //     }
+        // })
     }
 
     return (
