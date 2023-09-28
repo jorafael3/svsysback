@@ -4,7 +4,10 @@ import { BarCodeScanner } from 'expo-barcode-scanner';
 import fetchData from "../config/config"
 import { DataTable } from 'react-native-paper';
 import ModalSelector from 'react-native-modal-selector';
+import Menu from './Menu'
+import { createStackNavigator } from '@react-navigation/stack';
 
+const Stack = createStackNavigator();
 
 export default function Guias({ route, navigation }) {
     const [usuario, setusuario] = useState('');
@@ -29,14 +32,14 @@ export default function Guias({ route, navigation }) {
 
     //********** CLIENTES ******/
     const handleOptionChange = (value) => {
-        // console.log('value: ', value.key);
+        // 
         setSelectedOption(value);
     };
 
     function Cargar_Clientes() {
         let url = "clientes/Cargar_Clientes_m"
         fetchData(url, [], function (x) {
-            console.log('x: ', x);
+
             if (x.length == 0) {
 
 
@@ -120,12 +123,13 @@ export default function Guias({ route, navigation }) {
         const param = {
             PEDIDO_INTERNO: pedido,
         };
+        setisFormVisible(true);
+
         fetchData(url, param, function (x) {
-            console.log('x: ', x);
+
             let val = x[2];
-            console.log('datos: ', val);
+
             if (val == 1) {
-                console.log('datos: ', datos);
                 Llenar_Guia(x)
             } else {
                 Alert.alert("", x[0].toString())
@@ -170,7 +174,7 @@ export default function Guias({ route, navigation }) {
                 PEDIDO: pedido,
                 CLIENTE: selectedOption.key
             }
-            console.log('param: ', param);
+
             Alert.alert("", "Datos Guardados");
             RESET();
 
@@ -179,6 +183,7 @@ export default function Guias({ route, navigation }) {
     }
 
     return (
+
         <View style={styles.container}>
             {/* Barra superior con nombre de usuario y botón de salida */}
             <View style={styles.header}>
@@ -187,6 +192,10 @@ export default function Guias({ route, navigation }) {
                     <Text style={styles.logoutButton}>Salir</Text>
                 </TouchableOpacity>
             </View>
+            {/* <Stack.Navigator>
+                <Stack.Screen name="Menu" component={Menu} />
+            </Stack.Navigator> */}
+
             <View style={styles.card}>
                 <View style={styles.buttonContainer}>
                     <TouchableOpacity onPress={scanner} style={styles.button}>
