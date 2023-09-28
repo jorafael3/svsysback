@@ -39,6 +39,12 @@ conexion = mysql.connector.connect(
     password="",
     database="svsys"
     )
+# conexion = mysql.connector.connect(
+#     host="10.5.1.245",
+#     user="root",
+#     password="Bruno2001",
+#     database="svsys"
+#     )
 
 # print(path+"\pdf")
 
@@ -75,7 +81,7 @@ def login():
     btn.click()
     time.sleep(2)
     guardar_log("INICIANDO SESION",1)
-    # Buscar_Documentos()
+    Buscar_Documentos()
 
 def Buscar_Documentos():
     # driver.get('file:///C:/xampp/htdocs/svsysback/scrapy/dis.html')
@@ -93,7 +99,7 @@ def Buscar_Documentos():
     try:
         desde = driver.find_element(By.XPATH, '//*[@id="inputfdesde"]')
         desde.clear()
-        desde.send_keys("14/09/2023")
+        desde.send_keys("01/09/2023")
         guardar_log("FECHA CAMBIADA",1)
     except:
         pass
@@ -300,7 +306,7 @@ def Guardar_Cabecera(datos):
         val = Validar_Cabecera(numero)
         if val == 0:
             consulta = """
-                INSERT INTO GUIAS (
+                INSERT INTO guias (
                     FECHA_DE_EMISION,
                     FACTURA,
                     TELEFONO,
@@ -442,3 +448,11 @@ def Guardar_Guias(array_datos):
 # login()
 Leer_pdf()
 # Limpiar_directorio()
+# def p():
+#     c = 'SELECT * FROM guias'
+#     cursor = conexion.cursor()
+#     cursor.execute(c)
+#     resultados = cursor.fetchall()
+#     for fila in resultados:
+#         print(fila)
+# p()

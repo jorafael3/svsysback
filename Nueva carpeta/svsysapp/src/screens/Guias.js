@@ -1,37 +1,181 @@
-import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Alert, ScrollView } from 'react-native';
 import React, { useState, Component, useEffect } from 'react';
+import { BarCodeScanner } from 'expo-barcode-scanner';
 import fetchData from "../config/config"
+import { DataTable } from 'react-native-paper';
+import ModalSelector from 'react-native-modal-selector';
 
 
 export default function Guias({ route, navigation }) {
     const [usuario, setusuario] = useState('');
     const [usuarioid, setusuarioid] = useState('');
 
-    const handleLogout = () => {
+    //***SCANNER */
+    const [isScannerVisible, setIsScannerVisible] = useState(false);
+    const [scanned, setScanned] = useState(false);
+    const [scannedData, setScannedData] = useState(null);
+    const [hasPermission, setHasPermission] = useState(null);
 
-        // Agrega la lógica para cerrar sesión aquí y navegar de regreso a la pantalla de inicio de sesión.
+    //******* DATOS TABLA */
+    const [isFormVisible, setisFormVisible] = useState(false);
+    const [fecha_emision, setfecha_emision] = useState('');
+    const [pedido, setpedido] = useState('');
+    const [data_detalle, setdata_detalle] = useState([]);
+
+    //********** CLIENTES *******/
+    const [datos_clientes, setdatos_clientes] = useState([]);
+    const [selectedOption, setSelectedOption] = useState("");
+
+
+    //********** CLIENTES ******/
+    const handleOptionChange = (value) => {
+        // console.log('value: ', value.key);
+        setSelectedOption(value);
     };
+
+    function Cargar_Clientes() {
+        let url = "clientes/Cargar_Clientes_m"
+        fetchData(url, [], function (x) {
+            console.log('x: ', x);
+            if (x.length == 0) {
+
+
+            } else {
+                let t = [];
+                x.map(function (x) {
+                    let b = {
+                        key: x.key1,
+                        label: x.label
+                    }
+                    t.push(b)
+                })
+                setdatos_clientes(t)
+            }
+        })
+    }
+
 
     useEffect(() => {
         const datos_sesion = route.params;
         setusuario(datos_sesion["Usuario"]);
         setusuarioid(datos_sesion["Usuario_ID"]);
+        Cargar_Clientes()
     }, []);
 
+    const handleLogout = () => {
+        // Agrega la lógica para cerrar sesión aquí y navegar de regreso a la pantalla de inicio de sesión.
+    };
+
+    //************************************* */
+    //******* SCANNER */
+    const toggleScanner = () => {
+        RESET(false);
+        setIsScannerVisible(!isScannerVisible); // Toggle the visibility of the scanner
+    };
+
+    //! INICIA SCANNER
     function scanner() {
-        // setIsScannerVisible(true);
-        // setScanned(false);
+        setIsScannerVisible(true);
+        setScanned(false);
+        setSelectedOption("")
+        setpedido("")
         // setIsManualInputVisible(false);
-        // setisFormVisible(false);
-        // (async () => {
-        //     const { status } = await BarCodeScanner.requestPermissionsAsync();
-        //     setHasPermission(status === 'granted');
-        // })();
+        setisFormVisible(false);
+        (async () => {
+            const { status } = await BarCodeScanner.requestPermissionsAsync();
+            setHasPermission(status === 'granted');
+        })();
     }
+    //*** CUANDO ESCANEA CODIGO */
+    const handleBarCodeScanned = ({ type, data }) => {
+        setScanned(true);
+        setScannedData({ type, data });
+        setIsScannerVisible(false);
+        // Alert.alert("type", data)
+        Cargar_guia(data)
+    };
+
+    function RESET(scanner) {
+        setIsScannerVisible(scanner);
+        setScanned(false);
+        setSelectedOption("")
+        setpedido("")
+        // setIsManualInputVisible(false);
+        setisFormVisible(false);
+    }
+
+    //************************************** */
+    //*********** GUIAS */
+    const Cargar_guia = (pedido) => {
+        let url = 'despacho/Cargar_Guia_p';
+        pedido = pedido.trim()
+        if (pedido.length >= 20) {
+            pedido = pedido.slice(0, -8)
+        } else {
+            pedido = pedido.slice(0, -8)
+        }
+        // fetchData(url, pedido)
+        pedido = parseInt(pedido).toString()
+
+        const param = {
+            PEDIDO_INTERNO: pedido,
+        };
+        fetchData(url, param, function (x) {
+            console.log('x: ', x);
+            let val = x[2];
+            console.log('datos: ', val);
+            if (val == 1) {
+                console.log('datos: ', datos);
+                Llenar_Guia(x)
+            } else {
+                Alert.alert("", x[0].toString())
+            }
+        });
+
+    };
+
+    function Llenar_Guia(data) {
+        // let DATOS = JSON.stringify(data);
+        let CABECERA = data[0][0];
+        let DETALLE = data[1];
+        if (CABECERA.length == 0) {
+            Alert.alert("", "Guia no encontrada, verifique el numero, o vuelva a escanear");
+        } else {
+            setisFormVisible(true);
+            setfecha_emision(CABECERA["FECHA_DE_EMISION"]);
+            setpedido(CABECERA["PEDIDO_INTERNO"])
+            setdata_detalle(DETALLE)
+            // Alert.alert("asdasd", data[0][0]["ID"]);
+        }
+
+    }
+
 
     function manual() {
         // setIsManualInputVisible(true);
         // setIsScannerVisible(false);
+    }
+
+
+    //**********************/******** */ */
+    //*****  GUARDAR DATOS*/
+    function Guardar_datos_guia() {
+        let cliente = selectedOption.key;
+        if (cliente == "" || cliente == undefined) {
+            Alert.alert("", "Debe seleccionar un cliente");
+        } else {
+            let param = {
+                USUARIO: usuario,
+                USUARIO_ID: usuarioid,
+                PEDIDO: pedido,
+                CLIENTE: selectedOption.key
+            }
+            console.log('param: ', param);
+            Alert.alert("", "Datos Guardados");
+            RESET();
+
+        }
+
     }
 
     return (
@@ -52,6 +196,68 @@ export default function Guias({ route, navigation }) {
                         <Text style={styles.buttonText}>Ingreso Manual</Text>
                     </TouchableOpacity>
                 </View>
+                {isScannerVisible ? (
+                    <View style={styles.cameraContainer}>
+                        <BarCodeScanner
+                            onBarCodeScanned={scanned ? undefined : handleBarCodeScanned}
+                            style={styles.camera}
+                        />
+                    </View>
+                ) : (
+                    <TouchableOpacity onPress={toggleScanner} style={styles.toggleButton}>
+                        <Text></Text>
+                    </TouchableOpacity>
+                )}
+                {scanned && (
+                    <View style={styles.scanResultContainer}>
+                        <Text>Código Escaneado: {scannedData?.data}</Text>
+                    </View>
+                )}
+                {isFormVisible && (
+                    <View style={styles.formContainer}>
+                        <Text style={styles.label}>Fecha de Emisión:</Text>
+                        <Text style={styles.text}>{fecha_emision}</Text>
+                        <Text style={styles.label}>Pedido Interno:</Text>
+                        <Text style={styles.text}>{pedido}</Text>
+                        <ScrollView horizontal={true}>
+                            <DataTable>
+                                <DataTable.Header>
+                                    <DataTable.Title style={styles.columnHeader}>ORD</DataTable.Title>
+                                    <DataTable.Title style={styles.columnHeader} numeric>CÓDIGO</DataTable.Title>
+                                    <DataTable.Title style={styles.columnHeader} numeric>DESCRIPCIÓN</DataTable.Title>
+                                    <DataTable.Title style={styles.columnHeader} numeric>UNIDAD</DataTable.Title>
+                                    <DataTable.Title style={styles.columnHeader} numeric>POR DESPACHAR</DataTable.Title>
+                                </DataTable.Header>
+                                {data_detalle.map((item, index) => (
+                                    <DataTable.Row key={index}>
+                                        <DataTable.Cell style={styles.cell}>{item.ORD}</DataTable.Cell>
+                                        <DataTable.Cell style={styles.cell} numeric>{item.CODIGO}</DataTable.Cell>
+                                        <DataTable.Cell style={styles.cell} numeric>{item.DESCRIPCION}</DataTable.Cell>
+                                        <DataTable.Cell style={styles.cell} numeric>{item.UNIDAD}</DataTable.Cell>
+                                        <DataTable.Cell style={styles.cell} numeric>{item.POR_DESPACHAR}</DataTable.Cell>
+                                    </DataTable.Row>
+                                ))}
+                            </DataTable>
+                        </ScrollView>
+                        <View style={styles.clientSelector}>
+                            <Text>Seleccione un cliente</Text>
+                            <ModalSelector
+                                // keyExtractor={(item) => item.key}
+                                data={datos_clientes}
+                                initValue="Seleccione"
+                                onChange={(option) => {
+                                    handleOptionChange(option);
+                                    // Handle the selected option here
+                                }}
+                            />
+                        </View>
+                        <View style={styles.footer}>
+                            <TouchableOpacity onPress={Guardar_datos_guia} style={styles.guardarButton}>
+                                <Text style={styles.guardarButtonText}>Guardar datos</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                )}
             </View>
         </View>
     )

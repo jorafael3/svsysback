@@ -21,21 +21,21 @@ class DespachoModel extends Model
             if ($query->execute()) {
                 $result = $query->fetchAll(PDO::FETCH_ASSOC);
                 $DET = $this->Cargar_Guia_detalle($param);
-                echo json_encode([$result,$DET]);
+                echo json_encode([$result, $DET, 1]);
                 exit();
             } else {
                 $err = $query->errorInfo();
-                echo json_encode($err);
+                echo json_encode([$err, 0, 0]);
                 exit();
             }
         } catch (PDOException $e) {
             $e = $e->getMessage();
-            echo json_encode($e);
+            echo json_encode([$e, 0, 0]);
             exit();
         }
     }
 
-    
+
     function Cargar_Guia_detalle($param)
     {
         try {
@@ -56,6 +56,4 @@ class DespachoModel extends Model
             exit();
         }
     }
-
-
 }
