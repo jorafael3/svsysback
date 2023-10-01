@@ -3,16 +3,18 @@
 header("Access-Control-Allow-Origin: *");
 
 // Permitir los métodos HTTP que deseas utilizar (GET, POST, etc.)
-// header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
+header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
 
 // Permitir ciertos encabezados personalizados, si es necesario
-// header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
+header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
 
-function Guardar_datos()
+function prueba_datos()
 {
     $data = json_decode(file_get_contents('php://input'), true);
     $respuesta = array('mensaje' => 'Hola desde PHP');
-    echo json_encode($respuesta);
-    // exit();
+    // $param1 = $_POST['param'];
+    $param2 = isset($_GET['param1']) == true ? $_GET['param1'] : false;
+    echo json_encode([$respuesta,$data,$param2]);
+    exit();
 }
-// Guardar_datos();
+prueba_datos();

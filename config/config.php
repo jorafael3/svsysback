@@ -7,9 +7,9 @@ if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') {
   } else {
     $http = "http://";
   }
-define('URL',$http.$u.'/SGO/Cartimex/bandejadocumentos/');// ip local:puerto
+define('URL',$http.$u.'/svsysback/');// ip local:puerto
 
-define('HOST', '10.5.1.245');
+define('HOST', 'tcp:10.5.1.245');
 define('DB', 'svsys');
 define('USER', 'root');
 define('PASSWORD', 'Bruno2001');

@@ -1,17 +1,21 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
-import fetchData from "../config/config"
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ScrollView } from 'react-native';
+import * as fetchData from "../config/config"
 
 export default function LoginScreen({ navigation }) {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
+    const [valor1, setvalor1] = useState('');
+    const [valor2, setvalor2] = useState('');
+    const [valor3, setvalor3] = useState('');
 
     const handleLogin = () => {
         Validar_usuario()
     };
 
     function Validar_usuario() {
-        let url = "usuarios/Validar_Usuario_movil"
+        // let url = "usuarios/Validar_Usuario_movil"
+        let url = "prueba.php"
         const param = {
             USUARIO: username.toUpperCase(),
             PASS: password,
@@ -19,9 +23,11 @@ export default function LoginScreen({ navigation }) {
         // 
         // navigation.navigate('Guias', { Usuario: 'jorge', Usuario_ID: 1, Acceso: 1 });
 
-        fetchData(url, param, function (x) {
-            
-            Alert.alert("sesion inciadaa", JSON.stringify(x));
+        fetchData.fetchData(url, param, function (x) {
+
+            // Alert.alert("sesion inciadaa", JSON.stringify(x));
+            console.log('JSON.stringify(x): ', JSON.stringify(x));
+            setvalor1(JSON.stringify(x))
             // if (x[0] == true) {
             //     let datos = x[1][0]
             //     let datos_sesion = {
@@ -35,10 +41,27 @@ export default function LoginScreen({ navigation }) {
             //     Alert.alert("Error de inicio de sesion", x[1]);
             // }
         })
+
+        fetchData.fetchData2(url, param, function (x) {
+
+            // Alert.alert("sesion inciadaa", JSON.stringify(x));
+            console.log('JSON.stringify(x): ', JSON.stringify(x));
+            setvalor2(JSON.stringify(x))
+        })
+        let url2 = 'prueba.php?param1=jorgealav'
+
+        fetchData.fetchData3(url2, function (x) {
+
+            // Alert.alert("sesion inciadaa", JSON.stringify(x));
+            console.log('JSON.stringify(x): ', JSON.stringify(x));
+            setvalor3(JSON.stringify(x))
+        })
     }
 
     return (
+
         <View style={styles.container}>
+
             <Text style={styles.title}>Iniciar Sesión</Text>
             <TextInput
                 style={styles.input}
@@ -54,7 +77,43 @@ export default function LoginScreen({ navigation }) {
             <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
                 <Text style={styles.loginButtonText}>Iniciar Sesión</Text>
             </TouchableOpacity>
-        </View>
+            <ScrollView
+                style={styles.textArea}
+                scrollEnabled={true}
+            >
+                <TextInput
+                    placeholder="Text Area 1"
+                    multiline={true}
+                    onChangeText={(text) => setTextArea1(text)}
+                    value={valor1}
+                    numberOfLines={5}
+                />
+            </ScrollView>
+            <ScrollView
+                style={styles.textArea}
+                scrollEnabled={true}
+            >
+                <TextInput
+                    placeholder="Text Area 2"
+                    multiline={true}
+                    onChangeText={(text) => setTextArea2(text)}
+                    value={valor2}
+                    numberOfLines={5}
+                />
+            </ScrollView>
+            <ScrollView
+                style={styles.textArea}
+                scrollEnabled={true}
+            >
+                <TextInput
+                    placeholder="Text Area 2"
+                    multiline={true}
+                    onChangeText={(text) => setTextArea2(text)}
+                    value={valor3}
+                    numberOfLines={5}
+                />
+            </ScrollView>
+        </View >
     );
 }
 
