@@ -3,9 +3,9 @@ import { Alert } from 'react-native';
 import axios from 'axios';
 
 // const host = "10.5.0.238";
-const host = "186.3.23.4";
+const host = "cartimex.com";
 const protocol = "http:";
-const port = ":82";
+const port = "";
 const URL = protocol + "//" + host + port + "/svsysback/"
 
 // async function fetchData(url, param, callback) {
