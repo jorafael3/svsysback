@@ -4,7 +4,7 @@ import axios from 'axios';
 
 // const host = "10.5.0.238";
 const host = "cartimex.com";
-const protocol = "http:";
+const protocol = "https:";
 const port = "";
 const URL = protocol + "//" + host + port + "/svsysback/"
 
