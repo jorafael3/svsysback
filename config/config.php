@@ -9,15 +9,15 @@ if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') {
   }
 define('URL',$http.$u.'/SGO/Cartimex/bandejadocumentos/');// ip local:puerto
 
-define('HOST', '10.5.1.245');
-define('DB', 'svsys');
-define('USER', 'root');
-define('PASSWORD', 'Bruno2001');
-define('CHARSET', 'utf8mb4');
-
-
-// define('HOST', '127.0.0.1');
+// define('HOST', '10.5.1.245');
 // define('DB', 'svsys');
 // define('USER', 'root');
-// define('PASSWORD', '');
+// define('PASSWORD', 'Bruno2001');
 // define('CHARSET', 'utf8mb4');
+
+
+define('HOST', '127.0.0.1');
+define('DB', 'svsys');
+define('USER', 'root');
+define('PASSWORD', '');
+define('CHARSET', 'utf8mb4');

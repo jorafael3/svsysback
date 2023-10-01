@@ -21,7 +21,7 @@ export default function LoginScreen({ navigation }) {
 
         fetchData(url, param, function (x) {
             
-            Alert.alert("sesion inciada", JSON.stringify(x));
+            Alert.alert("sesion inciadaa", JSON.stringify(x));
             // if (x[0] == true) {
             //     let datos = x[1][0]
             //     let datos_sesion = {

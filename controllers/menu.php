@@ -20,7 +20,5 @@ class Menu extends Controller
     {
         $param1 = $_POST['param'];
         $Ventas =  $this->model->Cargar_Menu($param1);
-
-      
     }
 }
