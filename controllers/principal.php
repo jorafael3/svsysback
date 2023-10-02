@@ -15,10 +15,10 @@ class Principal extends Controller
         //$this->view->render('principal/index');
         //echo "nuevo controlaodr";
     }
-    // function render()
-    // {
-    //     $this->view->render('principal/nuevo');
-    // }
+    function render()
+    {
+        // $this->view->render('principal/nuevo');
+    }
     function Guardar_datos()
     {
         // $array = json_decode(file_get_contents("php://input"), true);

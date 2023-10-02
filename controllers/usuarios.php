@@ -23,7 +23,7 @@ class Usuarios extends Controller
         $Ventas =  $this->model->Consultar_Cliente($param1);
     }
 
-  
+
 
     function Consultar_Accesos()
     {
@@ -40,10 +40,24 @@ class Usuarios extends Controller
 
     function Validar_Usuario_movil()
     {
-        $json_data = file_get_contents('php://input');
-        $data = json_decode($json_data, true);
-        // $param1 = $data['param1'];
-        $Ventas =  $this->model->Validar_Usuario_movil($data);
-       
+        try {
+            $json_data = file_get_contents('php://input');
+            $data = json_decode($json_data, true);
+
+            if (isset($json_data)) {
+               
+                if ($data["TOKEN"] == constant("TOKEN_MOVIL")) {
+                    // $param1 = $data['param1'];
+                    $funcion =  $this->model->Validar_Usuario_movil($data);
+                  
+                } else {
+                    die();
+                }
+            } else {
+                die();
+            }
+        } catch (Exception $e) {
+            die();
+        }
     }
 }

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ScrollView } from 'react-native';
-import * as fetchData from "../config/config"
+import fetchData from "../config/config"
 
 export default function LoginScreen({ navigation }) {
     const [username, setUsername] = useState('');
@@ -14,48 +14,50 @@ export default function LoginScreen({ navigation }) {
     };
 
     function Validar_usuario() {
-        // let url = "usuarios/Validar_Usuario_movil"
-        let url = "prueba.php"
+        let url = "usuarios/Validar_Usuario_movil"
+        // let url = "prueba.php"
         const param = {
             USUARIO: username.toUpperCase(),
             PASS: password,
         };
         // 
-        // navigation.navigate('Guias', { Usuario: 'jorge', Usuario_ID: 1, Acceso: 1 });
+        navigation.navigate('Guias', { Usuario: 'jorge', Usuario_ID: 1, Acceso: 1, PLACA: "GSA-115" });
 
-        fetchData.fetchData(url, param, function (x) {
+        fetchData(url, param, function (x) {
+            console.log('x: ', x[0]);
 
             // Alert.alert("sesion inciadaa", JSON.stringify(x));
-            console.log('JSON.stringify(x): ', JSON.stringify(x));
-            setvalor1(JSON.stringify(x))
+            // console.log('JSON.stringify(x): ', JSON.stringify(x));
+            // setvalor1(JSON.stringify(x))
             // if (x[0] == true) {
             //     let datos = x[1][0]
             //     let datos_sesion = {
             //         Usuario: datos["Usuario"],
             //         Usuario_ID: datos["Usuario_ID"],
-            //         Acceso: 1
+            //         Acceso: 1,
+            //         PLACA: "GSA-115"
             //     }
             //     // 
-            //     // navigation.navigate('Guias', datos_sesion);
+            //     navigation.navigate('Guias', datos_sesion);
             // } else {
             //     Alert.alert("Error de inicio de sesion", x[1]);
             // }
         })
 
-        fetchData.fetchData2(url, param, function (x) {
+        // fetchData.fetchData2(url, param, function (x) {
 
-            // Alert.alert("sesion inciadaa", JSON.stringify(x));
-            console.log('JSON.stringify(x): ', JSON.stringify(x));
-            setvalor2(JSON.stringify(x))
-        })
-        let url2 = 'prueba.php?param1=jorgealav'
+        //     // Alert.alert("sesion inciadaa", JSON.stringify(x));
+        //     console.log('JSON.stringify(x): ', JSON.stringify(x));
+        //     setvalor2(JSON.stringify(x))
+        // })
+        // let url2 = 'prueba.php?param1=jorgealav'
 
-        fetchData.fetchData3(url2, function (x) {
+        // fetchData.fetchData3(url2, function (x) {
 
-            // Alert.alert("sesion inciadaa", JSON.stringify(x));
-            console.log('JSON.stringify(x): ', JSON.stringify(x));
-            setvalor3(JSON.stringify(x))
-        })
+        //     // Alert.alert("sesion inciadaa", JSON.stringify(x));
+        //     console.log('JSON.stringify(x): ', JSON.stringify(x));
+        //     setvalor3(JSON.stringify(x))
+        // })
     }
 
     return (
@@ -77,42 +79,6 @@ export default function LoginScreen({ navigation }) {
             <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
                 <Text style={styles.loginButtonText}>Iniciar Sesión</Text>
             </TouchableOpacity>
-            <ScrollView
-                style={styles.textArea}
-                scrollEnabled={true}
-            >
-                <TextInput
-                    placeholder="Text Area 1"
-                    multiline={true}
-                    onChangeText={(text) => setTextArea1(text)}
-                    value={valor1}
-                    numberOfLines={5}
-                />
-            </ScrollView>
-            <ScrollView
-                style={styles.textArea}
-                scrollEnabled={true}
-            >
-                <TextInput
-                    placeholder="Text Area 2"
-                    multiline={true}
-                    onChangeText={(text) => setTextArea2(text)}
-                    value={valor2}
-                    numberOfLines={5}
-                />
-            </ScrollView>
-            <ScrollView
-                style={styles.textArea}
-                scrollEnabled={true}
-            >
-                <TextInput
-                    placeholder="Text Area 2"
-                    multiline={true}
-                    onChangeText={(text) => setTextArea2(text)}
-                    value={valor3}
-                    numberOfLines={5}
-                />
-            </ScrollView>
         </View >
     );
 }

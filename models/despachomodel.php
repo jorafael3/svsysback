@@ -11,6 +11,57 @@ class DespachoModel extends Model
         parent::__construct();
     }
 
+    //****** SERVICIOS */
+
+    function Cargar_Gui_Servicios($param)
+    {
+        try {
+            $query = $this->db->connect_dobra()->prepare('SELECT * from svsys.GUI_SERVICIOS
+                where estado = 1');
+            // $query->bindParam(":pedido", $PEDIDO, PDO::PARAM_STR);
+            if ($query->execute()) {
+                $result = $query->fetchAll(PDO::FETCH_ASSOC);
+                echo json_encode([$result, 1]);
+                exit();
+            } else {
+                $err = $query->errorInfo();
+                echo json_encode([$err, 0]);
+                exit();
+            }
+        } catch (PDOException $e) {
+            $e = $e->getMessage();
+            echo json_encode([$e, 0, 0]);
+            exit();
+        }
+    }
+
+    
+    //****** DESTINOS */
+
+    function Cargar_Gui_Destinos($param)
+    {
+        try {
+            $query = $this->db->connect_dobra()->prepare('SELECT * from svsys.GUI_DESTINOS
+                where estado = 1');
+            // $query->bindParam(":pedido", $PEDIDO, PDO::PARAM_STR);
+            if ($query->execute()) {
+                $result = $query->fetchAll(PDO::FETCH_ASSOC);
+                echo json_encode([$result, 1]);
+                exit();
+            } else {
+                $err = $query->errorInfo();
+                echo json_encode([$err, 0]);
+                exit();
+            }
+        } catch (PDOException $e) {
+            $e = $e->getMessage();
+            echo json_encode([$e, 0, 0]);
+            exit();
+        }
+    }
+
+    //********* GUIAS */
+
     function Cargar_Guia($param)
     {
         try {

@@ -31,4 +31,48 @@ class Despacho extends Controller
         echo json_encode($Ventas);
         exit();
     }
+
+    function Cargar_Gui_Servicios()
+    {
+        try {
+            $json_data = file_get_contents('php://input');
+            $data = json_decode($json_data, true);
+
+            if (isset($json_data)) {
+
+                if ($data["TOKEN"] == constant("TOKEN_MOVIL")) {
+                    // $param1 = $data['param1'];
+                    $funcion =  $this->model->Cargar_Gui_Servicios($data);
+                } else {
+                    die();
+                }
+            } else {
+                die();
+            }
+        } catch (Exception $e) {
+            die();
+        }
+    }
+
+    function Cargar_Gui_Destinos()
+    {
+        try {
+            $json_data = file_get_contents('php://input');
+            $data = json_decode($json_data, true);
+
+            if (isset($json_data)) {
+
+                if ($data["TOKEN"] == constant("TOKEN_MOVIL")) {
+                    // $param1 = $data['param1'];
+                    $funcion =  $this->model->Cargar_Gui_Destinos($data);
+                } else {
+                    die();
+                }
+            } else {
+                die();
+            }
+        } catch (Exception $e) {
+            die();
+        }
+    }
 }
