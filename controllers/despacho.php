@@ -22,6 +22,12 @@ class Despacho extends Controller
         $Ventas =  $this->model->Cargar_Guia($param1);
     }
 
+
+
+
+
+    //***************** MOVIL */
+
     function Cargar_Guia_p()
     {
         $json_data = file_get_contents('php://input');
@@ -65,6 +71,28 @@ class Despacho extends Controller
                 if ($data["TOKEN"] == constant("TOKEN_MOVIL")) {
                     // $param1 = $data['param1'];
                     $funcion =  $this->model->Cargar_Gui_Destinos($data);
+                } else {
+                    die();
+                }
+            } else {
+                die();
+            }
+        } catch (Exception $e) {
+            die();
+        }
+    }
+
+    function Guardar_Guias_despacho()
+    {
+        try {
+            $json_data = file_get_contents('php://input');
+            $data = json_decode($json_data, true);
+
+            if (isset($json_data)) {
+
+                if ($data["TOKEN"] == constant("TOKEN_MOVIL")) {
+                    // $param1 = $data['param1'];
+                    $funcion =  $this->model->Guardar_Guias_despacho($data);
                 } else {
                     die();
                 }

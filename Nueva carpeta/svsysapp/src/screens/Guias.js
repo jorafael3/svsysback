@@ -288,39 +288,47 @@ export default function Guias({ route, navigation }) {
                 Alert.alert("", "Debe ingresar nuevo numero de placa");
                 return;
             }
+            if (isplaca == 1) {
+                if (placa_nuev.includes("-")) {
+                    let letras = placa_nuev.split("-")[0];
+                    let num = placa_nuev.split("-")[1];
+                    console.log('num: ', num.length);
+                    if (letras.length > 4 || letras.length < 3) {
+                        Alert.alert("", "Formato de placa incorrecto");
+                        return;
+                    }
 
-            if (placa_nuev.includes("-")) {
-                let letras = placa_nuev.split("-")[0];
-                let num = placa_nuev.split("-")[1];
-                console.log('num: ', num.length);
-                if (letras.length > 4 || letras.length < 3) {
+                    if (num.length > 4 || num.length < 3) {
+                        Alert.alert("", "Formato de placa incorrecto");
+                        return;
+                    }
+
+                } else {
                     Alert.alert("", "Formato de placa incorrecto");
                     return;
                 }
-
-                if (num.length > 4 || num.length < 3) {
-                    Alert.alert("", "Formato de placa incorrecto");
-                    return;
-                }
-
-            } else {
-                Alert.alert("", "Formato de placa incorrecto");
-                return;
             }
+
 
             let param = {
                 USUARIO: usuario,
-                USUARIO_ID: usuarioid,
-                PEDIDO: pedido,
-                CLIENTE: cliente,
-                SERVICIO: servicio,
-                ENTREGA: entrega,
-                PLACA_NUEVA: isplaca,
-                PLACA_TEXTO: placa_nuev
-                // DETALLE:data_detalle
+                CREADO_POR: usuarioid,
+                PEDIDO_INTERNO: pedido,
+                CLIENTE_ENTREGA_ID: cliente,
+                SERVICIO_ID: servicio,
+                DESTINO_ID: entrega,
+                PLACA_CAMBIADA: isplaca,
+                PLACA_CAMBIADA_NUMERO: isplaca == 0 ? "" : placa_nuev,
+                PARCIAL: data_detalle.filter(item => item.PARCIAL == 1).length,
+                // DETALLE: data_detalle
             }
-            // console.log('param: ', param);
-            Alert.alert("", "Datos Guardados");
+            console.log('param: ', param);
+
+            let url = 'despacho/Guardar_Guias_despacho';
+            fetchData(url, param, function (x) {
+                console.log('x: ', x);
+                Alert.alert("", x[1].toString());
+            })
         }
 
         //    
