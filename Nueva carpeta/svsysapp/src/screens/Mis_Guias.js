@@ -83,10 +83,7 @@ export default function Mis_guias({ route, navigation }) {
                                     </View>
                                 ))}
                             </View>
-
-
                         </ScrollView>
-
                     </View>
                 </View>
             </View >
