@@ -27,7 +27,7 @@ export default function LoginScreen({ navigation }) {
             console.log('x: ', x[0]);
 
             // Alert.alert("sesion inciadaa", JSON.stringify(x));
-            // console.log('JSON.stringify(x): ', JSON.stringify(x));
+            console.log('JSON.stringify(x): ', JSON.stringify(x));
             // setvalor1(JSON.stringify(x))
             // if (x[0] == true) {
             //     let datos = x[1][0]

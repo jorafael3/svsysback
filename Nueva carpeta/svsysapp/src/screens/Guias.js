@@ -271,7 +271,7 @@ export default function Guias({ route, navigation }) {
         let entrega = selectedOption_destinos.key;
         let placa_nuev = placa_nueva;
         console.log('placa_nuev: ', placa_nuev);
-        let isplaca = isChecked ? 1 : 0;
+        let isplaca = isChecked == true ? 1 : 0;
         console.log('isplaca: ', isplaca);
 
 
@@ -320,14 +320,33 @@ export default function Guias({ route, navigation }) {
                 PLACA_CAMBIADA: isplaca,
                 PLACA_CAMBIADA_NUMERO: isplaca == 0 ? "" : placa_nuev,
                 PARCIAL: data_detalle.filter(item => item.PARCIAL == 1).length,
-                // DETALLE: data_detalle
+                DETALLE: data_detalle
             }
             console.log('param: ', param);
 
             let url = 'despacho/Guardar_Guias_despacho';
             fetchData(url, param, function (x) {
                 console.log('x: ', x);
-                Alert.alert("", x[1].toString());
+                let CAB = x[0];
+                let DET = x[1];
+                let EST = x[2];
+                if (CAB["GUARDADO"] == 2) {
+                    Alert.alert("Guia ya ingresada", "Si desea completar un pedido parcial ir a la seccion de guias parciales");
+                } else {
+                    if (CAB["GUARDADO"] == 1 && DET["GUARDADO"] == 1) {
+                        setdata_detalle([]);
+                        setisFormVisible(false);
+                        Alert.alert("Datos Guardados", "Los datos se guardaron con exito");
+                    } else {
+                        if (CAB["GUARDADO"] == 0) {
+                            Alert.alert("Error al guardar los datos", (CAB["MENSAJE"]).toString());
+                        } else if (DET["GUARDADO"] == 0) {
+                            Alert.alert("Error al guardar los datos", (DET["MENSAJE"]).toString());
+                        }
+                    }
+                }
+
+                // Alert.alert("", x);
             })
         }
 

@@ -2,8 +2,8 @@ import React from 'react'
 import { Alert } from 'react-native';
 import axios from 'axios';
 
-// const host = "10.5.0.238";
-const host = "192.168.0.104";
+const host = "10.5.0.238";
+// const host = "192.168.0.104";
 // const host = "186.3.23.4";
 // const host = "www.cartimex.com";
 const protocol = "http:";
