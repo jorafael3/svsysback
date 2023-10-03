@@ -170,6 +170,7 @@ export default function Guias({ route, navigation }) {
             setHasPermission(status === 'granted');
         })();
     }
+    
     //*** CUANDO ESCANEA CODIGO */
     const handleBarCodeScanned = ({ type, data }) => {
         setScanned(true);
@@ -357,7 +358,6 @@ export default function Guias({ route, navigation }) {
 
 
     }
-
 
     const Cantidad_Parcial_Change = (text, index, item) => {
         const partialAmount = parseFloat(text);

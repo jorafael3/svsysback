@@ -6,8 +6,11 @@ import { Provider } from 'react-native-paper'
 
 import {
   LoginScreen,
-  Guias
+  Guias,
+  Menu_opciones,
+  Mis_Guias
 } from './src/screens'
+// import Mis_guias from './src/screens/Mis_Guias';
 
 
 const Stack = createStackNavigator()
@@ -24,7 +27,9 @@ export default function App() {
           }}
         >
           <Stack.Screen name="LoginScreen" component={LoginScreen} />
+          <Stack.Screen name="Menu_opciones" component={Menu_opciones} />
           <Stack.Screen name="Guias" component={Guias} />
+          <Stack.Screen name="Mis_Guias" component={Mis_Guias} />
         </Stack.Navigator>
       </NavigationContainer>
     </Provider>

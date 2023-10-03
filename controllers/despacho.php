@@ -103,4 +103,28 @@ class Despacho extends Controller
             die();
         }
     }
+
+    //************** MIS GUIAS */
+
+    function Guias_Usuario()
+    {
+        try {
+            $json_data = file_get_contents('php://input');
+            $data = json_decode($json_data, true);
+
+            if (isset($json_data)) {
+
+                if ($data["TOKEN"] == constant("TOKEN_MOVIL")) {
+                    // $param1 = $data['param1'];
+                    $funcion =  $this->model->Guias_Usuario($data);
+                } else {
+                    die();
+                }
+            } else {
+                die();
+            }
+        } catch (Exception $e) {
+            die();
+        }
+    }
 }

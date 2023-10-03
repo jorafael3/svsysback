@@ -203,7 +203,6 @@ class DespachoModel extends Model
         }
     }
 
-
     function Validar_Estado($NUMERO_PEDIDO)
     {
         try {
@@ -320,6 +319,33 @@ class DespachoModel extends Model
         } catch (PDOException $e) {
             $e = $e->getMessage();
             echo json_encode($e);
+            exit();
+        }
+    }
+
+
+    //***** GUIAS USUARIO */
+    function Guias_usuario($param)
+    {
+        try {
+            $USUARIO = $param["USUARIO_ID"];
+            $query = $this->db->connect_dobra()->prepare('SELECT * from 
+            gui_guias_despachadas_estado ggde   
+            where ggde.CREADO_POR  = :USUARIO');
+
+            $query->bindParam(":USUARIO", $USUARIO, PDO::PARAM_STR);
+            if ($query->execute()) {
+                $result = $query->fetchAll(PDO::FETCH_ASSOC);
+                echo json_encode($result);
+                exit();
+            } else {
+                $err = $query->errorInfo();
+                echo json_encode($err);
+                exit();
+            }
+        } catch (PDOException $e) {
+            $e = $e->getMessage();
+            echo json_encode([$e, 0, 0]);
             exit();
         }
     }
