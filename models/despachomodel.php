@@ -362,4 +362,79 @@ class DespachoModel extends Model
             exit();
         }
     }
+
+    function Consultar_guia_despachadas($param)
+    {
+        try {
+            $PEDIDO_INTERNO = trim($param["PEDIDO_INTERNO"]);
+            $USUARIO = $param["USUARIO"];
+            $query = $this->db->connect_dobra()->prepare('SELECT
+            ggde.FECHA_CREADO, 
+            cl.CLIENTE_NOMBRE,
+            ser.nombre as SERVICIO, 
+            gd.nombre as DESTINO,
+            ggde.despacho_ID,
+            ggde.PARCIAL
+            from 
+                gui_guias_despachadas ggde
+            left join clientes cl
+            on cl.ID = ggde.CLIENTE_ENTREGA_ID
+            left join gui_servicios ser
+            on ser.ID = ggde.SERVICIO_ID
+            left join gui_destinos gd 
+            on gd.ID = ggde .DESTINO_ID 
+            WHERE ggde.PEDIDO_INTERNO = :PEDIDO_INTERNO
+            AND ggde.CREADO_POR = :USUARIO
+            ');
+
+            $query->bindParam(":USUARIO", $USUARIO, PDO::PARAM_STR);
+            $query->bindParam(":PEDIDO_INTERNO", $PEDIDO_INTERNO, PDO::PARAM_STR);
+            // $query->bindParam(":ESTADO", $ESTADO, PDO::PARAM_STR);
+            if ($query->execute()) {
+                $result = $query->fetchAll(PDO::FETCH_ASSOC);
+                echo json_encode($result);
+                exit();
+            } else {
+                $err = $query->errorInfo();
+                echo json_encode($err);
+                exit();
+            }
+        } catch (PDOException $e) {
+            $e = $e->getMessage();
+            echo json_encode([$e, 0, 0]);
+            exit();
+        }
+    }
+
+    function Consultar_guia_despachadas_dt($param)
+    {
+        try {
+            $PEDIDO_INTERNO = trim($param["PEDIDO_INTERNO"]);
+            $DESPACHO_ID = $param["DESPACHO_ID"];
+            $query = $this->db->connect_dobra()->prepare('SELECT
+              * 
+            from 
+              gui_guias_despachadas_dt ggdd 
+            where ggdd .PEDIDO_INTERNO  = :PEDIDO_INTERNO
+            and ggdd.despacho_ID = :DESPACHO_ID
+            ');
+
+            $query->bindParam(":DESPACHO_ID", $DESPACHO_ID, PDO::PARAM_STR);
+            $query->bindParam(":PEDIDO_INTERNO", $PEDIDO_INTERNO, PDO::PARAM_STR);
+            // $query->bindParam(":ESTADO", $ESTADO, PDO::PARAM_STR);
+            if ($query->execute()) {
+                $result = $query->fetchAll(PDO::FETCH_ASSOC);
+                echo json_encode($result);
+                exit();
+            } else {
+                $err = $query->errorInfo();
+                echo json_encode($err);
+                exit();
+            }
+        } catch (PDOException $e) {
+            $e = $e->getMessage();
+            echo json_encode([$e, 0, 0]);
+            exit();
+        }
+    }
 }

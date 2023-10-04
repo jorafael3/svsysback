@@ -28,6 +28,8 @@ export default function Mis_guias({ route, navigation }) {
 
     //**** DATOS TABLA *****/
     const [data_detalle, setdata_detalle] = useState([]);
+
+
     const [currentPage, setCurrentPage] = useState(1);
     const [endIndex, setendIndex] = useState(itemsPerPage);
     const [estado_filtro, setestado_filtro] = useState(2);
@@ -79,6 +81,7 @@ export default function Mis_guias({ route, navigation }) {
     function Ver_Detalle(text, index, item) {
         let PEDIDO_INTERNO = item.PEDIDO_INTERNO;
         datos_sesion.PEDIDO_INTERNO = PEDIDO_INTERNO;
+        console.log('datos_sesion: ', datos_sesion);
         navigation.navigate('Guias_detalle', datos_sesion);
     }
 
