@@ -80,7 +80,12 @@ export default function Mis_guias({ route, navigation }) {
         let PEDIDO_INTERNO = item.PEDIDO_INTERNO;
         datos_sesion.PEDIDO_INTERNO = PEDIDO_INTERNO;
         navigation.navigate('Guias_detalle', datos_sesion);
+    }
 
+    function Completar_Parcial(text, index, item) {
+        let PEDIDO_INTERNO = item.PEDIDO_INTERNO;
+        datos_sesion.PEDIDO_INTERNO = PEDIDO_INTERNO;
+        navigation.navigate('Guias_parcial', datos_sesion);
     }
 
     return (
@@ -134,9 +139,7 @@ export default function Mis_guias({ route, navigation }) {
 
                                         <TouchableOpacity
                                             style={[styles.cell, { width: 60, margin: 8, backgroundColor: '#F2F4F4', borderRadius: 5, justifyContent: 'center', alignItems: 'center' }]}
-                                            onPress={() => {
-                                                // Acción a realizar cuando se presiona el botón "MÁS"
-                                            }}
+                                            onPress={(text) => Ver_Detalle(text, index, item)}
                                         >
                                             <Text style={{ color: 'white', fontWeight: 'bold' }}>
                                                 <Icon name="eye" size={30} color="#1C2833" />
@@ -145,7 +148,7 @@ export default function Mis_guias({ route, navigation }) {
                                         {item.ESTADO_DESPACHO == 1 ? (
                                             <TouchableOpacity
                                                 style={[styles.cell, { width: 60, margin: 8, backgroundColor: '#A9DFBF', borderRadius: 10, justifyContent: 'center', alignItems: 'center' }]}
-                                                onPress={(text) => Ver_Detalle(text, index, item)}
+                                                onPress={(text) => Completar_Parcial(text, index, item)}
                                             >
                                                 <Text style={{ color: 'white', fontWeight: 'bold' }}>
                                                     <Icon name="check" size={30} color="#1C2833" />
