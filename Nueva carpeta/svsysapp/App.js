@@ -8,7 +8,8 @@ import {
   LoginScreen,
   Guias,
   Menu_opciones,
-  Mis_Guias
+  Mis_Guias,
+  Guias_detalle
 } from './src/screens'
 // import Mis_guias from './src/screens/Mis_Guias';
 
@@ -30,6 +31,7 @@ export default function App() {
           <Stack.Screen name="Menu_opciones" component={Menu_opciones} />
           <Stack.Screen name="Guias" component={Guias} />
           <Stack.Screen name="Mis_Guias" component={Mis_Guias} />
+          <Stack.Screen name="Guias_detalle" component={Guias_detalle} />
         </Stack.Navigator>
       </NavigationContainer>
     </Provider>

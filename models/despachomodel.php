@@ -234,7 +234,7 @@ class DespachoModel extends Model
         try {
             $PEDIDO_INTERNO = $param["PEDIDO_INTERNO"];
             $PARCIAL = $param["PARCIAL"] == 0 ? 0 : 1;
-            $ESTATO_DESPACHO_TEXTO = $param["PARCIAL"] == 0 ? "TOTAL" : "PARCIAL";
+            $ESTATO_DESPACHO_TEXTO = $param["PARCIAL"] == 0 ? "COMPLETO" : "PARCIAL";
             $CREADO_POR = $param["CREADO_POR"];
 
             $query = $this->db->connect_dobra()->prepare('INSERT INTO svsys.gui_guias_despachadas_estado
@@ -327,13 +327,26 @@ class DespachoModel extends Model
     //***** GUIAS USUARIO */
     function Guias_usuario($param)
     {
+
         try {
             $USUARIO = $param["USUARIO_ID"];
+            $ESTADO = $param["ESTADO"];
+
+            if ($ESTADO == 2) {
+                $EST = "(1,0)";
+            } else {
+                $EST = "(" . $ESTADO . ")";
+            }
+
+
             $query = $this->db->connect_dobra()->prepare('SELECT * from 
             gui_guias_despachadas_estado ggde   
-            where ggde.CREADO_POR  = :USUARIO');
+            where ggde.CREADO_POR = :USUARIO
+            AND ggde.ESTADO_DESPACHO in ' . $EST . '
+            ');
 
             $query->bindParam(":USUARIO", $USUARIO, PDO::PARAM_STR);
+            // $query->bindParam(":ESTADO", $ESTADO, PDO::PARAM_STR);
             if ($query->execute()) {
                 $result = $query->fetchAll(PDO::FETCH_ASSOC);
                 echo json_encode($result);
