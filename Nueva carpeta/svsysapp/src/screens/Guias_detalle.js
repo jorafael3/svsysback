@@ -10,8 +10,15 @@ export default function Guias_detalle({ route, navigation }) {
     const [placa, setplaca] = useState('');
     const [pedido_interno, setpedido_interno] = useState('');
 
+    //***** DATOS CABECERA */
+    const [fecha_emision, setfecha_emision] = useState('');
+    const [estado_guia_text, setestado_guia_text] = useState('');
+    const [estado_guia, setestado_guia] = useState('');
+    // const [pedido_interno, setpedido_interno] = useState('');
+
 
     //**** DATOS TABLA *****/
+    const [data_cabecera, setdata_cabecera] = useState([]);
     const [data_detalle, setdata_detalle] = useState([]);
     const [data_detalle_dt, setdata_detalle_dt] = useState([]);
 
@@ -23,8 +30,25 @@ export default function Guias_detalle({ route, navigation }) {
         setplaca(datos_sesion["PLACA"]);
         setpedido_interno(datos_sesion["PEDIDO_INTERNO"]);
         // Consultar_guias(estado_filtro)
-        Consultar_guia_despachadas(datos_sesion["Usuario_ID"], datos_sesion["PEDIDO_INTERNO"])
+        Consultar_guia_despachadas(datos_sesion["Usuario_ID"], datos_sesion["PEDIDO_INTERNO"]);
+        Cargar_guia_cabecera(datos_sesion["PEDIDO_INTERNO"]);
     }, []);
+
+    function Cargar_guia_cabecera(pedido) {
+        let param = {
+            PEDIDO_INTERNO: pedido,
+            // USUARIO: usuario,
+        }
+        console.log('param: ', param);
+        let url = 'despacho/Consultar_guia_despachadas_cabecera'
+        fetchData(url, param, function (x) {
+            console.log('x: ', x);
+            setfecha_emision(x[0]["FECHA_DE_EMISION"]);
+            setestado_guia_text(x[0]["ESTADO_DESPACHO_TEXTO"]);
+            setestado_guia(x[0]["ESTADO_DESPACHO"]);
+            setdata_cabecera(x);
+        });
+    }
 
     function Consultar_guia_despachadas(usuario, pedido) {
         let param = {
@@ -78,18 +102,18 @@ export default function Guias_detalle({ route, navigation }) {
                         <View style={styles.rowContainer}>
                             <View style={styles.column}>
                                 <Text style={[styles.label, { fontSize: 14 }]}>Fecha de Emisión:</Text>
-                                <Text style={styles.text}>asd</Text>
+                                <Text style={styles.text}>{fecha_emision}</Text>
                             </View>
                             <View style={styles.column}>
                                 <Text style={styles.label}>Pedido interno:</Text>
-                                <Text style={styles.text}>asd</Text>
+                                <Text style={styles.text}>{pedido_interno}</Text>
                             </View>
                             {/* Agregar más campos y valores aquí */}
                         </View>
                         <View style={styles.rowContainer}>
                             <View style={styles.column}>
                                 <Text style={styles.label}>Estado:</Text>
-                                <Text style={styles.text}>asd</Text>
+                                <Text style={[styles.text, { fontSize: 18, fontWeight: 'bold', color: estado_guia == 1 ? "#E74C3C" : "#27AE60" }]}>{estado_guia_text}</Text>
                             </View>
                             {/* Agregar más campos y valores aquí */}
                         </View>
@@ -120,8 +144,7 @@ export default function Guias_detalle({ route, navigation }) {
                                         <Text style={[styles.cell, { width: 100, fontWeight: "bold", fontSize: 15 }]}>{item.CLIENTE_NOMBRE}</Text>
                                         <Text style={[styles.cell, { width: 100, fontWeight: "bold", fontSize: 15 }]}>{item.SERVICIO}</Text>
                                         <Text style={[styles.cell, { width: 100, fontWeight: "bold", fontSize: 15 }]}>{item.DESTINO}</Text>
-                                        <Text style={[styles.cell, { width: 100, fontWeight: "bold", fontSize: 15,color: item.PARCIAL == 0 ? '#27AE60' : '#E74C3C
-                                        '}]}>{item.PARCIAL == 0 ? 'COMPLETA' : 'PARCIAL'}</Text>
+                                        <Text style={[styles.cell, { width: 100, fontWeight: "bold", fontSize: 15, color: item.PARCIAL == 0 ? '#27AE60' : '#E74C3C' }]}>{item.PARCIAL == 0 ? 'COMPLETA' : 'PARCIAL'}</Text>
 
                                     </View>
                                 ))}
@@ -134,18 +157,18 @@ export default function Guias_detalle({ route, navigation }) {
                             <View style={styles.container}>
                                 {/* Encabezados de la tabla */}
                                 <View style={styles.row}>
-                                    <Text style={[styles.columnHeader, { width: 80 }]}>CODIGO</Text>
-                                    <Text style={[styles.columnHeader, { width: 100 }]}>PRODUCTO</Text>
-                                    <Text style={[styles.columnHeader, { width: 100 }]}>CANTIDAD</Text>
+                                    <Text style={[styles.columnHeader, { width: 90 }]}>CODIGO</Text>
+                                    <Text style={[styles.columnHeader, { width: 150 }]}>PRODUCTO</Text>
+                                    <Text style={[styles.columnHeader, { width: 100 }]}>POR DESPACHAR</Text>
                                     <Text style={[styles.columnHeader, { width: 100 }]}>DESPACHADA</Text>
                                 </View>
 
                                 {data_detalle_dt.map((item, index) => (
-                                    <View style={[styles.row, { backgroundColor: item.PARCIAL == 1 ? '#FADBD8' : '#EAFAF1' }]} key={index}>
-                                        <Text style={[styles.cell, { width: 80, fontWeight: "bold" }]}>{item.CODIGO}</Text>
-                                        <Text style={[styles.cell, { width: 100, fontWeight: "bold", fontSize: 15 }]}>{item.CLIENTE_NOMBRE}</Text>
-                                        <Text style={[styles.cell, { width: 100, fontWeight: "bold", fontSize: 15 }]}>{item.SERVICIO}</Text>
-                                        <Text style={[styles.cell, { width: 100, fontWeight: "bold", fontSize: 15 }]}>{item.DESTINO}</Text>
+                                    <View style={[styles.row]} key={index}>
+                                        <Text style={[styles.cell, { width: 90, fontWeight: "bold" }]}>{item.CODIGO}</Text>
+                                        <Text style={[styles.cell, { width: 150, fontWeight: "bold", fontSize: 15 }]}>{item.DESCRIPCION}</Text>
+                                        <Text style={[styles.cell, { width: 100, fontWeight: "bold", fontSize: 15 }]}>{item.POR_DESPACHAR}</Text>
+                                        <Text style={[styles.cell, { width: 100, fontWeight: "bold", fontSize: 15 }]}>{item.PARCIAL == 1 ? parseFloat(item.CANTIDAD_PARCIAL).toFixed(2) : parseFloat(item.CANTIDAD_TOTAL).toFixed(2)}</Text>
 
                                     </View>
                                 ))}

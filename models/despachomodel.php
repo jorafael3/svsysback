@@ -411,15 +411,59 @@ class DespachoModel extends Model
         try {
             $PEDIDO_INTERNO = trim($param["PEDIDO_INTERNO"]);
             $DESPACHO_ID = $param["DESPACHO_ID"];
-            $query = $this->db->connect_dobra()->prepare('SELECT
-              * 
-            from 
-              gui_guias_despachadas_dt ggdd 
-            where ggdd .PEDIDO_INTERNO  = :PEDIDO_INTERNO
+            $query = $this->db->connect_dobra()->prepare('SELECT 
+            ggdd .PEDIDO_INTERNO,
+            ggdd.CODIGO,
+            gd.DESCRIPCION,
+            gd.UNIDAD,
+            gd.POR_DESPACHAR,
+            ggdd.PARCIAL,
+            ggdd.CANTIDAD_PARCIAL,
+            ggdd.CANTIDAD_TOTAL  
+            from gui_guias_despachadas_dt ggdd 
+            left join guias_detalle gd 
+            on gd.PEDIDO_INTERNO = ggdd.PEDIDO_INTERNO and gd.CODIGO = ggdd.CODIGO 
+            where ggdd.PEDIDO_INTERNO  = :PEDIDO_INTERNO
             and ggdd.despacho_ID = :DESPACHO_ID
             ');
 
             $query->bindParam(":DESPACHO_ID", $DESPACHO_ID, PDO::PARAM_STR);
+            $query->bindParam(":PEDIDO_INTERNO", $PEDIDO_INTERNO, PDO::PARAM_STR);
+            // $query->bindParam(":ESTADO", $ESTADO, PDO::PARAM_STR);
+            if ($query->execute()) {
+                $result = $query->fetchAll(PDO::FETCH_ASSOC);
+                echo json_encode($result);
+                exit();
+            } else {
+                $err = $query->errorInfo();
+                echo json_encode($err);
+                exit();
+            }
+        } catch (PDOException $e) {
+            $e = $e->getMessage();
+            echo json_encode([$e, 0, 0]);
+            exit();
+        }
+    }
+
+    function Consultar_guia_despachadas_cabecera($param)
+    {
+        try {
+            $PEDIDO_INTERNO = trim($param["PEDIDO_INTERNO"]);
+            // $DESPACHO_ID = $param["DESPACHO_ID"];
+            $query = $this->db->connect_dobra()->prepare('SELECT
+            g.FECHA_DE_EMISION,
+            g.CLIENTE,
+            g.PEDIDO_INTERNO,
+            ggde.ESTADO_DESPACHO,
+            ggde.ESTADO_DESPACHO_TEXTO  
+            from guias g 
+            left join gui_guias_despachadas_estado ggde 
+            on g.PEDIDO_INTERNO  = ggde.PEDIDO_INTERNO
+            where g.PEDIDO_INTERNO  = :PEDIDO_INTERNO
+            ');
+
+            // $query->bindParam(":DESPACHO_ID", $DESPACHO_ID, PDO::PARAM_STR);
             $query->bindParam(":PEDIDO_INTERNO", $PEDIDO_INTERNO, PDO::PARAM_STR);
             // $query->bindParam(":ESTADO", $ESTADO, PDO::PARAM_STR);
             if ($query->execute()) {
