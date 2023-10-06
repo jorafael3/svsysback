@@ -481,4 +481,80 @@ class DespachoModel extends Model
             exit();
         }
     }
+
+
+    //******** GUIAS PARCIAL DESPACHO */
+
+    function Cargar_Guia_parcial($param)
+    {
+        try {
+            $PEDIDO = $param["PEDIDO_INTERNO"];
+            $query = $this->db->connect_dobra()->prepare('SELECT * from guias
+                where PEDIDO_INTERNO = :pedido');
+            $query->bindParam(":pedido", $PEDIDO, PDO::PARAM_STR);
+            if ($query->execute()) {
+                $result = $query->fetchAll(PDO::FETCH_ASSOC);
+                $DET = $this->Cargar_Guia_detalle_parcial($param);
+                echo json_encode([$result, $DET, 1]);
+                exit();
+            } else {
+                $err = $query->errorInfo();
+                echo json_encode([$err, 0, 0]);
+                exit();
+            }
+        } catch (PDOException $e) {
+            $e = $e->getMessage();
+            echo json_encode([$e, 0, 0]);
+            exit();
+        }
+    }
+
+
+    function Cargar_Guia_detalle_parcial($param)
+    {
+        try {
+            $PEDIDO_INTERNO = trim($param["PEDIDO_INTERNO"]);
+            // $DESPACHO_ID = $param["DESPACHO_ID"];
+            $query = $this->db->connect_dobra()->prepare('SELECT 
+            gd.PEDIDO_INTERNO,
+            gd.ORD,
+            gd.CODIGO,
+            gd.DESCRIPCION,
+            gd.UNIDAD,
+            gd.POR_DESPACHAR,
+            SUM(ggdd.CANTIDAD_PARCIAL) AS CANTIDAD_PARCIAL_TOTAL,
+            gd.POR_DESPACHAR - SUM(ggdd.CANTIDAD_PARCIAL) as RESTANTE
+            FROM 
+                guias_detalle gd
+            LEFT JOIN 
+                gui_guias_despachadas_dt ggdd
+            ON 
+                gd.PEDIDO_INTERNO = ggdd.PEDIDO_INTERNO 
+                AND gd.CODIGO = ggdd.CODIGO
+            WHERE 
+                gd.PEDIDO_INTERNO = "505460693"
+            GROUP BY 
+                gd.PEDIDO_INTERNO,
+                gd.ORD,
+                gd.CODIGO,
+                gd.DESCRIPCION,
+                gd.UNIDAD;
+            ');
+
+            // $query->bindParam(":DESPACHO_ID", $DESPACHO_ID, PDO::PARAM_STR);
+            $query->bindParam(":PEDIDO_INTERNO", $PEDIDO_INTERNO, PDO::PARAM_STR);
+            // $query->bindParam(":ESTADO", $ESTADO, PDO::PARAM_STR);
+            if ($query->execute()) {
+                $result = $query->fetchAll(PDO::FETCH_ASSOC);
+                return $result;
+            } else {
+                $err = $query->errorInfo();
+                return $err;
+            }
+        } catch (PDOException $e) {
+            $e = $e->getMessage();
+            echo json_encode([$e, 0, 0]);
+            exit();
+        }
+    }
 }

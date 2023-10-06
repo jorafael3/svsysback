@@ -320,7 +320,7 @@ export default function Guias({ route, navigation }) {
                 DESTINO_ID: entrega,
                 PLACA_CAMBIADA: isplaca,
                 PLACA_CAMBIADA_NUMERO: isplaca == 0 ? "" : placa_nuev,
-                PARCIAL: data_detalle.filter(item => item.PARCIAL == 1).length,
+                PARCIAL: data_detalle.filter(item => item.PARCIAL == 1).length > 0 ? 1 : 0,
                 DETALLE: data_detalle
             }
             console.log('param: ', param);

@@ -58,7 +58,7 @@ export default function Mis_guias({ route, navigation }) {
         console.log('param: ', param);
         let url = 'despacho/Guias_Usuario'
         fetchData(url, param, function (x) {
-            // console.log('x: ', x);
+            console.log('x: ', x);
             x.sort((a, b) => a.PEDIDO_INTERNO - b.PEDIDO_INTERNO);
             // // setdata_detalle(x);
             // let cantidad_pag = Math.ceil(x.length / itemsPerPage);
@@ -79,6 +79,7 @@ export default function Mis_guias({ route, navigation }) {
     }
 
     function Ver_Detalle(text, index, item) {
+        console.log('item: ', item);
         let PEDIDO_INTERNO = item.PEDIDO_INTERNO;
         datos_sesion.PEDIDO_INTERNO = PEDIDO_INTERNO;
         console.log('datos_sesion: ', datos_sesion);

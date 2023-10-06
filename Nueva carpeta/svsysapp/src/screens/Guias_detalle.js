@@ -79,6 +79,12 @@ export default function Guias_detalle({ route, navigation }) {
 
     }
 
+    function Completar_Parcial() {
+        let PEDIDO_INTERNO = pedido_interno;
+        datos_sesion.PEDIDO_INTERNO = PEDIDO_INTERNO;
+        navigation.navigate('Guias_parcial', datos_sesion);
+    }
+
     const handleLogout = () => {
         // Agrega la lógica para cerrar sesión aquí y navegar de regreso a la pantalla de inicio de sesión.
     };
@@ -115,15 +121,37 @@ export default function Guias_detalle({ route, navigation }) {
                                 <Text style={styles.label}>Estado:</Text>
                                 <Text style={[styles.text, { fontSize: 18, fontWeight: 'bold', color: estado_guia == 1 ? "#E74C3C" : "#27AE60" }]}>{estado_guia_text}</Text>
                             </View>
+                            <View style={styles.column}>
+                                {estado_guia == 1 ? (
+                                    <TouchableOpacity
+                                        style={[styles.cell, { backgroundColor: '#2980B9', borderRadius: 5 }]}
+                                        onPress={(text) => Completar_Parcial()}
+                                    >
+                                        <Text style={{ color: '#fff', fontWeight: 'bold', marginBottom: 5 }}>
+                                            Despachar <Icon name="check" size={20} color="#fff" />
+                                        </Text>
+                                    </TouchableOpacity>
+                                ) : (
+                                    ""
+                                )
+
+                                }
+
+                            </View>
+
                             {/* Agregar más campos y valores aquí */}
                         </View>
 
                         <ScrollView horizontal={true} style={{ marginTop: 25 }}>
+
                             <View style={styles.container}>
+                                <Text style={{ color: '#000', fontWeight: 'bold', margin: 5 }}>
+                                    GUIAS
+                                </Text>
                                 {/* Encabezados de la tabla */}
                                 <View style={styles.row}>
                                     <Text style={[styles.columnHeader, { width: 60 }]}></Text>
-                                    <Text style={[styles.columnHeader, { width: 80 }]}>FECHA</Text>
+                                    <Text style={[styles.columnHeader, { width: 100 }]}>FECHA</Text>
                                     <Text style={[styles.columnHeader, { width: 100 }]}>CLIENTE</Text>
                                     <Text style={[styles.columnHeader, { width: 100 }]}>SERVICIO</Text>
                                     <Text style={[styles.columnHeader, { width: 100 }]}>DESTINO</Text>
@@ -140,10 +168,10 @@ export default function Guias_detalle({ route, navigation }) {
                                                 <Icon name="eye" size={25} color="#1C2833" />
                                             </Text>
                                         </TouchableOpacity>
-                                        <Text style={[styles.cell, { width: 80, fontWeight: "bold" }]}>{item.FECHA_CREADO}</Text>
+                                        <Text style={[styles.cell, { width: 100, fontWeight: "bold" }]}>{item.FECHA_CREADO}</Text>
                                         <Text style={[styles.cell, { width: 100, fontWeight: "bold", fontSize: 15 }]}>{item.CLIENTE_NOMBRE}</Text>
                                         <Text style={[styles.cell, { width: 100, fontWeight: "bold", fontSize: 15 }]}>{item.SERVICIO}</Text>
-                                        <Text style={[styles.cell, { width: 100, fontWeight: "bold", fontSize: 15 }]}>{item.DESTINO}</Text>
+                                        <Text style={[styles.cell, { width: 100, fontWeight: "bold", fontSize: 15, backgroundColor: "#FEF9E7" }]}>{item.DESTINO}</Text>
                                         <Text style={[styles.cell, { width: 100, fontWeight: "bold", fontSize: 15, color: item.PARCIAL == 0 ? '#27AE60' : '#E74C3C' }]}>{item.PARCIAL == 0 ? 'COMPLETA' : 'PARCIAL'}</Text>
 
                                     </View>
@@ -155,6 +183,9 @@ export default function Guias_detalle({ route, navigation }) {
 
                         <ScrollView horizontal={true} style={{ marginTop: 25 }}>
                             <View style={styles.container}>
+                                <Text style={{ color: '#000', fontWeight: 'bold', margin: 5 }}>
+                                    DETALLE
+                                </Text>
                                 {/* Encabezados de la tabla */}
                                 <View style={styles.row}>
                                     <Text style={[styles.columnHeader, { width: 90 }]}>CODIGO</Text>
@@ -167,7 +198,7 @@ export default function Guias_detalle({ route, navigation }) {
                                     <View style={[styles.row]} key={index}>
                                         <Text style={[styles.cell, { width: 90, fontWeight: "bold" }]}>{item.CODIGO}</Text>
                                         <Text style={[styles.cell, { width: 150, fontWeight: "bold", fontSize: 15 }]}>{item.DESCRIPCION}</Text>
-                                        <Text style={[styles.cell, { width: 100, fontWeight: "bold", fontSize: 15 }]}>{item.POR_DESPACHAR}</Text>
+                                        <Text style={[styles.cell, { width: 100, fontWeight: "bold", fontSize: 15, backgroundColor: "#FEF9E7" }]}>{item.POR_DESPACHAR}</Text>
                                         <Text style={[styles.cell, { width: 100, fontWeight: "bold", fontSize: 15 }]}>{item.PARCIAL == 1 ? parseFloat(item.CANTIDAD_PARCIAL).toFixed(2) : parseFloat(item.CANTIDAD_TOTAL).toFixed(2)}</Text>
 
                                     </View>
