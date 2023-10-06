@@ -249,43 +249,43 @@ export default function Guias_parcial({ route, navigation }) {
             let val = 0;
             data_detalle.map(function (x) {
                 if ((x.PARCIAL == 1 && x.CANT_PARCIAL == "NaN")
-                || (x.PARCIAL == 1 && parseFloat(x.CANT_PARCIAL) <= 0) ){
+                    || (x.PARCIAL == 1 && parseFloat(x.CANT_PARCIAL) <= 0)) {
                     val = val + 1;
                 }
-                
+
             });
 
             if (val > 0) {
                 Alert.alert("Error en cantidad parcial", "La cantidad parcial no puede estar vacia o ser menor o igual a 0");
             } else {
+                let url = 'despacho/Guardar_Guias_despacho';
 
+                // fetchData(url, param, function (x) {
 
+                //     let CAB = x[0];
+                //     let DET = x[1];
+                //     let EST = x[2];
+                //     if (CAB["GUARDADO"] == 2) {
+                //         Alert.alert("Guia ya ingresada", "Si desea completar un pedido parcial ir a la seccion de guias parciales");
+                //     } else {
+                //         if (CAB["GUARDADO"] == 1 && DET["GUARDADO"] == 1) {
+                //             setdata_detalle([]);
+                //             setisFormVisible(false);
+                //             Alert.alert("Datos Guardados", "Los datos se guardaron con exito");
+                //         } else {
+                //             if (CAB["GUARDADO"] == 0) {
+                //                 Alert.alert("Error al guardar los datos", (CAB["MENSAJE"]).toString());
+                //             } else if (DET["GUARDADO"] == 0) {
+                //                 Alert.alert("Error al guardar los datos", (DET["MENSAJE"]).toString());
+                //             }
+                //         }
+                //     }
+
+                //     // Alert.alert("", x);
+                // })
             }
 
-            let url = 'despacho/Guardar_Guias_despacho';
-            // fetchData(url, param, function (x) {
 
-            //     let CAB = x[0];
-            //     let DET = x[1];
-            //     let EST = x[2];
-            //     if (CAB["GUARDADO"] == 2) {
-            //         Alert.alert("Guia ya ingresada", "Si desea completar un pedido parcial ir a la seccion de guias parciales");
-            //     } else {
-            //         if (CAB["GUARDADO"] == 1 && DET["GUARDADO"] == 1) {
-            //             setdata_detalle([]);
-            //             setisFormVisible(false);
-            //             Alert.alert("Datos Guardados", "Los datos se guardaron con exito");
-            //         } else {
-            //             if (CAB["GUARDADO"] == 0) {
-            //                 Alert.alert("Error al guardar los datos", (CAB["MENSAJE"]).toString());
-            //             } else if (DET["GUARDADO"] == 0) {
-            //                 Alert.alert("Error al guardar los datos", (DET["MENSAJE"]).toString());
-            //             }
-            //         }
-            //     }
-
-            //     // Alert.alert("", x);
-            // })
         }
 
         //    
