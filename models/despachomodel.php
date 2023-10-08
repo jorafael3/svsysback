@@ -133,53 +133,58 @@ class DespachoModel extends Model
             $VAL_ESTADO = $this->Validar_Estado($PEDIDO_INTERNO);
             if ($VAL_ESTADO == 1) {
                 $INSERT_ESTADO = $this->Insert_Estado($param);
-                $query = $this->db->connect_dobra()->prepare('INSERT INTO svsys.gui_guias_despachadas 
-                (
-                    PEDIDO_INTERNO,
-                    CLIENTE_ENTREGA_ID,
-                    SERVICIO_ID, 
-                    DESTINO_ID,
-                    CREADO_POR, 
-                    PARCIAL, 
-                    PLACA_CAMBIADA, 
-                    PLACA_CAMBIADA_NUMERO,
-                    despacho_ID
-                ) VALUES(
-                    :PEDIDO_INTERNO,
-                    :CLIENTE_ENTREGA_ID,
-                    :SERVICIO_ID, 
-                    :DESTINO_ID,
-                    :CREADO_POR, 
-                    :PARCIAL, 
-                    :PLACA_CAMBIADA, 
-                    :PLACA_CAMBIADA_NUMERO,
-                    :despacho_ID
-                    
-                    );
-                ');
-                $query->bindParam(":PEDIDO_INTERNO", $PEDIDO_INTERNO, PDO::PARAM_STR);
-                $query->bindParam(":CLIENTE_ENTREGA_ID", $CLIENTE_ENTREGA_ID, PDO::PARAM_STR);
-                $query->bindParam(":SERVICIO_ID", $SERVICIO_ID, PDO::PARAM_STR);
-                $query->bindParam(":DESTINO_ID", $DESTINO_ID, PDO::PARAM_STR);
-                $query->bindParam(":CREADO_POR", $CREADO_POR, PDO::PARAM_STR);
-                $query->bindParam(":PARCIAL", $PARCIAL, PDO::PARAM_STR);
-                $query->bindParam(":PLACA_CAMBIADA", $PLACA_CAMBIADA, PDO::PARAM_STR);
-                $query->bindParam(":PLACA_CAMBIADA_NUMERO", $PLACA_CAMBIADA_NUMERO, PDO::PARAM_STR);
-                $query->bindParam(":despacho_ID", $despacho_ID, PDO::PARAM_STR);
-                $mensaje = 0;
-                if ($query->execute()) {
-                    $CAB = array("GUARDADO" => 1, "MENSAJE" => "CABECERA GUARDADA");
-                    $DET = $this->Guardar_Guias_despacho_dt($DETALLE, $despacho_ID, $PEDIDO_INTERNO);
-                    if ($DET["GUARDADO"] == 1) {
-                        $this->db->connect_dobra()->commit();
+                if ($INSERT_ESTADO["GUARDADO"] == 1) {
+                    $query = $this->db->connect_dobra()->prepare('INSERT INTO svsys.gui_guias_despachadas 
+                    (
+                        PEDIDO_INTERNO,
+                        CLIENTE_ENTREGA_ID,
+                        SERVICIO_ID, 
+                        DESTINO_ID,
+                        CREADO_POR, 
+                        PARCIAL, 
+                        PLACA_CAMBIADA, 
+                        PLACA_CAMBIADA_NUMERO,
+                        despacho_ID
+                    ) VALUES(
+                        :PEDIDO_INTERNO,
+                        :CLIENTE_ENTREGA_ID,
+                        :SERVICIO_ID, 
+                        :DESTINO_ID,
+                        :CREADO_POR, 
+                        :PARCIAL, 
+                        :PLACA_CAMBIADA, 
+                        :PLACA_CAMBIADA_NUMERO,
+                        :despacho_ID
+                        
+                        );
+                    ');
+                    $query->bindParam(":PEDIDO_INTERNO", $PEDIDO_INTERNO, PDO::PARAM_STR);
+                    $query->bindParam(":CLIENTE_ENTREGA_ID", $CLIENTE_ENTREGA_ID, PDO::PARAM_STR);
+                    $query->bindParam(":SERVICIO_ID", $SERVICIO_ID, PDO::PARAM_STR);
+                    $query->bindParam(":DESTINO_ID", $DESTINO_ID, PDO::PARAM_STR);
+                    $query->bindParam(":CREADO_POR", $CREADO_POR, PDO::PARAM_STR);
+                    $query->bindParam(":PARCIAL", $PARCIAL, PDO::PARAM_STR);
+                    $query->bindParam(":PLACA_CAMBIADA", $PLACA_CAMBIADA, PDO::PARAM_STR);
+                    $query->bindParam(":PLACA_CAMBIADA_NUMERO", $PLACA_CAMBIADA_NUMERO, PDO::PARAM_STR);
+                    $query->bindParam(":despacho_ID", $despacho_ID, PDO::PARAM_STR);
+                    $mensaje = 0;
+                    if ($query->execute()) {
+                        $CAB = array("GUARDADO" => 1, "MENSAJE" => "CABECERA GUARDADA");
+                        $DET = $this->Guardar_Guias_despacho_dt($DETALLE, $despacho_ID, $PEDIDO_INTERNO);
+                        if ($DET["GUARDADO"] == 1) {
+                            $this->db->connect_dobra()->commit();
+                        } else {
+                            $this->db->connect_dobra()->rollback();
+                        }
+                        $mensaje = [$CAB, $DET, $INSERT_ESTADO, $VAL_ESTADO];
                     } else {
+                        $err = $query->errorInfo();
+                        $CAB = array("GUARDADO" => 0, "MENSAJE" => $err);
+                        $mensaje = [$CAB, 0, $INSERT_ESTADO];
                         $this->db->connect_dobra()->rollback();
                     }
-                    $mensaje = [$CAB, $DET, $INSERT_ESTADO, $VAL_ESTADO];
                 } else {
-                    $err = $query->errorInfo();
-                    $CAB = array("GUARDADO" => 0, "MENSAJE" => $err);
-                    $mensaje = [$CAB, 0, $INSERT_ESTADO];
+                    $mensaje = [0, 0, $INSERT_ESTADO, 0];
                     $this->db->connect_dobra()->rollback();
                 }
             } else {
@@ -241,7 +246,7 @@ class DespachoModel extends Model
              (
                 PEDIDO_INTERNO, 
                 ESTADO_DESPACHO, 
-                ESTATO_DESPACHO_TEXTO, 
+                ESTADO_DESPACHO_TEXTO, 
                 CREADO_POR
                 ) VALUES(
                     :PEDIDO_INTERNO, 
@@ -278,10 +283,14 @@ class DespachoModel extends Model
                 $PEDIDO_INTERNO  = $PEDIDO_INTERNO;
                 $CODIGO = $DETALLE[$i]["CODIGO"];
                 $PARCIAL = $DETALLE[$i]["PARCIAL"];
+                $NO_ENTREGAR_CODIGO = $DETALLE[$i]["NO_ENTREGAR_CODIGO"];
                 $CANTIDAD_PARCIAL = $PARCIAL == 1 ? $DETALLE[$i]["CANT_PARCIAL"] : 0;
                 $CANTIDAD_TOTAL = $PARCIAL == 1 ? 0 : $DETALLE[$i]["POR_DESPACHAR"];
                 $Despacho_ID = $DESPACHO_ID;
-
+                if ($NO_ENTREGAR_CODIGO == 1) {
+                    $CANTIDAD_PARCIAL = 0;
+                    $CANTIDAD_TOTAL = 0;
+                }
                 $query = $this->db->connect_dobra()->prepare('INSERT INTO svsys.gui_guias_despachadas_dt
                 (
                    PEDIDO_INTERNO, 
@@ -289,14 +298,18 @@ class DespachoModel extends Model
                    PARCIAL, 
                    CANTIDAD_PARCIAL,
                    CANTIDAD_TOTAL,
-                   Despacho_ID
+                   Despacho_ID,
+                   NO_ENTREGADA_DESTINO
+
                ) VALUES(
                    :PEDIDO_INTERNO, 
                    :CODIGO, 
                    :PARCIAL, 
                    :CANTIDAD_PARCIAL,
                    :CANTIDAD_TOTAL,
-                   :Despacho_ID
+                   :Despacho_ID,
+                   :NO_ENTREGADA_DESTINO
+                   
                );
             ');
                 $query->bindParam(":PEDIDO_INTERNO", $PEDIDO_INTERNO, PDO::PARAM_STR);
@@ -305,6 +318,7 @@ class DespachoModel extends Model
                 $query->bindParam(":CANTIDAD_PARCIAL", $CANTIDAD_PARCIAL, PDO::PARAM_STR);
                 $query->bindParam(":CANTIDAD_TOTAL", $CANTIDAD_TOTAL, PDO::PARAM_STR);
                 $query->bindParam(":Despacho_ID", $Despacho_ID, PDO::PARAM_STR);
+                $query->bindParam(":NO_ENTREGADA_DESTINO", $NO_ENTREGAR_CODIGO, PDO::PARAM_STR);
                 if ($query->execute()) {
                     $val++;
                 } else {
@@ -509,7 +523,6 @@ class DespachoModel extends Model
         }
     }
 
-
     function Cargar_Guia_detalle_parcial($param)
     {
         try {
@@ -522,8 +535,9 @@ class DespachoModel extends Model
             gd.DESCRIPCION,
             gd.UNIDAD,
             gd.POR_DESPACHAR,
-            SUM(ggdd.CANTIDAD_PARCIAL) AS CANTIDAD_PARCIAL_TOTAL,
-            gd.POR_DESPACHAR - SUM(ggdd.CANTIDAD_PARCIAL) as RESTANTE
+            SUM(ggdd.CANTIDAD_PARCIAL) +  SUM(ggdd.CANTIDAD_TOTAL) AS CANTIDAD_PARCIAL_TOTAL,
+            SUM(ggdd.CANTIDAD_TOTAL) AS CANTIDAD_TOTAL,
+            gd.POR_DESPACHAR - SUM(ggdd.CANTIDAD_PARCIAL) - SUM(ggdd.CANTIDAD_TOTAL) as RESTANTE
             FROM 
                 guias_detalle gd
             LEFT JOIN 
@@ -532,7 +546,7 @@ class DespachoModel extends Model
                 gd.PEDIDO_INTERNO = ggdd.PEDIDO_INTERNO 
                 AND gd.CODIGO = ggdd.CODIGO
             WHERE 
-                gd.PEDIDO_INTERNO = "505460693"
+                gd.PEDIDO_INTERNO = :PEDIDO_INTERNO
             GROUP BY 
                 gd.PEDIDO_INTERNO,
                 gd.ORD,
@@ -550,6 +564,177 @@ class DespachoModel extends Model
             } else {
                 $err = $query->errorInfo();
                 return $err;
+            }
+        } catch (PDOException $e) {
+            $e = $e->getMessage();
+            echo json_encode([$e, 0, 0]);
+            exit();
+        }
+    }
+
+    function Guardar_Guias_despacho_parcial($param)
+    {
+        try {
+
+            $this->db->connect_dobra()->beginTransaction();
+
+            $PEDIDO_INTERNO = $param["PEDIDO_INTERNO"];
+            $CLIENTE_ENTREGA_ID = $param["CLIENTE_ENTREGA_ID"];
+            $SERVICIO_ID = $param["SERVICIO_ID"];
+            $DESTINO_ID = $param["DESTINO_ID"];
+            $CREADO_POR = $param["CREADO_POR"];
+            $PARCIAL = $param["PARCIAL"] == 0 ? 0 : 1;
+            $PLACA_CAMBIADA = $param["PLACA_CAMBIADA"];
+            $PLACA_CAMBIADA_NUMERO = $param["PLACA_CAMBIADA_NUMERO"];
+            $despacho_ID =  date('YmdHis');
+            $DETALLE = $param["DETALLE"];
+
+
+            $query = $this->db->connect_dobra()->prepare('INSERT INTO svsys.gui_guias_despachadas 
+            (
+                PEDIDO_INTERNO,
+                CLIENTE_ENTREGA_ID,
+                SERVICIO_ID, 
+                DESTINO_ID,
+                CREADO_POR, 
+                PARCIAL, 
+                PLACA_CAMBIADA, 
+                PLACA_CAMBIADA_NUMERO,
+                despacho_ID
+            ) VALUES(
+                :PEDIDO_INTERNO,
+                :CLIENTE_ENTREGA_ID,
+                :SERVICIO_ID, 
+                :DESTINO_ID,
+                :CREADO_POR, 
+                :PARCIAL, 
+                :PLACA_CAMBIADA, 
+                :PLACA_CAMBIADA_NUMERO,
+                :despacho_ID
+                
+                );
+            ');
+            $query->bindParam(":PEDIDO_INTERNO", $PEDIDO_INTERNO, PDO::PARAM_STR);
+            $query->bindParam(":CLIENTE_ENTREGA_ID", $CLIENTE_ENTREGA_ID, PDO::PARAM_STR);
+            $query->bindParam(":SERVICIO_ID", $SERVICIO_ID, PDO::PARAM_STR);
+            $query->bindParam(":DESTINO_ID", $DESTINO_ID, PDO::PARAM_STR);
+            $query->bindParam(":CREADO_POR", $CREADO_POR, PDO::PARAM_STR);
+            $query->bindParam(":PARCIAL", $PARCIAL, PDO::PARAM_STR);
+            $query->bindParam(":PLACA_CAMBIADA", $PLACA_CAMBIADA, PDO::PARAM_STR);
+            $query->bindParam(":PLACA_CAMBIADA_NUMERO", $PLACA_CAMBIADA_NUMERO, PDO::PARAM_STR);
+            $query->bindParam(":despacho_ID", $despacho_ID, PDO::PARAM_STR);
+            $mensaje = 0;
+            if ($query->execute()) {
+                $CAB = array("GUARDADO" => 1, "MENSAJE" => "CABECERA GUARDADA");
+                $DET = $this->Guardar_Guias_despacho_dt_parcial($DETALLE, $despacho_ID, $PEDIDO_INTERNO);
+                if ($DET["GUARDADO"] == 1) {
+                    if ($PARCIAL == 0) {
+                        $COM = $this->Actualizar_Parcial_Completo($param);
+                        if ($COM["GUARDADO"] == 0) {
+                            $this->db->connect_dobra()->rollback();
+                        } else {
+                            $this->db->connect_dobra()->commit();
+                        }
+                    } else {
+                        $this->db->connect_dobra()->commit();
+                    }
+                } else {
+                    $this->db->connect_dobra()->rollback();
+                }
+                $mensaje = [$CAB, $DET, $COM];
+            } else {
+                $err = $query->errorInfo();
+                $CAB = array("GUARDADO" => 0, "MENSAJE" => $err);
+                $mensaje = [$CAB, 0];
+                $this->db->connect_dobra()->rollback();
+            }
+
+            echo json_encode($mensaje);
+            exit();
+        } catch (PDOException $e) {
+            $e = $e->getMessage();
+            echo json_encode($e);
+            exit();
+        }
+    }
+
+    function Guardar_Guias_despacho_dt_parcial($DETALLE, $DESPACHO_ID, $PEDIDO_INTERNO)
+    {
+        try {
+
+            $val = 0;
+            $err = 0;
+            for ($i = 0; $i < count($DETALLE); $i++) {
+                $PEDIDO_INTERNO  = $PEDIDO_INTERNO;
+                $NO_ENTREGAR_CODIGO = $DETALLE[$i]["NO_ENTREGAR_CODIGO"];
+                $CODIGO = $DETALLE[$i]["CODIGO"];
+                $PARCIAL = $DETALLE[$i]["PARCIAL"];
+                $CANTIDAD_PARCIAL = $PARCIAL == 1 ? $DETALLE[$i]["CANT_PARCIAL"] : 0;
+                $CANTIDAD_TOTAL = $PARCIAL == 1 ? 0 : $DETALLE[$i]["RESTANTE"];
+                $Despacho_ID = $DESPACHO_ID;
+                if ($NO_ENTREGAR_CODIGO == 1) {
+                    $CANTIDAD_PARCIAL = 0;
+                    $CANTIDAD_TOTAL = 0;
+                }
+
+                $query = $this->db->connect_dobra()->prepare('INSERT INTO svsys.gui_guias_despachadas_dt
+                (
+                   PEDIDO_INTERNO, 
+                   CODIGO, 
+                   PARCIAL, 
+                   CANTIDAD_PARCIAL,
+                   CANTIDAD_TOTAL,
+                   Despacho_ID,
+                   NO_ENTREGADA_DESTINO
+               ) VALUES(
+                   :PEDIDO_INTERNO, 
+                   :CODIGO, 
+                   :PARCIAL, 
+                   :CANTIDAD_PARCIAL,
+                   :CANTIDAD_TOTAL,
+                   :Despacho_ID,
+                   :NO_ENTREGADA_DESTINO
+               );
+            ');
+                $query->bindParam(":PEDIDO_INTERNO", $PEDIDO_INTERNO, PDO::PARAM_STR);
+                $query->bindParam(":CODIGO", $CODIGO, PDO::PARAM_STR);
+                $query->bindParam(":PARCIAL", $PARCIAL, PDO::PARAM_STR);
+                $query->bindParam(":CANTIDAD_PARCIAL", $CANTIDAD_PARCIAL, PDO::PARAM_STR);
+                $query->bindParam(":CANTIDAD_TOTAL", $CANTIDAD_TOTAL, PDO::PARAM_STR);
+                $query->bindParam(":Despacho_ID", $Despacho_ID, PDO::PARAM_STR);
+                $query->bindParam(":NO_ENTREGADA_DESTINO", $NO_ENTREGAR_CODIGO, PDO::PARAM_STR);
+                if ($query->execute()) {
+                    $val++;
+                } else {
+                    $err = $query->errorInfo();
+                }
+            }
+            if ($val == count($DETALLE)) {
+                return array("GUARDADO" => 1, "MENSAJE" => "DETALLE GUARDADO");
+            } else {
+                return array("GUARDADO" => 0, "MENSAJE" =>  $err);
+            }
+        } catch (PDOException $e) {
+            $e = $e->getMessage();
+            echo json_encode($e);
+            exit();
+        }
+    }
+
+    function Actualizar_Parcial_Completo($param)
+    {
+        try {
+            $PEDIDO = $param["PEDIDO_INTERNO"];
+            $query = $this->db->connect_dobra()->prepare('UPDATE svsys.gui_guias_despachadas_estado
+            SET ESTADO_DESPACHO = 0, ESTADO_DESPACHO_TEXTO = "COMPLETO"
+                where PEDIDO_INTERNO = :pedido');
+            $query->bindParam(":pedido", $PEDIDO, PDO::PARAM_STR);
+            if ($query->execute()) {
+                $result = $query->fetchAll(PDO::FETCH_ASSOC);
+                return array("GUARDADO" => 1, "MENSAJE" => "GUIA COMPLETA");
+            } else {
+                $err = $query->errorInfo();
+                return array("GUARDADO" => 0, "MENSAJE" => $err);
             }
         } catch (PDOException $e) {
             $e = $e->getMessage();

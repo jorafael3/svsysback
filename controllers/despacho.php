@@ -218,4 +218,26 @@ class Despacho extends Controller
             die();
         }
     }
+
+    function Guardar_Guias_despacho_parcial()
+    {
+        try {
+            $json_data = file_get_contents('php://input');
+            $data = json_decode($json_data, true);
+
+            if (isset($json_data)) {
+
+                if ($data["TOKEN"] == constant("TOKEN_MOVIL")) {
+                    // $param1 = $data['param1'];
+                    $funcion =  $this->model->Guardar_Guias_despacho_parcial($data);
+                } else {
+                    die();
+                }
+            } else {
+                die();
+            }
+        } catch (Exception $e) {
+            die();
+        }
+    }
 }

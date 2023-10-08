@@ -28,8 +28,10 @@ export default function Guias({ route, navigation }) {
     const [pedido, setpedido] = useState('');
     const [data_detalle, setdata_detalle] = useState([]);
     const [selectedRows, setSelectedRows] = useState([]); // Arreglo para almacenar las selecciones
+    const [selectedRows_No, setSelectedRows_No] = useState([]); // Arreglo para almacenar las selecciones
     const [partialEntryEnabled, setPartialEntryEnabled] = useState(data_detalle.map(() => false));
     const [partialAmounts, setPartialAmounts] = useState(Array(data_detalle.length).fill(''));
+    const [check_parcial_state, setcheck_parcial_state] = useState([]);
 
 
     //********** CLIENTES *******/
@@ -170,7 +172,7 @@ export default function Guias({ route, navigation }) {
             setHasPermission(status === 'granted');
         })();
     }
-    
+
     //*** CUANDO ESCANEA CODIGO */
     const handleBarCodeScanned = ({ type, data }) => {
         setScanned(true);
@@ -223,36 +225,43 @@ export default function Guias({ route, navigation }) {
     function Llenar_Guia(data) {
         // let DATOS = JSON.stringify(data);
         let CABECERA = data[0][0];
-        // let DETALLE = data[1];
-        let DETALLE = [{
-            "CODIGO": "10016416",
-            "DESCRIPCION": "Cemento Holcim Fuerte Tipo GU 50Kg - GU",
-            "DESPACHADA": "", "ENTREGADA": "",
-            "ID": "82", "ORD": "01",
-            "PEDIDO_INTERNO": "505420272",
-            "POR_DESPACHAR": "400.00",
-            "UNIDAD": "SAC",
-            "CANT_PARCIAL": 0,
-            "PARCIAL": 0
-        }, {
-            "CODIGO": "91025087",
-            "DESCRIPCION": "Groutex Fino Blanco 2Kg",
-            "DESPACHADA": "", "ENTREGADA": "",
-            "ID": "83",
-            "ORD": "02",
-            "PEDIDO_INTERNO": "505420272",
-            "POR_DESPACHAR": "20.00",
-            "UNIDAD": "UN",
-            "CANT_PARCIAL": 0,
-            "PARCIAL": 0
-        }];
+        let DETALLE = data[1];
+        // let DETALLE = [{
+        //     "CODIGO": "10016416",
+        //     "DESCRIPCION": "Cemento Holcim Fuerte Tipo GU 50Kg - GU",
+        //     "DESPACHADA": "", "ENTREGADA": "",
+        //     "ID": "82", "ORD": "01",
+        //     "PEDIDO_INTERNO": "505420272",
+        //     "POR_DESPACHAR": "400.00",
+        //     "UNIDAD": "SAC",
+        //     "CANT_PARCIAL": 0,
+        //     "PARCIAL": 0
+        // }, {
+        //     "CODIGO": "91025087",
+        //     "DESCRIPCION": "Groutex Fino Blanco 2Kg",
+        //     "DESPACHADA": "", "ENTREGADA": "",
+        //     "ID": "83",
+        //     "ORD": "02",
+        //     "PEDIDO_INTERNO": "505420272",
+        //     "POR_DESPACHAR": "20.00",
+        //     "UNIDAD": "UN",
+        //     "CANT_PARCIAL": 0,
+        //     "PARCIAL": 0
+        // }];
         // 
         if (CABECERA.length == 0) {
             Alert.alert("", "Guia no encontrada, verifique el numero, o vuelva a escanear");
         } else {
             setisFormVisible(true);
             setfecha_emision(CABECERA["FECHA_DE_EMISION"]);
-            setpedido(CABECERA["PEDIDO_INTERNO"])
+            setpedido(CABECERA["PEDIDO_INTERNO"]);
+
+            DETALLE.map(function (x) {
+                x.PARCIAL = 0;
+                x.CANT_PARCIAL = "NaN";
+                x.NO_ENTREGAR_CODIGO = 0;
+            });
+
             setdata_detalle(DETALLE)
             // Alert.alert("asdasd", data[0][0]["ID"]);
         }
@@ -310,6 +319,27 @@ export default function Guias({ route, navigation }) {
                 }
             }
 
+            let val = 0;
+            data_detalle.map(function (x) {
+                if ((x.PARCIAL == 1 && x.CANT_PARCIAL == "NaN")
+                    || (x.PARCIAL == 1 && parseFloat(x.CANT_PARCIAL) <= 0)) {
+                    val = val + 1;
+                }
+
+                // let CANTIDAD_PARCIAL_TOTAL = parseFloat(x.CANTIDAD_PARCIAL_TOTAL);
+                // let RESTANTE = parseFloat(x.RESTANTE);
+                // let CANT_PARCIAL = parseFloat(x.CANT_PARCIAL);
+                // let PARCIAL = (x.PARCIAL);
+                // if (PARCIAL == 1) {
+                //     if (RESTANTE - CANT_PARCIAL == 0) {
+                //         x.PARCIAL = 0;
+                //     }
+                // }
+                if (x.NO_ENTREGAR_CODIGO == 1) {
+                    x.CANT_PARCIAL = 0;
+                    x.PARCIAL = 1;
+                }
+            });
 
             let param = {
                 USUARIO: usuario,
@@ -324,31 +354,38 @@ export default function Guias({ route, navigation }) {
                 DETALLE: data_detalle
             }
             console.log('param: ', param);
-
-            let url = 'despacho/Guardar_Guias_despacho';
-            fetchData(url, param, function (x) {
-                console.log('x: ', x);
-                let CAB = x[0];
-                let DET = x[1];
-                let EST = x[2];
-                if (CAB["GUARDADO"] == 2) {
-                    Alert.alert("Guia ya ingresada", "Si desea completar un pedido parcial ir a la seccion de guias parciales");
-                } else {
-                    if (CAB["GUARDADO"] == 1 && DET["GUARDADO"] == 1) {
-                        setdata_detalle([]);
-                        setisFormVisible(false);
-                        Alert.alert("Datos Guardados", "Los datos se guardaron con exito");
+            if (val > 0) {
+                Alert.alert("Error en cantidad parcial", "La cantidad parcial no puede estar vacia o ser menor o igual a 0");
+            } else {
+                let url = 'despacho/Guardar_Guias_despacho';
+                fetchData(url, param, function (x) {
+                    console.log('x: ', x);
+                    let CAB = x[0];
+                    let DET = x[1];
+                    let EST = x[2];
+                    if (CAB["GUARDADO"] == 2) {
+                        Alert.alert("Guia ya ingresada", "Si desea completar un pedido parcial ir a la seccion de guias parciales");
                     } else {
-                        if (CAB["GUARDADO"] == 0) {
-                            Alert.alert("Error al guardar los datos", (CAB["MENSAJE"]).toString());
-                        } else if (DET["GUARDADO"] == 0) {
-                            Alert.alert("Error al guardar los datos", (DET["MENSAJE"]).toString());
+                        if (CAB["GUARDADO"] == 1 && DET["GUARDADO"] == 1 && EST["GUARDADO"] == 1) {
+                            setdata_detalle([]);
+                            setisFormVisible(false);
+                            Alert.alert("Datos Guardados", "Los datos se guardaron con exito");
+                        } else {
+                            if (CAB["GUARDADO"] == 0) {
+                                Alert.alert("Error al guardar los datos", (CAB["MENSAJE"]).toString());
+                            } else if (DET["GUARDADO"] == 0) {
+                                Alert.alert("Error al guardar los datos", (DET["MENSAJE"]).toString());
+                            }else if (EST["GUARDADO"] == 0) {
+                                Alert.alert("Error al guardar los datos", (EST["MENSAJE"]).toString());
+                            }
                         }
                     }
-                }
 
-                // Alert.alert("", x);
-            })
+                    // Alert.alert("", x);
+                })
+            }
+
+
         }
 
         //    
@@ -415,6 +452,50 @@ export default function Guias({ route, navigation }) {
         })
 
 
+
+    };
+
+    const Cantidad_Parcial_Check_Change_No = (newValue, index, item) => {
+        console.log('newValue: ', newValue);
+        // if (newValue == true) {
+        //     newValue = false;
+        // } else {
+        //     newValue = true;
+        // }
+
+        let chek_seleccionado = selectedRows[index]
+        console.log('selectedRows[index]: ', selectedRows[index]);
+
+        const updatedCheckBoxState = [...selectedRows_No];
+        updatedCheckBoxState[index] = newValue;
+        setSelectedRows_No(updatedCheckBoxState);
+
+        let ne = true;
+        if (chek_seleccionado == false) {
+            ne = false;
+        } else {
+            if (newValue == true) {
+                ne = false
+            }
+        }
+
+        const updatedPartialEntryEnabled = [...partialEntryEnabled];
+        updatedPartialEntryEnabled[index] = ne;
+        setPartialEntryEnabled(updatedPartialEntryEnabled);
+
+        const updatedCheckBoxState_no = [...selectedRows_No];
+        updatedCheckBoxState_no[index] = newValue;
+        setcheck_parcial_state(updatedCheckBoxState_no);
+
+
+        data_detalle.map(function (x) {
+            if (x.CODIGO == item.CODIGO) {
+                if (newValue == true) {
+                    x.NO_ENTREGAR_CODIGO = 1
+                }
+            }
+        });
+        setdata_detalle(data_detalle);
 
     };
 
@@ -488,6 +569,9 @@ export default function Guias({ route, navigation }) {
                                         <Text style={[styles.columnHeader, { width: 300 }]}>DESCRIPCION</Text>
                                         <Text style={[styles.columnHeader, { width: 80 }]}>UNIDAD</Text>
                                         <Text style={[styles.columnHeader, { width: 110 }]}>POR DESPACHAR</Text>
+                                        {data_detalle.length > 1 && (
+                                            <Text style={[styles.columnHeader, { width: 100 }]}>NO ENTREGAR</Text>
+                                        )}
                                         <Text style={[styles.columnHeader, { width: 100 }]}>ENT. PARCIAL</Text>
                                         <Text style={[styles.columnHeader, { width: 110 }]}>CANT. PARCIAL</Text>
                                     </View>
@@ -499,10 +583,21 @@ export default function Guias({ route, navigation }) {
                                             <Text style={[styles.cell, { width: 300 }]}>{item.DESCRIPCION}</Text>
                                             <Text style={[styles.cell, { width: 80 }]}>{item.UNIDAD}</Text>
                                             <Text style={[styles.cell, { width: 110 }]}>{item.POR_DESPACHAR}</Text>
+                                            {data_detalle.length > 1 && (
+                                                <View style={[styles.cell, { width: 110 }]}>
+
+                                                    <Checkbox style={{ width: 25, height: 25, backgroundColor: "red" }}
+                                                        value={selectedRows_No[index]}
+                                                        onValueChange={(text) => Cantidad_Parcial_Check_Change_No(text, index, item)}
+                                                    />
+                                                </View>
+                                            )}
                                             <View style={[styles.cell, { width: 110 }]}>
                                                 <Checkbox style={{ width: 25, height: 25 }}
                                                     value={selectedRows[index]}
                                                     onValueChange={(text) => Cantidad_Parcial_Check_Change(text, index, item)}
+                                                    disabled={check_parcial_state[index]}
+
                                                 />
                                             </View>
 

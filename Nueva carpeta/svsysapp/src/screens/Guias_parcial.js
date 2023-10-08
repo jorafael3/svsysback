@@ -18,8 +18,11 @@ export default function Guias_parcial({ route, navigation }) {
     const [pedido, setpedido] = useState('');
     const [data_detalle, setdata_detalle] = useState([]);
     const [selectedRows, setSelectedRows] = useState([]); // Arreglo para almacenar las selecciones
+    const [selectedRows_No, setSelectedRows_No] = useState([]); // Arreglo para almacenar las selecciones
     const [partialEntryEnabled, setPartialEntryEnabled] = useState(data_detalle.map(() => false));
     const [partialAmounts, setPartialAmounts] = useState(Array(data_detalle.length).fill(''));
+    const [check_parcial_state, setcheck_parcial_state] = useState([]);
+
 
     //********** CLIENTES *******/
     const [datos_clientes, setdatos_clientes] = useState([]);
@@ -177,8 +180,11 @@ export default function Guias_parcial({ route, navigation }) {
             DETALLE.map(function (x) {
                 x.PARCIAL = 0;
                 x.CANT_PARCIAL = "NaN";
+                x.NO_ENTREGAR_CODIGO = 0;
             });
-            setdata_detalle(DETALLE)
+
+            let filtro_solo_por_entregar = DETALLE.filter(item => item.RESTANTE > 0);
+            setdata_detalle(filtro_solo_por_entregar)
             // Alert.alert("asdasd", data[0][0]["ID"]);
         }
 
@@ -231,6 +237,31 @@ export default function Guias_parcial({ route, navigation }) {
             }
 
 
+
+
+
+            let val = 0;
+            data_detalle.map(function (x) {
+                if ((x.PARCIAL == 1 && x.CANT_PARCIAL == "NaN")
+                    || (x.PARCIAL == 1 && parseFloat(x.CANT_PARCIAL) <= 0)) {
+                    val = val + 1;
+                }
+
+                let CANTIDAD_PARCIAL_TOTAL = parseFloat(x.CANTIDAD_PARCIAL_TOTAL);
+                let RESTANTE = parseFloat(x.RESTANTE);
+                let CANT_PARCIAL = parseFloat(x.CANT_PARCIAL);
+                let PARCIAL = (x.PARCIAL);
+                if (PARCIAL == 1) {
+                    if (RESTANTE - CANT_PARCIAL == 0) {
+                        x.PARCIAL = 0;
+                    }
+                }
+                if (x.NO_ENTREGAR_CODIGO == 1) {
+                    x.CANT_PARCIAL = 0;
+                    x.PARCIAL = 1;
+                }
+            });
+
             let param = {
                 USUARIO: usuario,
                 CREADO_POR: usuarioid,
@@ -246,43 +277,29 @@ export default function Guias_parcial({ route, navigation }) {
 
             console.log('param: ', param);
 
-            let val = 0;
-            data_detalle.map(function (x) {
-                if ((x.PARCIAL == 1 && x.CANT_PARCIAL == "NaN")
-                    || (x.PARCIAL == 1 && parseFloat(x.CANT_PARCIAL) <= 0)) {
-                    val = val + 1;
-                }
-
-            });
 
             if (val > 0) {
                 Alert.alert("Error en cantidad parcial", "La cantidad parcial no puede estar vacia o ser menor o igual a 0");
             } else {
-                let url = 'despacho/Guardar_Guias_despacho';
+                let url = 'despacho/Guardar_Guias_despacho_parcial';
 
-                // fetchData(url, param, function (x) {
+                fetchData(url, param, function (x) {
+                    console.log('x: ', x);
 
-                //     let CAB = x[0];
-                //     let DET = x[1];
-                //     let EST = x[2];
-                //     if (CAB["GUARDADO"] == 2) {
-                //         Alert.alert("Guia ya ingresada", "Si desea completar un pedido parcial ir a la seccion de guias parciales");
-                //     } else {
-                //         if (CAB["GUARDADO"] == 1 && DET["GUARDADO"] == 1) {
-                //             setdata_detalle([]);
-                //             setisFormVisible(false);
-                //             Alert.alert("Datos Guardados", "Los datos se guardaron con exito");
-                //         } else {
-                //             if (CAB["GUARDADO"] == 0) {
-                //                 Alert.alert("Error al guardar los datos", (CAB["MENSAJE"]).toString());
-                //             } else if (DET["GUARDADO"] == 0) {
-                //                 Alert.alert("Error al guardar los datos", (DET["MENSAJE"]).toString());
-                //             }
-                //         }
-                //     }
-
-                //     // Alert.alert("", x);
-                // })
+                    // let CAB = x[0];
+                    // let DET = x[1];
+                    // if (CAB["GUARDADO"] == 1 && DET["GUARDADO"] == 1) {
+                    //     setdata_detalle([]);
+                    //     setisFormVisible(false);
+                    //     Alert.alert("Datos Guardados", "Los datos se guardaron con exito");
+                    // } else {
+                    //     if (CAB["GUARDADO"] == 0) {
+                    //         Alert.alert("Error al guardar los datos", (CAB["MENSAJE"]).toString());
+                    //     } else if (DET["GUARDADO"] == 0) {
+                    //         Alert.alert("Error al guardar los datos", (DET["MENSAJE"]).toString());
+                    //     }
+                    // }
+                })
             }
 
 
@@ -321,9 +338,9 @@ export default function Guias_parcial({ route, navigation }) {
         } else {
             // Si la validación pasa, puedes actualizar el estado o realizar otras acciones
             // Por ejemplo, actualiza el estado de la cantidad parcial
-            // const updatedPartialAmounts = [...partialAmounts];
-            // updatedPartialAmounts[index] = partialAmount;
-            // setPartialAmounts(updatedPartialAmounts);
+            const updatedPartialAmounts = [...partialAmounts];
+            updatedPartialAmounts[index] = partialAmount;
+            setPartialAmounts(updatedPartialAmounts);
 
             data_detalle.map(function (x) {
                 if (x.CODIGO == item.CODIGO) {
@@ -363,9 +380,56 @@ export default function Guias_parcial({ route, navigation }) {
 
     };
 
+    const Cantidad_Parcial_Check_Change_No = (newValue, index, item) => {
+        console.log('newValue: ', newValue);
+        // if (newValue == true) {
+        //     newValue = false;
+        // } else {
+        //     newValue = true;
+        // }
+
+        let chek_seleccionado = selectedRows[index]
+        console.log('selectedRows[index]: ', selectedRows[index]);
+
+        const updatedCheckBoxState = [...selectedRows_No];
+        updatedCheckBoxState[index] = newValue;
+        setSelectedRows_No(updatedCheckBoxState);
+
+        let ne = true;
+        if (chek_seleccionado == false) {
+            ne = false;
+        } else {
+            if (newValue == true) {
+                ne = false
+            }
+        }
+
+        const updatedPartialEntryEnabled = [...partialEntryEnabled];
+        updatedPartialEntryEnabled[index] = ne;
+        setPartialEntryEnabled(updatedPartialEntryEnabled);
+
+        const updatedCheckBoxState_no = [...selectedRows_No];
+        updatedCheckBoxState_no[index] = newValue;
+        setcheck_parcial_state(updatedCheckBoxState_no);
+
+
+        data_detalle.map(function (x) {
+            if (x.CODIGO == item.CODIGO) {
+                if (newValue == true) {
+                    x.NO_ENTREGAR_CODIGO = 1
+                }
+            }
+        });
+        setdata_detalle(data_detalle);
+
+
+
+    };
+
+
+
     return (
         <ScrollView style={{ flex: 1 }}>
-
             <View style={styles.container}>
                 {/* Barra superior con nombre de usuario y botón de salida */}
                 <View style={styles.header}>
@@ -380,7 +444,6 @@ export default function Guias_parcial({ route, navigation }) {
 
                 <View style={styles.card}>
                     <View style={styles.formContainer}>
-
                         <View style={styles.rowContainer}>
                             <View style={styles.column}>
                                 <Text style={styles.label}>Fecha de Emisión:</Text>
@@ -393,7 +456,6 @@ export default function Guias_parcial({ route, navigation }) {
                             {/* Agregar más campos y valores aquí */}
                         </View>
                         <ScrollView horizontal={true}>
-
                             <View style={styles.container}>
                                 {/* Encabezados de la tabla */}
                                 <View style={styles.row}>
@@ -404,10 +466,12 @@ export default function Guias_parcial({ route, navigation }) {
                                     <Text style={[styles.columnHeader, { width: 110 }]}>POR DESPACHAR</Text>
                                     <Text style={[styles.columnHeader, { width: 110 }]}>DESPACHADO</Text>
                                     <Text style={[styles.columnHeader, { width: 110 }]}>RESTANTE</Text>
+                                    {data_detalle.length > 1 && (
+                                        <Text style={[styles.columnHeader, { width: 100 }]}>NO ENTREGAR</Text>
+                                    )}
                                     <Text style={[styles.columnHeader, { width: 100 }]}>ENT. PARCIAL</Text>
                                     <Text style={[styles.columnHeader, { width: 110 }]}>CANT. PARCIAL</Text>
                                 </View>
-
                                 {data_detalle.map((item, index) => (
                                     <View style={styles.row} key={index}>
                                         <Text style={[styles.cell, { width: 50 }]}>{item.ORD}</Text>
@@ -417,10 +481,21 @@ export default function Guias_parcial({ route, navigation }) {
                                         <Text style={[styles.cell, { width: 110 }]}>{item.POR_DESPACHAR}</Text>
                                         <Text style={[styles.cell, { width: 110 }]}>{parseFloat(item.CANTIDAD_PARCIAL_TOTAL).toFixed(2)}</Text>
                                         <Text style={[styles.cell, { width: 110, backgroundColor: "#D5F5E3", fontWeight: "bold" }]}>{parseFloat(item.RESTANTE).toFixed(2)}</Text>
+                                        {data_detalle.length > 1 && (
+                                            <View style={[styles.cell, { width: 110 }]}>
+
+                                                <Checkbox style={{ width: 25, height: 25, backgroundColor: "red" }}
+                                                    value={selectedRows_No[index]}
+                                                    onValueChange={(text) => Cantidad_Parcial_Check_Change_No(text, index, item)}
+                                                />
+                                            </View>
+                                        )}
+
                                         <View style={[styles.cell, { width: 110 }]}>
                                             <Checkbox style={{ width: 25, height: 25 }}
                                                 value={selectedRows[index]}
                                                 onValueChange={(text) => Cantidad_Parcial_Check_Change(text, index, item)}
+                                                disabled={check_parcial_state[index]}
                                             />
                                         </View>
 
