@@ -23,7 +23,7 @@ export default function LoginScreen({ navigation }) {
             PASS: password,
         };
         // 
-        navigation.navigate('Menu_opciones', { Usuario: 'jorge', Usuario_ID: 1, Acceso: 1, PLACA: "GSA-115" });
+        // navigation.navigate('Menu_opciones', { Usuario: 'jorge', Usuario_ID: 1, Acceso: 1, PLACA: "GSA-115" });
         // navigation.navigate('Guias', { Usuario: 'jorge', Usuario_ID: 1, Acceso: 1, PLACA: "GSA-115" });
 
         fetchData(url, param, function (x) {

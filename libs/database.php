@@ -33,7 +33,7 @@ class Database{
                     ];
                     return $this->pdo;
                 }catch(PDOException $e){
-                    echo json_encode("NO SE PUDO CONECTAR");
+                    echo json_encode($e);
                    // include_once 'views/errores/500.php';
                 }
             }
