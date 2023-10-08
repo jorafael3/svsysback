@@ -16,7 +16,7 @@ class DespachoModel extends Model
     function Cargar_Gui_Servicios($param)
     {
         try {
-            $query = $this->db->connect_dobra()->prepare('SELECT * from svsys.GUI_SERVICIOS
+            $query = $this->db->connect_dobra()->prepare('SELECT * from GUI_SERVICIOS
                 where estado = 1');
             // $query->bindParam(":pedido", $PEDIDO, PDO::PARAM_STR);
             if ($query->execute()) {
@@ -41,7 +41,7 @@ class DespachoModel extends Model
     function Cargar_Gui_Destinos($param)
     {
         try {
-            $query = $this->db->connect_dobra()->prepare('SELECT * from svsys.GUI_DESTINOS
+            $query = $this->db->connect_dobra()->prepare('SELECT * from GUI_DESTINOS
                 where estado = 1');
             // $query->bindParam(":pedido", $PEDIDO, PDO::PARAM_STR);
             if ($query->execute()) {
@@ -134,7 +134,7 @@ class DespachoModel extends Model
             if ($VAL_ESTADO == 1) {
                 $INSERT_ESTADO = $this->Insert_Estado($param);
                 if ($INSERT_ESTADO["GUARDADO"] == 1) {
-                    $query = $this->db->connect_dobra()->prepare('INSERT INTO svsys.gui_guias_despachadas 
+                    $query = $this->db->connect_dobra()->prepare('INSERT INTO gui_guias_despachadas 
                     (
                         PEDIDO_INTERNO,
                         CLIENTE_ENTREGA_ID,
@@ -242,7 +242,7 @@ class DespachoModel extends Model
             $ESTATO_DESPACHO_TEXTO = $param["PARCIAL"] == 0 ? "COMPLETO" : "PARCIAL";
             $CREADO_POR = $param["CREADO_POR"];
 
-            $query = $this->db->connect_dobra()->prepare('INSERT INTO svsys.gui_guias_despachadas_estado
+            $query = $this->db->connect_dobra()->prepare('INSERT INTO gui_guias_despachadas_estado
              (
                 PEDIDO_INTERNO, 
                 ESTADO_DESPACHO, 
@@ -291,7 +291,7 @@ class DespachoModel extends Model
                     $CANTIDAD_PARCIAL = 0;
                     $CANTIDAD_TOTAL = 0;
                 }
-                $query = $this->db->connect_dobra()->prepare('INSERT INTO svsys.gui_guias_despachadas_dt
+                $query = $this->db->connect_dobra()->prepare('INSERT INTO gui_guias_despachadas_dt
                 (
                    PEDIDO_INTERNO, 
                    CODIGO, 
@@ -590,7 +590,7 @@ class DespachoModel extends Model
             $DETALLE = $param["DETALLE"];
 
 
-            $query = $this->db->connect_dobra()->prepare('INSERT INTO svsys.gui_guias_despachadas 
+            $query = $this->db->connect_dobra()->prepare('INSERT INTO gui_guias_despachadas 
             (
                 PEDIDO_INTERNO,
                 CLIENTE_ENTREGA_ID,
@@ -677,7 +677,7 @@ class DespachoModel extends Model
                     $CANTIDAD_TOTAL = 0;
                 }
 
-                $query = $this->db->connect_dobra()->prepare('INSERT INTO svsys.gui_guias_despachadas_dt
+                $query = $this->db->connect_dobra()->prepare('INSERT INTO gui_guias_despachadas_dt
                 (
                    PEDIDO_INTERNO, 
                    CODIGO, 
@@ -725,7 +725,7 @@ class DespachoModel extends Model
     {
         try {
             $PEDIDO = $param["PEDIDO_INTERNO"];
-            $query = $this->db->connect_dobra()->prepare('UPDATE svsys.gui_guias_despachadas_estado
+            $query = $this->db->connect_dobra()->prepare('UPDATE gui_guias_despachadas_estado
             SET ESTADO_DESPACHO = 0, ESTADO_DESPACHO_TEXTO = "COMPLETO"
                 where PEDIDO_INTERNO = :pedido');
             $query->bindParam(":pedido", $PEDIDO, PDO::PARAM_STR);

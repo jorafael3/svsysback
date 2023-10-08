@@ -30,7 +30,7 @@ class MenuModel extends Model
                 when ss.sub_nombre is null or ss.sub_nombre = '' then 0 else 1 
             end as IsSubmenu,
             acc.*
-            from svsys.SIS_USUARIO_ACCESOS acc
+            from SIS_USUARIO_ACCESOS acc
             left join USUARIOS us on us.usuario_ID = acc.usuario_ID
             left join sis_menu sm on sm.menu_ID = acc.menu_ID 
             left join sis_submenu ss on ss.submenu_ID = acc.submenu_ID 

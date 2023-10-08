@@ -13,6 +13,8 @@ export default function LoginScreen({ navigation }) {
         Validar_usuario()
     };
 
+
+
     function Validar_usuario() {
         let url = "usuarios/Validar_Usuario_movil"
         // let url = "prueba.php"

@@ -51,7 +51,7 @@ class ClientesModel extends Model
                 $CLI_TELEFONO = $param["CLI_TELEFONO"];
 
                 $query = $this->db->connect_dobra()->prepare('INSERT INTO 
-                svsys.clientes 
+                clientes 
                 (
                     CLIENTE_RUC,
                     CLIENTE_NOMBRE, 
