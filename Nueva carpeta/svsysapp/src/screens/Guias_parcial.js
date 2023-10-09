@@ -6,6 +6,7 @@ import Checkbox from 'expo-checkbox';
 
 export default function Guias_parcial({ route, navigation }) {
     const datos_sesion = route.params;
+    console.log('datos_sesion: ', datos_sesion);
     const [usuario, setusuario] = useState('');
     const [usuarioid, setusuarioid] = useState('');
     const [placa, setplaca] = useState('');
@@ -285,20 +286,24 @@ export default function Guias_parcial({ route, navigation }) {
 
                 fetchData(url, param, function (x) {
                     console.log('x: ', x);
+                    let CAB = x[0];
+                    let DET = x[1];
+                    if (CAB["GUARDADO"] == 1 && DET["GUARDADO"] == 1) {
+                        setdata_detalle([]);
+                        Alert.alert("Datos Guardados", "Los datos se guardaron con exito");
+                        navigation.goBack('Guias_detalle', datos_sesion);
+                        // navigation.reset({
+                        //     index: 0,
+                        //     routes: [{ name: "Guias_detalle", datos_sesion }],
+                        // });
 
-                    // let CAB = x[0];
-                    // let DET = x[1];
-                    // if (CAB["GUARDADO"] == 1 && DET["GUARDADO"] == 1) {
-                    //     setdata_detalle([]);
-                    //     setisFormVisible(false);
-                    //     Alert.alert("Datos Guardados", "Los datos se guardaron con exito");
-                    // } else {
-                    //     if (CAB["GUARDADO"] == 0) {
-                    //         Alert.alert("Error al guardar los datos", (CAB["MENSAJE"]).toString());
-                    //     } else if (DET["GUARDADO"] == 0) {
-                    //         Alert.alert("Error al guardar los datos", (DET["MENSAJE"]).toString());
-                    //     }
-                    // }
+                    } else {
+                        if (CAB["GUARDADO"] == 0) {
+                            Alert.alert("Error al guardar los datos", (CAB["MENSAJE"]).toString());
+                        } else if (DET["GUARDADO"] == 0) {
+                            Alert.alert("Error al guardar los datos", (DET["MENSAJE"]).toString());
+                        }
+                    }
                 })
             }
 

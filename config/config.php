@@ -16,15 +16,15 @@ define('TOKEN_MOVIL', 'NLJwd=twVjJZ5!caOx!Cuh2XfjbLmcKXBr3R0F07DF8U?bDN1/i9omfIA
 // define('PASSWORD', 'Bruno2001');
 // define('CHARSET', 'utf8mb4');
 
-define('HOST', '85.10.205.173:3306');
-define('DB', 'svsys_jorge123');
-define('USER', 'jorge_123');
-define('PASSWORD', 'Jorge123*');
-define('CHARSET', 'utf8mb4');
-
-
-// define('HOST', '127.0.0.1');
-// define('DB', 'svsys');
-// define('USER', 'root');
-// define('PASSWORD', '');
+// define('HOST', '85.10.205.173:3306');
+// define('DB', 'svsys_jorge123');
+// define('USER', 'jorge_123');
+// define('PASSWORD', 'Jorge123*');
 // define('CHARSET', 'utf8mb4');
+
+
+define('HOST', '127.0.0.1');
+define('DB', 'svsys');
+define('USER', 'root');
+define('PASSWORD', '');
+define('CHARSET', 'utf8mb4');

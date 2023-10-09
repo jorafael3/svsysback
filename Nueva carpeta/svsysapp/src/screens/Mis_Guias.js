@@ -1,10 +1,13 @@
 import React, { useState, Component, useEffect } from 'react';
-import { View, TouchableOpacity, StyleSheet, Text, ScrollView } from 'react-native';
+import { View, TouchableOpacity, StyleSheet, Text, ScrollView, Alert } from 'react-native';
 import ModalSelector from 'react-native-modal-selector';
 import Checkbox from 'expo-checkbox';
 import fetchData from "../config/config"
+import { useIsFocused } from '@react-navigation/native'
 import Icon from 'react-native-vector-icons/FontAwesome'; // Puedes cambiar 'FontAwesome' por el conjunto de íconos que estés usando
 const itemsPerPage = 5; // Número de elementos por página
+import DatePicker from '@react-native-community/datetimepicker';
+import moment from 'moment';
 
 let ESTADO_FILTRO = [
     {
@@ -25,13 +28,23 @@ export default function Mis_guias({ route, navigation }) {
     const [usuario, setusuario] = useState('');
     const [usuarioid, setusuarioid] = useState('');
     const [placa, setplaca] = useState('');
+    const isFocused = useIsFocused()
+    //****** DATE */
+    const [selectedDate_ini, setSelectedDate_ini] = useState(new Date());
+    const [selectedDate_fin, setSelectedDate_fin] = useState(new Date());
+    const [showDatePicker_1, setShowDatePicker_1] = useState(false);
+    const [showDatePicker_2, setShowDatePicker_2] = useState(false);
+    const [fecha_inicio, setfecha_inicio] = useState(moment().startOf("week").format("YYYY-MM-DD"));
+    const [fecha_fin, setfecha_fin] = useState(moment().format("YYYY-MM-DD"));
+
 
     //**** DATOS TABLA *****/
     const [data_detalle, setdata_detalle] = useState([]);
 
 
-    const [currentPage, setCurrentPage] = useState(1);
-    const [endIndex, setendIndex] = useState(itemsPerPage);
+    const [currentPage, setCurrentPage] = useState(0);
+    const [pagina_actual, setpagina_actual] = useState(0);
+    const [pagina_final, setpagina_final] = useState(0);
     const [estado_filtro, setestado_filtro] = useState(2);
 
 
@@ -41,48 +54,99 @@ export default function Mis_guias({ route, navigation }) {
         setusuario(datos_sesion["Usuario"]);
         setusuarioid(datos_sesion["Usuario_ID"]);
         setplaca(datos_sesion["PLACA"])
-        Consultar_guias(estado_filtro)
-    }, []);
+        let fecha_inicio = moment().startOf('month').format("YYYY-MM-DD");
+        let fecha_fin = moment().format("YYYY-MM-DD");
+
+
+        Consultar_guias(estado_filtro, pagina_actual, fecha_inicio, fecha_fin)
+    }, [isFocused]);
 
     const handleLogout = () => {
         // Agrega la lógica para cerrar sesión aquí y navegar de regreso a la pantalla de inicio de sesión.
     };
 
 
-    function Consultar_guias(estado_filtro) {
+    const FECHA_INICIO_DATEPICKER = (event, date) => {
+        console.log('date: ', date);
+        setfecha_inicio(moment(date).format("YYYY-MM-DD"));
+        setShowDatePicker_1(false);
+        if (date !== undefined) {
+            setSelectedDate_ini(date);
+        }
+    };
+
+    const FECHA_FIN_DATEPICKER = (event, date) => {
+        console.log('date: ', moment(date).format("YYYY-MM-DD"));
+        setfecha_fin(moment(date).format("YYYY-MM-DD"));
+        setShowDatePicker_2(false);
+
+        if (date !== undefined) {
+            setSelectedDate_fin(date);
+        }
+    };
+
+    const openDatePicker_1 = () => {
+        setShowDatePicker_1(true);
+    };
+    const openDatePicker_2 = () => {
+        setShowDatePicker_2(true);
+    };
+
+    function Consultar_guias(estado_filtro, pagina, inicio, fin) {
         let USUARIO = usuarioid;
         let param = {
             USUARIO_ID: datos_sesion["Usuario_ID"],
-            ESTADO: estado_filtro
+            ESTADO: estado_filtro,
+            ITEMS_POR_PAGINA: itemsPerPage,
+            PAGINA_ACTUAL: pagina,
+            FECHA_INICIO: inicio,
+            FECHA_FIN: fin,
         }
-        console.log('param: ', param);
+
         let url = 'despacho/Guias_Usuario'
         fetchData(url, param, function (x) {
-            console.log('x: ', x);
-            x.sort((a, b) => a.PEDIDO_INTERNO - b.PEDIDO_INTERNO);
-            // // setdata_detalle(x);
-            // let cantidad_pag = Math.ceil(x.length / itemsPerPage);
-            // console.log('cantidad_pag: ', cantidad_pag);
+
+            let datos = x[0];
+            if (datos == 0) {
+                Alert.alert("Error de conexion intente en un momento", x[1].toString());
+            } else {
+                if (x.length == 0) {
+                    Alert.alert("No hay datos que mostrar", "");
+                    setdata_detalle(x);
+
+                } else if (x.length > 0) {
+                    let CANTDAD_REG = x[1];
 
 
-            // const startIndex = (currentPage - 1) * itemsPerPage;
-            // console.log('startIndex: ', startIndex);
-            // // console.log('startIndex: ', startIndex);
-            // setendIndex(startIndex + itemsPerPage);
-            // console.log('endIndex: ', endIndex);
-            // const itemsToDisplay = x.slice(startIndex, endIndex);
-            // console.log('itemsToDisplay: ', itemsToDisplay);
-            setdata_detalle(x);
+                    datos.sort((a, b) => a.PEDIDO_INTERNO - b.PEDIDO_INTERNO);
+                    // // setdata_detalle(x);
+                    let cantidad_pag = Math.ceil(CANTDAD_REG / itemsPerPage);
+
+                    setpagina_final(cantidad_pag);
+                    // 
+
+
+                    // const startIndex = (currentPage - 1) * itemsPerPage;
+                    // 
+                    // // 
+                    // setendIndex(startIndex + itemsPerPage);
+                    // 
+                    // const itemsToDisplay = x.slice(startIndex, endIndex);
+                    // 
+                    setdata_detalle(datos);
+                }
+            }
+
 
         })
 
     }
 
     function Ver_Detalle(text, index, item) {
-        console.log('item: ', item);
+
         let PEDIDO_INTERNO = item.PEDIDO_INTERNO;
         datos_sesion.PEDIDO_INTERNO = PEDIDO_INTERNO;
-        console.log('datos_sesion: ', datos_sesion);
+
         navigation.navigate('Guias_detalle', datos_sesion);
     }
 
@@ -108,14 +172,51 @@ export default function Mis_guias({ route, navigation }) {
                 <View style={styles.card}>
 
                     <View style={styles.formContainer}>
-                        <View style={[styles.clientSelector, { marginTop: 20 }]}>
+                        <View style={styles.rowContainer}>
+                            <View style={styles.column}>
+
+                                <View style={[styles.clientSelector, { marginTop: 1 }]}>
+                                    <TouchableOpacity
+                                        style={[styles.cell, { width: 100, margin: 1, backgroundColor: '#F2F4F4', borderRadius: 5, justifyContent: 'center', alignItems: 'center' }]}
+                                        onPress={openDatePicker_1}>
+                                        <Text>Fecha Inicio {fecha_inicio}</Text>
+                                    </TouchableOpacity>
+                                    {showDatePicker_1 && (
+                                        <DatePicker
+                                            mode="date"
+                                            value={selectedDate_ini}
+                                            onChange={FECHA_INICIO_DATEPICKER}
+                                        />
+                                    )}
+                                </View>
+                            </View>
+                            <View style={styles.column}>
+
+                                <View style={[styles.clientSelector, { marginTop: 1 }]}>
+                                    <TouchableOpacity
+                                        style={[styles.cell, { width: 100, margin: 1, backgroundColor: '#F2F4F4', borderRadius: 5, justifyContent: 'center', alignItems: 'center' }]}
+                                        onPress={openDatePicker_2}>
+                                        <Text>Fecha Fin {fecha_fin}</Text>
+                                    </TouchableOpacity>
+                                    {showDatePicker_2 && (
+                                        <DatePicker
+                                            mode="date"
+                                            value={selectedDate_fin}
+                                            onChange={FECHA_FIN_DATEPICKER}
+                                        />
+                                    )}
+                                </View>
+                            </View>
+                        </View>
+
+                        <View style={[styles.clientSelector, { marginTop: 5 }]}>
                             <Text style={{ fontSize: 16, fontWeight: 'bold', marginBottom: 5 }}>Filtrar por estado</Text>
                             <ModalSelector
                                 // keyExtractor={(item) => item.key}
                                 data={ESTADO_FILTRO}
                                 initValue="Seleccione estado"
                                 onChange={(option) => {
-                                    console.log('option: ', option);
+
                                     setestado_filtro(option.key);
                                     setTimeout(() => {
                                         Consultar_guias(option.key);
@@ -125,8 +226,27 @@ export default function Mis_guias({ route, navigation }) {
                                 }}
                             />
                         </View>
+                        <View style={[styles.clientSelector, { marginTop: 5 }]}>
+                            <TouchableOpacity
+                                style={[styles.cell, {
+                                    width: 50, margin: 1,
+                                    backgroundColor: "#3498DB",
+                                    borderRadius: 10,
+                                    justifyContent: 'center',
+                                    alignItems: 'center'
+                                }]}
 
-                        <ScrollView horizontal={true} style={{ marginTop: 25 }}>
+                                onPress={() => {
+
+                                }}
+                            >
+                                <Text>
+                                    <Icon name="refresh" size={30} color="#fff" />
+                                </Text>
+                            </TouchableOpacity>
+                        </View>
+
+                        <ScrollView horizontal={true} style={{ marginTop: 5 }}>
                             <View style={styles.container}>
                                 {/* Encabezados de la tabla */}
                                 <View style={styles.row}>
@@ -170,23 +290,45 @@ export default function Mis_guias({ route, navigation }) {
                                 ))}
                                 <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                                     <TouchableOpacity
+                                        style={[styles.cell, {
+                                            width: 60,
+                                            backgroundColor: pagina_actual == 0 ? '#E5E8E8' : "#3498DB",
+                                            margin: 8,
+                                            borderRadius: 10,
+                                            justifyContent: 'center',
+                                            alignItems: 'center'
+                                        }]}
+
                                         onPress={() => {
-                                            setCurrentPage(currentPage - 1);
-                                            Consultar_guias();
+
+                                            setpagina_actual(pagina_actual - 1);
+                                            Consultar_guias(estado_filtro, pagina_actual - 1);
                                         }}
-                                        disabled={currentPage === 1}
+                                        disabled={pagina_actual === 0}
                                     >
-                                        <Text>Anterior</Text>
+                                        <Text>
+                                            <Icon name="arrow-left" size={35} color="#fff" />
+                                        </Text>
                                     </TouchableOpacity>
                                     <TouchableOpacity
+                                        style={[styles.cell, {
+                                            width: 60, margin: 8,
+                                            backgroundColor: pagina_actual == pagina_final ? '#E5E8E8' : "#3498DB",
+                                            borderRadius: 10,
+                                            justifyContent: 'center',
+                                            alignItems: 'center'
+                                        }]}
+
                                         onPress={() => {
-                                            setCurrentPage(currentPage + 1);
-                                            Consultar_guias();
+                                            setpagina_actual(pagina_actual + 1);
+                                            Consultar_guias(estado_filtro, pagina_actual + 1);
 
                                         }}
-                                    // disabled={endIndex >= data_detalle.length}
+                                        disabled={pagina_actual == pagina_final}
                                     >
-                                        <Text>Siguiente</Text>
+                                        <Text>
+                                            <Icon name="arrow-right" size={35} color="#fff" />
+                                        </Text>
                                     </TouchableOpacity>
                                 </View>
                             </View>

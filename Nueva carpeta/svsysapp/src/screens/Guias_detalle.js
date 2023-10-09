@@ -3,8 +3,10 @@ import { View, TouchableOpacity, StyleSheet, Text, ScrollView } from 'react-nati
 import ModalSelector from 'react-native-modal-selector';
 import fetchData from "../config/config"
 import Icon from 'react-native-vector-icons/FontAwesome'; // Puedes cambiar 'FontAwesome' por el conjunto de íconos que estés usando
+import { useIsFocused } from '@react-navigation/native'
 
 export default function Guias_detalle({ route, navigation }) {
+    const isFocused = useIsFocused()
     const [usuario, setusuario] = useState('');
     const [usuarioid, setusuarioid] = useState('');
     const [placa, setplaca] = useState('');
@@ -25,6 +27,9 @@ export default function Guias_detalle({ route, navigation }) {
     const datos_sesion = route.params;
 
     useEffect(() => {
+        console.log("********************************");
+        console.log("CARGANDO DETALLE PAGINA");
+        console.log("********************************");
         setusuario(datos_sesion["Usuario"]);
         setusuarioid(datos_sesion["Usuario_ID"]);
         setplaca(datos_sesion["PLACA"]);
@@ -32,7 +37,7 @@ export default function Guias_detalle({ route, navigation }) {
         // Consultar_guias(estado_filtro)
         Consultar_guia_despachadas(datos_sesion["Usuario_ID"], datos_sesion["PEDIDO_INTERNO"]);
         Cargar_guia_cabecera(datos_sesion["PEDIDO_INTERNO"]);
-    }, []);
+    }, [isFocused]);
 
     function Cargar_guia_cabecera(pedido) {
         let param = {

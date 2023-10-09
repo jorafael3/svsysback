@@ -159,28 +159,31 @@ def Buscar_Documentos():
 
 def Obtener_tabla(texto):
     texto_limpio = texto.replace("PRODUCTO", "").replace("CANTIDAD", "")
+
         # Dividir el texto en líneas
     lineas = texto_limpio.strip().split('\n')
+    arra_pro = []
 
-        # Separar las palabras en cada línea
-    palabras = lineas[0].split()
+    # Separar las palabras en cada línea
 
-    # Obtener la cantidad "POR DESPACHAR"
-    cantidad_por_despachar = (palabras[-1])
-        # Crear un diccionario con los datos
-    unidad = palabras[-2]
-
-    informacion_producto = {
-            'ORD': palabras[0],
-            'CODIGO': palabras[1],
-            'DESCRIPCION': ' '.join(palabras[2:-2]),
-            'UNIDAD': unidad,
-            'POR_DESPACHAR': cantidad_por_despachar,
-            'DESPACHADA': "",
-            'ENTREGADA': ""
-        } 
+    for i in range(len(lineas) -1):
+        palabras = lineas[i].split()
+        # Obtener la cantidad "POR DESPACHAR"
+        cantidad_por_despachar = (palabras[-1])
+            # Crear un diccionario con los datos
+        unidad = palabras[-2]
+        informacion_producto = {
+                'ORD': palabras[0],
+                'CODIGO': palabras[1],
+                'DESCRIPCION': ' '.join(palabras[2:-2]),
+                'UNIDAD': unidad,
+                'POR_DESPACHAR': cantidad_por_despachar,
+                'DESPACHADA': "",
+                'ENTREGADA': ""
+            } 
+        arra_pro.append(informacion_producto)
     guardar_log("DATOS TABLA EXTRAIDO",1)
-    return informacion_producto
+    return arra_pro
 
 def Obtener_cabecera(cabecera):
         # print(cabecera)
@@ -390,46 +393,55 @@ def Validar_Cabecera(numero):
 
 def Guadar_detalle(datos,PEDIDO):
 
+    val = 0
+    err = 0
+    for dato in datos:
+        valores = (
+                    PEDIDO,
+                    dato["ORD"].strip(),           
+                    dato["CODIGO"].strip(),
+                    dato["DESCRIPCION"].strip(),
+                    dato["UNIDAD"].strip(),
+                    dato["POR_DESPACHAR"].strip(),
+                    dato["DESPACHADA"].strip(),
+                    dato["ENTREGADA"].strip(),
+            )
+        
+        consulta = """
+                INSERT INTO GUIAS_DETALLE (
+                    PEDIDO_INTERNO,
+                    ORD,
+                    CODIGO,
+                    DESCRIPCION,
+                    UNIDAD,
+                    POR_DESPACHAR,
+                    DESPACHADA,
+                    ENTREGADA
+                    ) VALUES (
+                        %s, %s, %s , %s,
+                        %s, %s, %s , %s
+                        )
+            """
+        try:
+                cursor = conexion.cursor()
+                cursor.execute(consulta,valores)
+                conexion.commit()
+                print("detalle guardado exitosa")
+        except Exception as e:
+                # Captura cualquier excepción que ocurra durante la inserción
+                print("Error durante la inserción:", str(e))
+                # return 0
+                err = err + 1
+        finally:
+                # Cierra el cursor y la conexión
+                cursor.close()
+                val = val + 1
+                # return 1
     
-    valores = (
-                PEDIDO,
-                datos["ORD"].strip(),           
-                datos["CODIGO"].strip(),
-                datos["DESCRIPCION"].strip(),
-                datos["UNIDAD"].strip(),
-                datos["POR_DESPACHAR"].strip(),
-                datos["DESPACHADA"].strip(),
-                datos["ENTREGADA"].strip(),
-        )
-    
-    consulta = """
-            INSERT INTO GUIAS_DETALLE (
-                PEDIDO_INTERNO,
-                ORD,
-                CODIGO,
-                DESCRIPCION,
-                UNIDAD,
-                POR_DESPACHAR,
-                DESPACHADA,
-                ENTREGADA
-                ) VALUES (
-                    %s, %s, %s , %s,
-                    %s, %s, %s , %s
-                    )
-        """
-    try:
-            cursor = conexion.cursor()
-            cursor.execute(consulta,valores)
-            conexion.commit()
-            print("detalle guardado exitosa")
-    except Exception as e:
-            # Captura cualquier excepción que ocurra durante la inserción
-            print("Error durante la inserción:", str(e))
-            return 0
-    finally:
-            # Cierra el cursor y la conexión
-            cursor.close()
-            return 1
+    if err == 0:
+        return 1
+    else:
+        return 0
 
 def Guardar_Guias(array_datos):
     cantidad_datos = 0
@@ -446,8 +458,8 @@ def Guardar_Guias(array_datos):
     guardar_log("FINALIZADO DATOS "+str(cantidad_datos) ,1)
 
 # login()
-Leer_pdf()
-# Limpiar_directorio()
+# Leer_pdf()
+Limpiar_directorio()
 # def p():
 #     c = 'SELECT * FROM guias'
 #     cursor = conexion.cursor()

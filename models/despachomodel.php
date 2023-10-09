@@ -237,28 +237,33 @@ class DespachoModel extends Model
     function Insert_Estado($param)
     {
         try {
+            date_default_timezone_set('America/Guayaquil');
             $PEDIDO_INTERNO = $param["PEDIDO_INTERNO"];
             $PARCIAL = $param["PARCIAL"] == 0 ? 0 : 1;
             $ESTATO_DESPACHO_TEXTO = $param["PARCIAL"] == 0 ? "COMPLETO" : "PARCIAL";
             $CREADO_POR = $param["CREADO_POR"];
+            $FECHA_COMPLETO = $param["PARCIAL"] == 0 ? date("Y-m-d h:m:s") : "";
 
             $query = $this->db->connect_dobra()->prepare('INSERT INTO gui_guias_despachadas_estado
              (
                 PEDIDO_INTERNO, 
                 ESTADO_DESPACHO, 
                 ESTADO_DESPACHO_TEXTO, 
-                CREADO_POR
+                CREADO_POR,
+                FECHA_COMPLETADO
                 ) VALUES(
                     :PEDIDO_INTERNO, 
                     :ESTADO_DESPACHO, 
                     :ESTATO_DESPACHO_TEXTO, 
-                    :CREADO_POR
+                    :CREADO_POR,
+                    :FECHA_COMPLETADO
                 )
             ');
             $query->bindParam(":PEDIDO_INTERNO", $PEDIDO_INTERNO, PDO::PARAM_STR);
             $query->bindParam(":ESTADO_DESPACHO", $PARCIAL, PDO::PARAM_STR);
             $query->bindParam(":ESTATO_DESPACHO_TEXTO", $ESTATO_DESPACHO_TEXTO, PDO::PARAM_STR);
             $query->bindParam(":CREADO_POR", $CREADO_POR, PDO::PARAM_STR);
+            $query->bindParam(":FECHA_COMPLETADO", $FECHA_COMPLETO, PDO::PARAM_STR);
             if ($query->execute()) {
                 return array("GUARDADO" => 1, "MENSAJE" => "ESTADO GUARDADO");
             } else {
@@ -337,7 +342,6 @@ class DespachoModel extends Model
         }
     }
 
-
     //***** GUIAS USUARIO */
     function Guias_usuario($param)
     {
@@ -345,6 +349,15 @@ class DespachoModel extends Model
         try {
             $USUARIO = $param["USUARIO_ID"];
             $ESTADO = $param["ESTADO"];
+            $ITEMS_POR_PAGINA = $param["ITEMS_POR_PAGINA"];
+            $PAGINA_ACTUAL = $param["PAGINA_ACTUAL"];
+            if ($PAGINA_ACTUAL == 0) {
+                $VALOR = 0;
+            } else if ($PAGINA_ACTUAL == 1) {
+                $VALOR = (int)($ITEMS_POR_PAGINA) * ((int)($PAGINA_ACTUAL));
+            } else {
+                $VALOR = (int)($ITEMS_POR_PAGINA) * ((int)($PAGINA_ACTUAL) - 1);
+            }
 
             if ($ESTADO == 2) {
                 $EST = "(1,0)";
@@ -353,21 +366,39 @@ class DespachoModel extends Model
             }
 
 
-            $query = $this->db->connect_dobra()->prepare('SELECT * from 
+            $query = $this->db->connect_dobra()->prepare('SELECT 
+            ID, 
+            PEDIDO_INTERNO, 
+            ESTADO_DESPACHO, 
+            ESTADO_DESPACHO_TEXTO, 
+            FECHA_CREADO, 
+            CREADO_POR,
+            FECHA_COMPLETADO,
+            (select count(*) from gui_guias_despachadas_estado where ggde.CREADO_POR = "1") as CANTIDAD
+            from 
             gui_guias_despachadas_estado ggde   
             where ggde.CREADO_POR = :USUARIO
             AND ggde.ESTADO_DESPACHO in ' . $EST . '
+            ORDER by ID
+            LIMIT ' . $ITEMS_POR_PAGINA . ' OFFSET ' . $VALOR . '; 
             ');
 
             $query->bindParam(":USUARIO", $USUARIO, PDO::PARAM_STR);
+            // $query->bindParam(":ITEMS_POR_PAGINA", $ITEMS_POR_PAGINA, PDO::PARAM_STR);
+            // $query->bindParam(":VALOR", $VALOR, PDO::PARAM_STR);
             // $query->bindParam(":ESTADO", $ESTADO, PDO::PARAM_STR);
             if ($query->execute()) {
                 $result = $query->fetchAll(PDO::FETCH_ASSOC);
-                echo json_encode($result);
-                exit();
+                if (count($result) > 0) {
+                    echo json_encode([$result, $result[0]["CANTIDAD"]]);
+                    exit();
+                } else {
+                    echo json_encode($result);
+                    exit();
+                }
             } else {
                 $err = $query->errorInfo();
-                echo json_encode($err);
+                echo json_encode([0, $err]);
                 exit();
             }
         } catch (PDOException $e) {
@@ -627,6 +658,7 @@ class DespachoModel extends Model
             if ($query->execute()) {
                 $CAB = array("GUARDADO" => 1, "MENSAJE" => "CABECERA GUARDADA");
                 $DET = $this->Guardar_Guias_despacho_dt_parcial($DETALLE, $despacho_ID, $PEDIDO_INTERNO);
+                $COM = 0;
                 if ($DET["GUARDADO"] == 1) {
                     if ($PARCIAL == 0) {
                         $COM = $this->Actualizar_Parcial_Completo($param);
@@ -725,9 +757,14 @@ class DespachoModel extends Model
     {
         try {
             $PEDIDO = $param["PEDIDO_INTERNO"];
+            // $FECHA_COMPLETO = $param["PARCIAL"] == 0 ? date("Y-m-d h:m:s") : "";
+
             $query = $this->db->connect_dobra()->prepare('UPDATE gui_guias_despachadas_estado
-            SET ESTADO_DESPACHO = 0, ESTADO_DESPACHO_TEXTO = "COMPLETO"
-                where PEDIDO_INTERNO = :pedido');
+            SET 
+                ESTADO_DESPACHO = 0, 
+                ESTADO_DESPACHO_TEXTO = "COMPLETO",
+                FECHA_COMPLETADO = NOW()
+            where PEDIDO_INTERNO = :pedido');
             $query->bindParam(":pedido", $PEDIDO, PDO::PARAM_STR);
             if ($query->execute()) {
                 $result = $query->fetchAll(PDO::FETCH_ASSOC);
