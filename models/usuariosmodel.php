@@ -259,14 +259,20 @@ class Usuariosmodel extends Model
             $USUARIO = $param["USUARIO"];
             $PASS = $param["PASS"];
             $query = $this->db->connect_dobra()->prepare('SELECT
-                Usuario,
-                password,
-                Usuario_ID
-            FROM us_usuarios
+                us.Usuario,
+                us.Usuario_ID,
+                dp.nombre as departamento,
+                su.nombre as sucursal,
+                su.ID as sucursal_id
+            FROM us_usuarios us
+            LEFT JOIN us_departamentos dp
+            on dp.ID = us.departamento_id
+            LEFT JOIN sis_sucursales su
+            on su.ID = us.sucursal_id
             WHERE
-                Usuario = :usuario
-                and password = :pass
-                and Estado = 1
+                us.Usuario = :usuario
+                and us.password = :pass
+                and us.Estado = 1
             ');
             $query->bindParam(":usuario", $USUARIO, PDO::PARAM_STR);
             $query->bindParam(":pass", $PASS, PDO::PARAM_STR);
