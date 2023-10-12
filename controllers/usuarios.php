@@ -16,14 +16,25 @@ class Usuarios extends Controller
         //echo "nuevo controlaodr";
     }
 
+    function Validar_Usuario()
+    {
+        $param = $_POST['param'];
+
+
+        if ($param["TOKEN"] == constant("TOKEN_WEB")) {
+            // echo json_encode($param);
+            $funcion =  $this->model->Validar_Usuario_movil($param);
+        } else {
+            die();
+        }
+    }
+
     function Cargar_Usuarios()
     {
         $param1 = $_POST['param'];
         // echo json_encode($param1);
         $Ventas =  $this->model->Consultar_Cliente($param1);
     }
-
-
 
     function Consultar_Accesos()
     {
@@ -38,6 +49,7 @@ class Usuarios extends Controller
         $Ventas =  $this->model->Guardar_Accesos($param1);
     }
 
+    //**** MOVIL */
     function Validar_Usuario_movil()
     {
         // try {
@@ -45,11 +57,11 @@ class Usuarios extends Controller
         //     $data = json_decode($json_data, true);
 
         //     if (isset($json_data)) {
-               
+
         //         if ($data["TOKEN"] == constant("TOKEN_MOVIL")) {
         //             // $param1 = $data['param1'];
         //             $funcion =  $this->model->Validar_Usuario_movil($data);
-                  
+
         //         } else {
         //             die();
         //         }

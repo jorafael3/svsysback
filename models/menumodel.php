@@ -31,7 +31,7 @@ class MenuModel extends Model
             end as IsSubmenu,
             acc.*
             from SIS_USUARIO_ACCESOS acc
-            left join USUARIOS us on us.usuario_ID = acc.usuario_ID
+            left join us_USUARIOS us on us.usuario_ID = acc.usuario_ID
             left join sis_menu sm on sm.menu_ID = acc.menu_ID 
             left join sis_submenu ss on ss.submenu_ID = acc.submenu_ID 
             where us.usuario_ID = 1

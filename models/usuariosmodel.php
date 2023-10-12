@@ -18,7 +18,7 @@ class Usuariosmodel extends Model
         // exit();
 
         try {
-            $query = $this->db->connect_dobra()->prepare('SELECT * from usuarios
+            $query = $this->db->connect_dobra()->prepare('SELECT * from us_usuarios
                 ');
             if ($query->execute()) {
                 $result = $query->fetchAll(PDO::FETCH_ASSOC);
@@ -262,7 +262,7 @@ class Usuariosmodel extends Model
                 Usuario,
                 password,
                 Usuario_ID
-            FROM usuarios
+            FROM us_usuarios
             WHERE
                 Usuario = :usuario
                 and password = :pass
@@ -277,7 +277,7 @@ class Usuariosmodel extends Model
                     echo json_encode([true,$result]);
                     exit();
                 }else{
-                    echo json_encode([false,"USUARIO INCORRECTO"]);
+                    echo json_encode([false,"CREDENCIALES INCORRECTAS"]);
                     exit();
                 }
             } else {

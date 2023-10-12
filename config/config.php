@@ -9,6 +9,7 @@ if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') {
   }
 define('URL',$http.$u.'/svsysback/');// ip local:puerto
 define('TOKEN_MOVIL', 'NLJwd=twVjJZ5!caOx!Cuh2XfjbLmcKXBr3R0F07DF8U?bDN1/i9omfIALwsVTZSGR0EhiOeNipl5pk5=s1rxL8RvF6pDxxVlTBmzOL2QCp0qGlPbSv=gs8tKGREhxGds29RXwbAU56nx5K6rotNeCXigeTNUFR5E-Bq!0T?LqoIyqvHkg6S13kv-fxm3e=piDz3k2jhrOuHFOVx-DzwC8I/?F3lPSRuvj0V/!oO2YAgqHGA3p-Kt3YQnpOWM7!6');
+define('TOKEN_WEB', 'My0Ua8GDgEMPbpTZhiOEwjrzy5s4r9GFBOO7RWgwDA1kP2ZixULX0GpVHh99erfm');
 
 // define('HOST', 'tcp:10.5.1.245');
 // define('DB', 'svsys');
