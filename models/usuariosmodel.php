@@ -18,7 +18,23 @@ class Usuariosmodel extends Model
         // exit();
 
         try {
-            $query = $this->db->connect_dobra()->prepare('SELECT * from us_usuarios
+            $query = $this->db->connect_dobra()->prepare('SELECT
+            us.Nombre,
+            us.Usuario,
+            us.Usuario_ID,
+            us.Estado,
+            us.email,
+            dp.nombre as departamento,
+            dp.ID as departamento_id,
+            su.Nombre as sucursal,
+            su.ID as sucursal_id
+             
+            from 
+            us_usuarios us
+            left join us_departamentos dp
+            on dp.ID = us.departamento_id
+            left join sis_sucursales su
+            on su.ID = us.sucursal_id
                 ');
             if ($query->execute()) {
                 $result = $query->fetchAll(PDO::FETCH_ASSOC);
@@ -76,6 +92,100 @@ class Usuariosmodel extends Model
             } else {
                 $err = $query->errorInfo();
                 echo json_encode($err);
+                exit();
+            }
+        } catch (PDOException $e) {
+            $e = $e->getMessage();
+            echo json_encode($e);
+            exit();
+        }
+    }
+
+    //*** USUARIOS */
+
+
+    function Nuevo_Usuario($param)
+    {
+        // echo json_encode($param1);
+        // exit();
+
+        try {
+            $US_USUARIO = $param["US_USUARIO"];
+            $US_NOMBRE = $param["US_NOMBRE"];
+            $US_EMAIL = $param["US_EMAIL"];
+            $US_PASS = $param["US_PASS"];
+            $US_DEPT = $param["US_DEPT"];
+            $US_SUCURSAL = $param["US_SUCURSAL"];
+
+
+            $query = $this->db->connect_dobra()->prepare('INSERT INTO svsys.us_usuarios 
+            (
+                Usuario, 
+                Nombre, 
+                password, 
+                email, 
+                departamento_id, 
+                sucursal_id 
+            ) VALUES(
+                :Usuario, 
+                :Nombre, 
+                :password, 
+                :email, 
+                :departamento_id, 
+                :sucursal_id 
+            );
+                ');
+            $query->bindParam(":Usuario", $US_USUARIO, PDO::PARAM_STR);
+            $query->bindParam(":Nombre", $US_NOMBRE, PDO::PARAM_STR);
+            $query->bindParam(":password", $US_PASS, PDO::PARAM_STR);
+            $query->bindParam(":email", $US_EMAIL, PDO::PARAM_STR);
+            $query->bindParam(":departamento_id", $US_DEPT, PDO::PARAM_STR);
+            $query->bindParam(":sucursal_id", $US_SUCURSAL, PDO::PARAM_STR);
+
+            if ($query->execute()) {
+                $result = $query->fetchAll(PDO::FETCH_ASSOC);
+                echo json_encode([1, "DATOS GUARDADOS"]);
+                exit();
+            } else {
+                $err = $query->errorInfo();
+                echo json_encode([0, $err]);
+                exit();
+            }
+        } catch (PDOException $e) {
+            $e = $e->getMessage();
+            echo json_encode($e);
+            exit();
+        }
+    }
+
+    function ActivarDesact_Usuario($param)
+    {
+        // echo json_encode($param1);
+        // exit();
+
+        try {
+            $US_ID = $param["Usuario_ID"];
+            $OPERACION = $param["OPERACION"];
+
+            $query = $this->db->connect_dobra()->prepare('UPDATE us_usuarios 
+            SET 
+                Estado = :estado
+            WHERE Usuario_ID = :Usuario_ID
+            
+                ');
+            $query->bindParam(":estado", $OPERACION, PDO::PARAM_STR);
+            $query->bindParam(":Usuario_ID", $US_ID, PDO::PARAM_STR);
+
+            if ($query->execute()) {
+                if ($OPERACION == 1) {
+                    echo json_encode([1, "USUARIO ACTIVADO"]);
+                } else {
+                    echo json_encode([1, "USUARIO DESACTIVADO"]);
+                }
+                exit();
+            } else {
+                $err = $query->errorInfo();
+                echo json_encode([0, "ERROR " . $err]);
                 exit();
             }
         } catch (PDOException $e) {
@@ -332,10 +442,10 @@ class Usuariosmodel extends Model
             if ($query->execute()) {
                 $result = $query->fetchAll(PDO::FETCH_ASSOC);
                 if (count($result) > 0) {
-                    echo json_encode([true,$result]);
+                    echo json_encode([true, $result]);
                     exit();
-                }else{
-                    echo json_encode([false,"CREDENCIALES INCORRECTAS"]);
+                } else {
+                    echo json_encode([false, "CREDENCIALES INCORRECTAS"]);
                     exit();
                 }
             } else {

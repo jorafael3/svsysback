@@ -59,6 +59,28 @@ class Usuarios extends Controller
         }
     }
 
+    //**** USUARIOS */
+    function Nuevo_Usuario()
+    {
+        $param = $_POST['param'];
+        if ($param["TOKEN"] == constant("TOKEN_WEB")) {
+            // echo json_encode($param);
+            $Ventas =  $this->model->Nuevo_Usuario($param);
+        } else {
+            die();
+        }
+    }
+    function ActivarDesact_Usuario()
+    {
+        $param = $_POST['param'];
+        if ($param["TOKEN"] == constant("TOKEN_WEB")) {
+            // echo json_encode($param);
+            $Ventas =  $this->model->ActivarDesact_Usuario($param);
+        } else {
+            die();
+        }
+    }
+
     // ACCESO
     function Consultar_Accesos()
     {
