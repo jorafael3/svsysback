@@ -19,8 +19,6 @@ class Usuarios extends Controller
     function Validar_Usuario()
     {
         $param = $_POST['param'];
-
-
         if ($param["TOKEN"] == constant("TOKEN_WEB")) {
             // echo json_encode($param);
             $funcion =  $this->model->Validar_Usuario_movil($param);
@@ -31,17 +29,44 @@ class Usuarios extends Controller
 
     function Cargar_Usuarios()
     {
-        $param1 = $_POST['param'];
-        // echo json_encode($param1);
-        $Ventas =  $this->model->Consultar_Cliente($param1);
+        $param = $_POST['param'];
+        if ($param["TOKEN"] == constant("TOKEN_WEB")) {
+            // echo json_encode($param);
+            $Ventas =  $this->model->Consultar_Usuarios($param);
+        } else {
+            die();
+        }
     }
 
+    function Cargar_Departamentos()
+    {
+        $param = $_POST['param'];
+        if ($param["TOKEN"] == constant("TOKEN_WEB")) {
+            // echo json_encode($param);
+            $Ventas =  $this->model->Cargar_Departamentos($param);
+        } else {
+            die();
+        }
+    }
+    function Cargar_Sucursales()
+    {
+        $param = $_POST['param'];
+        if ($param["TOKEN"] == constant("TOKEN_WEB")) {
+            // echo json_encode($param);
+            $Ventas =  $this->model->Cargar_Sucursales($param);
+        } else {
+            die();
+        }
+    }
+
+    // ACCESO
     function Consultar_Accesos()
     {
         $param1 = $_POST['param'];
         // echo json_encode($param1);
         $Ventas =  $this->model->Consultar_Accesos($param1);
     }
+
     function Guardar_Accesos()
     {
         $param1 = $_POST['param'];

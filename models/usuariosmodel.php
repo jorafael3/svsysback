@@ -12,7 +12,7 @@ class Usuariosmodel extends Model
         parent::__construct();
     }
 
-    function Consultar_Cliente($param1)
+    function Consultar_Usuarios($param1)
     {
         // echo json_encode($param1);
         // exit();
@@ -36,6 +36,57 @@ class Usuariosmodel extends Model
         }
     }
 
+    function Cargar_Departamentos($param1)
+    {
+        // echo json_encode($param1);
+        // exit();
+
+        try {
+            $query = $this->db->connect_dobra()->prepare('SELECT ID as value, nombre as label from us_departamentos
+                WHERE estado = 1
+                ');
+            if ($query->execute()) {
+                $result = $query->fetchAll(PDO::FETCH_ASSOC);
+                echo json_encode($result);
+                exit();
+            } else {
+                $err = $query->errorInfo();
+                echo json_encode($err);
+                exit();
+            }
+        } catch (PDOException $e) {
+            $e = $e->getMessage();
+            echo json_encode($e);
+            exit();
+        }
+    }
+
+    function Cargar_Sucursales($param1)
+    {
+        try {
+            $query = $this->db->connect_dobra()->prepare('SELECT 
+                ID as value, Nombre as label 
+                from sis_sucursales
+                WHERE estado = 1
+                ');
+            if ($query->execute()) {
+                $result = $query->fetchAll(PDO::FETCH_ASSOC);
+                echo json_encode($result);
+                exit();
+            } else {
+                $err = $query->errorInfo();
+                echo json_encode($err);
+                exit();
+            }
+        } catch (PDOException $e) {
+            $e = $e->getMessage();
+            echo json_encode($e);
+            exit();
+        }
+    }
+
+
+    // ACCESOS
     function Consultar_Accesos($param1)
     {
         // echo json_encode($param1);
@@ -253,6 +304,7 @@ class Usuariosmodel extends Model
         }
     }
 
+    // VALIDAR SESION WEB MOVIL
     function Validar_Usuario_movil($param)
     {
         try {
