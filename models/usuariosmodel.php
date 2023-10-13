@@ -27,7 +27,8 @@ class Usuariosmodel extends Model
             dp.nombre as departamento,
             dp.ID as departamento_id,
             su.Nombre as sucursal,
-            su.ID as sucursal_id
+            su.ID as sucursal_id,
+            us.password
              
             from 
             us_usuarios us
@@ -110,41 +111,124 @@ class Usuariosmodel extends Model
         // exit();
 
         try {
+            $VAL = $this->Validar_Usuario($param);
+            if ($VAL == 0) {
+                $US_USUARIO = $param["US_USUARIO"];
+                $US_NOMBRE = $param["US_NOMBRE"];
+                $US_EMAIL = $param["US_EMAIL"];
+                $US_PASS = $param["US_PASS"];
+                $US_DEPT = $param["US_DEPT"];
+                $US_SUCURSAL = $param["US_SUCURSAL"];
+                $user_Contrasena = hash("sha256", $US_PASS);
+                $query = $this->db->connect_dobra()->prepare('INSERT INTO svsys.us_usuarios 
+                (
+                    Usuario, 
+                    Nombre, 
+                    password, 
+                    email, 
+                    departamento_id, 
+                    sucursal_id 
+                ) VALUES(
+                    :Usuario, 
+                    :Nombre, 
+                    :password, 
+                    :email, 
+                    :departamento_id, 
+                    :sucursal_id 
+                );
+                    ');
+                $query->bindParam(":Usuario", $US_USUARIO, PDO::PARAM_STR);
+                $query->bindParam(":Nombre", $US_NOMBRE, PDO::PARAM_STR);
+                $query->bindParam(":password", $user_Contrasena, PDO::PARAM_STR);
+                $query->bindParam(":email", $US_EMAIL, PDO::PARAM_STR);
+                $query->bindParam(":departamento_id", $US_DEPT, PDO::PARAM_STR);
+                $query->bindParam(":sucursal_id", $US_SUCURSAL, PDO::PARAM_STR);
+
+                if ($query->execute()) {
+                    $result = $query->fetchAll(PDO::FETCH_ASSOC);
+                    echo json_encode([1, "DATOS GUARDADOS"]);
+                    exit();
+                } else {
+                    $err = $query->errorInfo();
+                    echo json_encode([0, $err]);
+                    exit();
+                }
+            }else{
+                echo json_encode([-1, "USUARIO YA EXISTE"]);
+                exit();
+            }
+        } catch (PDOException $e) {
+            $e = $e->getMessage();
+            echo json_encode($e);
+            exit();
+        }
+    }
+
+    function Validar_Usuario($param)
+    {
+        // echo json_encode($param);
+        // exit();
+
+        try {
+            $US_USUARIO = $param["US_USUARIO"];
+            $query = $this->db->connect_dobra()->prepare('SELECT Usuario 
+            FROM us_usuarios
+            Where Usuario = :Usuario');
+            $query->bindParam(":Usuario", $US_USUARIO, PDO::PARAM_STR);
+            if ($query->execute()) {
+                $result = $query->fetchAll(PDO::FETCH_ASSOC);
+                if (count($result) > 0) {
+                    return 1;
+                } else {
+                    return 0;
+                }
+            } else {
+                $err = $query->errorInfo();
+                echo json_encode([0, $err]);
+                exit();
+            }
+        } catch (PDOException $e) {
+            $e = $e->getMessage();
+            echo json_encode($e);
+            exit();
+        }
+    }
+
+
+    function Editar_Usuario($param)
+    {
+        // echo json_encode($param);
+        // exit();
+
+        try {
             $US_USUARIO = $param["US_USUARIO"];
             $US_NOMBRE = $param["US_NOMBRE"];
             $US_EMAIL = $param["US_EMAIL"];
             $US_PASS = $param["US_PASS"];
             $US_DEPT = $param["US_DEPT"];
             $US_SUCURSAL = $param["US_SUCURSAL"];
+            $user_Contrasena = hash("sha256", $US_PASS);
 
-
-            $query = $this->db->connect_dobra()->prepare('INSERT INTO svsys.us_usuarios 
-            (
-                Usuario, 
-                Nombre, 
-                password, 
-                email, 
-                departamento_id, 
-                sucursal_id 
-            ) VALUES(
-                :Usuario, 
-                :Nombre, 
-                :password, 
-                :email, 
-                :departamento_id, 
-                :sucursal_id 
-            );
+            $query = $this->db->connect_dobra()->prepare('UPDATE us_usuarios 
+            SET 
+                Nombre = :Nombre,
+                email = :email,
+                departamento_id = :departamento_id,
+                sucursal_id = :sucursal_id,
+                password = :password
+            WHERE 
+                Usuario_ID = :Usuario_ID
                 ');
-            $query->bindParam(":Usuario", $US_USUARIO, PDO::PARAM_STR);
             $query->bindParam(":Nombre", $US_NOMBRE, PDO::PARAM_STR);
-            $query->bindParam(":password", $US_PASS, PDO::PARAM_STR);
             $query->bindParam(":email", $US_EMAIL, PDO::PARAM_STR);
             $query->bindParam(":departamento_id", $US_DEPT, PDO::PARAM_STR);
             $query->bindParam(":sucursal_id", $US_SUCURSAL, PDO::PARAM_STR);
+            $query->bindParam(":password", $user_Contrasena, PDO::PARAM_STR);
+            $query->bindParam(":Usuario_ID", $US_USUARIO, PDO::PARAM_STR);
 
             if ($query->execute()) {
-                $result = $query->fetchAll(PDO::FETCH_ASSOC);
-                echo json_encode([1, "DATOS GUARDADOS"]);
+                // $result = $query->fetchAll(PDO::FETCH_ASSOC);
+                echo json_encode([1, "DATOS ACTUALIZADOS"]);
                 exit();
             } else {
                 $err = $query->errorInfo();
@@ -157,6 +241,8 @@ class Usuariosmodel extends Model
             exit();
         }
     }
+
+
 
     function ActivarDesact_Usuario($param)
     {
@@ -420,12 +506,15 @@ class Usuariosmodel extends Model
         try {
             $USUARIO = $param["USUARIO"];
             $PASS = $param["PASS"];
+            $user_Contrasena = hash("sha256", $PASS);
+
             $query = $this->db->connect_dobra()->prepare('SELECT
                 us.Usuario,
                 us.Usuario_ID,
                 dp.nombre as departamento,
                 su.nombre as sucursal,
-                su.ID as sucursal_id
+                su.ID as sucursal_id,
+                us.password
             FROM us_usuarios us
             LEFT JOIN us_departamentos dp
             on dp.ID = us.departamento_id
@@ -437,7 +526,7 @@ class Usuariosmodel extends Model
                 and us.Estado = 1
             ');
             $query->bindParam(":usuario", $USUARIO, PDO::PARAM_STR);
-            $query->bindParam(":pass", $PASS, PDO::PARAM_STR);
+            $query->bindParam(":pass", $user_Contrasena, PDO::PARAM_STR);
             // $query->bindParam(":submenu_ID", $SUBMENU_ID, PDO::PARAM_STR);
             if ($query->execute()) {
                 $result = $query->fetchAll(PDO::FETCH_ASSOC);

@@ -70,6 +70,19 @@ class Usuarios extends Controller
             die();
         }
     }
+
+    function Editar_Usuario()
+    {
+        $param = $_POST['param'];
+        if ($param["TOKEN"] == constant("TOKEN_WEB")) {
+            // echo json_encode($param);
+            $Ventas =  $this->model->Editar_Usuario($param);
+        } else {
+            die();
+        }
+    }
+
+
     function ActivarDesact_Usuario()
     {
         $param = $_POST['param'];
