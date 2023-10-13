@@ -34,6 +34,32 @@ class ClientesModel extends Model
         }
     }
 
+
+    //*** CLIENTES WEB */
+
+    function Cargar_Clientes_Web()
+    {
+        try {
+            $query = $this->db->connect_dobra()->prepare('SELECT * FROM
+            cli_clientes
+            ');
+            // $query->bindParam(":CLIENTE_RUC", $CLI_RUC, PDO::PARAM_STR);
+            if ($query->execute()) {
+                $result = $query->fetchAll(PDO::FETCH_ASSOC);
+                echo json_encode($result);
+                exit();
+            } else {
+                $err = $query->errorInfo();
+                echo json_encode($err);
+                exit();
+            }
+        } catch (PDOException $e) {
+            $e = $e->getMessage();
+            echo json_encode($e);
+            exit();
+        }
+    }
+
     function Nuevo_Cliente($param)
     {
         try {
@@ -122,6 +148,43 @@ class ClientesModel extends Model
             } else {
                 $err = $query->errorInfo();
                 return -1;
+            }
+        } catch (PDOException $e) {
+            $e = $e->getMessage();
+            echo json_encode($e);
+            exit();
+        }
+    }
+
+    function ActivarDesact_Cliente($param)
+    {
+        // echo json_encode($param1);
+        // exit();
+
+        try {
+            $CLI_ID = $param["ID"];
+            $OPERACION = $param["OPERACION"];
+
+            $query = $this->db->connect_dobra()->prepare('UPDATE cli_clientes 
+            SET 
+                estado = :estado
+            WHERE ID = :ID
+            
+                ');
+            $query->bindParam(":estado", $OPERACION, PDO::PARAM_STR);
+            $query->bindParam(":ID", $CLI_ID, PDO::PARAM_STR);
+
+            if ($query->execute()) {
+                if ($OPERACION == 1) {
+                    echo json_encode([1, "CLIENTE ACTIVADO"]);
+                } else {
+                    echo json_encode([1, "CLIENTE DESACTIVADO"]);
+                }
+                exit();
+            } else {
+                $err = $query->errorInfo();
+                echo json_encode([0, "ERROR " . $err]);
+                exit();
             }
         } catch (PDOException $e) {
             $e = $e->getMessage();

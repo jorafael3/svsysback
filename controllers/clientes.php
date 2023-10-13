@@ -16,7 +16,7 @@ class Clientes extends Controller
     function Cargar_Clientes()
     {
         $param1 = $_POST['param'];
-        $Ventas =  $this->model->Cargar_Clientes();
+        $Ventas =  $this->model->Cargar_Clientes_Web();
     }
     function Cargar_Clientes_m()
     {
@@ -27,7 +27,26 @@ class Clientes extends Controller
 
     function Nuevo_Cliente()
     {
-        $param1 = $_POST['param'];
-        $Ventas =  $this->model->Nuevo_Cliente($param1);
+        $param = $_POST['param'];
+        if ($param["TOKEN"] == constant("TOKEN_WEB")) {
+            // echo json_encode($param);
+            $Ventas =  $this->model->Nuevo_Cliente($param);
+        } else {
+            die();
+        }
+    }
+
+    function ActivarDesact_Cliente()
+    {
+        $param = $_POST['param'];
+
+        if ($param["TOKEN"] == constant("TOKEN_WEB")) {
+           
+            $Ventas =  $this->model->ActivarDesact_Cliente($param);
+        } else {
+            //die();
+            // echo json_encode($param);
+
+        }
     }
 }

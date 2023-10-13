@@ -194,7 +194,6 @@ class Usuariosmodel extends Model
         }
     }
 
-
     function Editar_Usuario($param)
     {
         // echo json_encode($param);
@@ -242,8 +241,6 @@ class Usuariosmodel extends Model
         }
     }
 
-
-
     function ActivarDesact_Usuario($param)
     {
         // echo json_encode($param1);
@@ -280,7 +277,6 @@ class Usuariosmodel extends Model
             exit();
         }
     }
-
 
     // ACCESOS
     function Consultar_Accesos($param1)
