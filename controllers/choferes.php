@@ -5,59 +5,67 @@ header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
 // Permitir ciertos encabezados personalizados, si es necesario
 header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
 
-class Clientes extends Controller
+class Choferes extends Controller
 {
+
 
     function __construct()
     {
         parent::__construct();
     }
 
-    function Cargar_Clientes()
-    {
-        $param1 = $_POST['param'];
-        $Ventas =  $this->model->Cargar_Clientes_Web();
-    }
-    function Cargar_Clientes_m()
-    {
-        $json_data = file_get_contents('php://input');
-        $data = json_decode($json_data, true);
-        $Ventas =  $this->model->Cargar_Clientes();
-    }
-
-    function Nuevo_Cliente()
+    function Cargar_Choferes()
     {
         $param = $_POST['param'];
         if ($param["TOKEN"] == constant("TOKEN_WEB")) {
             // echo json_encode($param);
-            $Ventas =  $this->model->Nuevo_Cliente($param);
+            $Ventas =  $this->model->Cargar_Choferes($param);
         } else {
             die();
         }
     }
 
-    function Actualizar_Cliente()
+    function Cargar_Usuarios()
     {
         $param = $_POST['param'];
         if ($param["TOKEN"] == constant("TOKEN_WEB")) {
             // echo json_encode($param);
-            $Ventas =  $this->model->Actualizar_Cliente($param);
+            $Ventas =  $this->model->Cargar_Usuarios($param);
         } else {
             die();
         }
     }
 
-    function ActivarDesact_Cliente()
+    function Actualizar_Chofer()
     {
         $param = $_POST['param'];
-
         if ($param["TOKEN"] == constant("TOKEN_WEB")) {
-           
-            $Ventas =  $this->model->ActivarDesact_Cliente($param);
-        } else {
-            //die();
             // echo json_encode($param);
+            $Ventas =  $this->model->Actualizar_Chofer($param);
+        } else {
+            die();
+        }
+    }
 
+    function Nuevo_Chofer()
+    {
+        $param = $_POST['param'];
+        if ($param["TOKEN"] == constant("TOKEN_WEB")) {
+            // echo json_encode($param);
+            $Ventas =  $this->model->Nuevo_Chofer($param);
+        } else {
+            die();
+        }
+    }
+
+    function ActivarDesact_Chofer()
+    {
+        $param = $_POST['param'];
+        if ($param["TOKEN"] == constant("TOKEN_WEB")) {
+            // echo json_encode($param);
+            $Ventas =  $this->model->ActivarDesact_Chofer($param);
+        } else {
+            die();
         }
     }
 }

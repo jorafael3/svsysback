@@ -66,18 +66,20 @@ class ClientesModel extends Model
 
             $VAL_VLIENTE = $this->Validar_Cliente($param);
             if ($VAL_VLIENTE == 0) {
-                $CLI_RUC = $param["CLI_RUC"];
-                $CLI_RAZON = $param["CLI_RAZON"];
-                $CLI_NOMBRE = $param["CLI_NOMBRE"];
+                $CLI_RUC = trim($param["CLI_RUC"]);
+                $CLI_RAZON = strtoupper($param["CLI_RAZON"]);
+                $CLI_NOMBRE = strtoupper($param["CLI_NOMBRE"]);
                 $CLI_PROVINCIA_ID = $param["CLI_PROVINCIA_ID"];
                 $CLI_PROVINCIA = $param["CLI_PROVINCIA"];
                 $CLI_CIUDADES = $param["CLI_CIUDADES"];
                 $CLI_DIRECCION = $param["CLI_DIRECCION"];
+                $CLI_DIRECCION_DESPACHO = $param["CLI_DIRECCION_DESPACHO"];
                 $CLI_CORREO = $param["CLI_CORREO"];
                 $CLI_TELEFONO = $param["CLI_TELEFONO"];
+                $CREADO_POR = $param["USUARIO"];
 
                 $query = $this->db->connect_dobra()->prepare('INSERT INTO 
-                clientes 
+                cli_clientes
                 (
                     CLIENTE_RUC,
                     CLIENTE_NOMBRE, 
@@ -85,9 +87,11 @@ class ClientesModel extends Model
                     CLIENTE_PROVINCIA_ID, 
                     CLIENTE_PROVINCIA_NOMBRE, 
                     CLIENTE_CIUDAD, 
-                    CLIENTE_DIRECCION, 
+                    CLIENTE_DIRECCION,
+                    CLIENTE_DIRECCION_DESPACHO, 
                     CLIENTE_EMAIL, 
-                    CLIENTE_TELEFONO
+                    CLIENTE_TELEFONO,
+                    creado_por
                 ) VALUES
                 (
                     :CLIENTE_RUC,
@@ -96,9 +100,12 @@ class ClientesModel extends Model
                     :CLIENTE_PROVINCIA_ID, 
                     :CLIENTE_PROVINCIA_NOMBRE, 
                     :CLIENTE_CIUDAD, 
-                    :CLIENTE_DIRECCION, 
+                    :CLIENTE_DIRECCION,
+                    :CLIENTE_DIRECCION_DESPACHO,
                     :CLIENTE_EMAIL, 
-                    :CLIENTE_TELEFONO
+                    :CLIENTE_TELEFONO,
+                    :creado_por
+
                 );
                 ');
                 $query->bindParam(":CLIENTE_RUC", $CLI_RUC, PDO::PARAM_STR);
@@ -108,8 +115,10 @@ class ClientesModel extends Model
                 $query->bindParam(":CLIENTE_PROVINCIA_NOMBRE", $CLI_PROVINCIA, PDO::PARAM_STR);
                 $query->bindParam(":CLIENTE_CIUDAD", $CLI_CIUDADES, PDO::PARAM_STR);
                 $query->bindParam(":CLIENTE_DIRECCION", $CLI_DIRECCION, PDO::PARAM_STR);
+                $query->bindParam(":CLIENTE_DIRECCION_DESPACHO", $CLI_DIRECCION_DESPACHO, PDO::PARAM_STR);
                 $query->bindParam(":CLIENTE_EMAIL", $CLI_CORREO, PDO::PARAM_STR);
                 $query->bindParam(":CLIENTE_TELEFONO", $CLI_TELEFONO, PDO::PARAM_STR);
+                $query->bindParam(":creado_por", $CREADO_POR, PDO::PARAM_STR);
 
 
                 if ($query->execute()) {
@@ -127,7 +136,68 @@ class ClientesModel extends Model
             }
         } catch (PDOException $e) {
             $e = $e->getMessage();
-            echo json_encode($e);
+            echo json_encode("asdasd");
+            exit();
+        }
+    }
+
+    function Actualizar_Cliente($param)
+    {
+        try {
+
+            $CLI_RUC = trim($param["CLI_RUC"]);
+            $CLI_RAZON = strtoupper($param["CLI_RAZON"]);
+            $CLI_NOMBRE = strtoupper($param["CLI_NOMBRE"]);
+            $CLI_PROVINCIA_ID = $param["CLI_PROVINCIA_ID"];
+            $CLI_PROVINCIA = $param["CLI_PROVINCIA"];
+            $CLI_CIUDADES = $param["CLI_CIUDADES"];
+            $CLI_DIRECCION = $param["CLI_DIRECCION"];
+            $CLI_DIRECCION_DESPACHO = $param["CLI_DIRECCION_DESPACHO"];
+            $CLI_CORREO = $param["CLI_CORREO"];
+            $CLI_TELEFONO = $param["CLI_TELEFONO"];
+            $CLI_ID = $param["CLI_ID"];
+
+            $query = $this->db->connect_dobra()->prepare('UPDATE 
+                    cli_clientes 
+                SET 
+                    CLIENTE_RUC=:CLIENTE_RUC, 
+                    CLIENTE_NOMBRE=:CLIENTE_NOMBRE, 
+                    CLIENTE_RAZON_SOCIAL=:CLIENTE_RAZON_SOCIAL, 
+                    CLIENTE_PROVINCIA_ID=:CLIENTE_PROVINCIA_ID, 
+                    CLIENTE_PROVINCIA_NOMBRE=:CLIENTE_PROVINCIA_NOMBRE, 
+                    CLIENTE_CIUDAD=:CLIENTE_CIUDAD, 
+                    CLIENTE_DIRECCION=:CLIENTE_DIRECCION, 
+                    CLIENTE_DIRECCION_DESPACHO=:CLIENTE_DIRECCION_DESPACHO, 
+                    CLIENTE_EMAIL=:CLIENTE_EMAIL, 
+                    CLIENTE_TELEFONO=:CLIENTE_TELEFONO
+                    WHERE ID=:ID
+
+                ');
+            $query->bindParam(":CLIENTE_RUC", $CLI_RUC, PDO::PARAM_STR);
+            $query->bindParam(":CLIENTE_NOMBRE", $CLI_RAZON, PDO::PARAM_STR);
+            $query->bindParam(":CLIENTE_RAZON_SOCIAL", $CLI_NOMBRE, PDO::PARAM_STR);
+            $query->bindParam(":CLIENTE_PROVINCIA_ID", $CLI_PROVINCIA_ID, PDO::PARAM_STR);
+            $query->bindParam(":CLIENTE_PROVINCIA_NOMBRE", $CLI_PROVINCIA, PDO::PARAM_STR);
+            $query->bindParam(":CLIENTE_CIUDAD", $CLI_CIUDADES, PDO::PARAM_STR);
+            $query->bindParam(":CLIENTE_DIRECCION", $CLI_DIRECCION, PDO::PARAM_STR);
+            $query->bindParam(":CLIENTE_DIRECCION_DESPACHO", $CLI_DIRECCION_DESPACHO, PDO::PARAM_STR);
+            $query->bindParam(":CLIENTE_EMAIL", $CLI_CORREO, PDO::PARAM_STR);
+            $query->bindParam(":CLIENTE_TELEFONO", $CLI_TELEFONO, PDO::PARAM_STR);
+            $query->bindParam(":ID", $CLI_ID, PDO::PARAM_STR);
+
+
+            if ($query->execute()) {
+                $result = $query->fetchAll(PDO::FETCH_ASSOC);
+                echo json_encode([true, "Datos Actualizados", "success"]);
+                exit();
+            } else {
+                $err = $query->errorInfo();
+                echo json_encode([false, "Error al guardar " . $err], "error");
+                exit();
+            }
+        } catch (PDOException $e) {
+            $e = $e->getMessage();
+            echo json_encode("asdasd");
             exit();
         }
     }
@@ -137,7 +207,7 @@ class ClientesModel extends Model
         try {
             $CLI_RUC = $param["CLI_RUC"];
             $query = $this->db->connect_dobra()->prepare('SELECT CLIENTE_RUC FROM
-            clientes
+            cli_clientes
             WHERE CLIENTE_RUC = :CLIENTE_RUC
             ');
             $query->bindParam(":CLIENTE_RUC", $CLI_RUC, PDO::PARAM_STR);
