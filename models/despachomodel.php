@@ -779,4 +779,313 @@ class DespachoModel extends Model
             exit();
         }
     }
+
+
+
+    //********************************************************************* */
+    //*************************   GUIAS WEB    **************************** */
+    //********************************************************************* */
+
+    //*** GUIAS SIN DESPACHAR */
+
+
+    function Cargar_Guias_Sin_Despachar($param)
+    {
+        try {
+            $FECHA_INI = $param["FECHA_INI"];
+            $FECHA_FIN = $param["FECHA_FIN"];
+            $query = $this->db->connect_dobra()->prepare("SELECT  g.*, ggp.placa,uc.usuario_id ,uu.Nombre as chofer_nombre ,
+            case 	
+                when STR_TO_DATE(g.FECHA_VALIDEZ  , '%d.%m.%Y') < curdate() then 0 else 1 
+            end as VENCIDO,
+            STR_TO_DATE(g.FECHA_DE_EMISION , '%d.%m.%Y') as FECHA_DE_EMISION,
+            STR_TO_DATE(g.FECHA_VALIDEZ , '%d.%m.%Y') as FECHA_VALIDEZ
+            from guias g 
+            left join gui_guias_placa ggp 
+            on ggp.pedido_interno  = g.PEDIDO_INTERNO
+            left join us_choferes uc 
+            on uc.PLACA  = ggp.placa
+            left join us_usuarios uu 
+            on uu.Usuario_ID = uc.usuario_id 
+            where g.PEDIDO_INTERNO  not in (select  PEDIDO_INTERNO  from gui_guias_despachadas_estado ggde) 
+            and STR_TO_DATE(FECHA_DE_EMISION , '%d.%m.%Y') >= :FECHA_INI 
+            and STR_TO_DATE(FECHA_DE_EMISION , '%d.%m.%Y') <= :FECHA_FIN;");
+            $query->bindParam(":FECHA_INI", $FECHA_INI, PDO::PARAM_STR);
+            $query->bindParam(":FECHA_FIN", $FECHA_FIN, PDO::PARAM_STR);
+            if ($query->execute()) {
+                $result = $query->fetchAll(PDO::FETCH_ASSOC);
+                echo json_encode($result);
+                exit();
+            } else {
+                $err = $query->errorInfo();
+                echo json_encode($err);
+                exit();
+            }
+        } catch (PDOException $e) {
+            $e = $e->getMessage();
+            echo json_encode([$e, 0, 0]);
+            exit();
+        }
+    }
+
+    function Cargar_Guias_Sin_Despachar_detalle($param)
+    {
+        try {
+            $PEDIDO_INTERNO = $param["PEDIDO_INTERNO"];
+            $query = $this->db->connect_dobra()->prepare("SELECT * from guias_detalle gd 
+            where PEDIDO_INTERNO  = :PEDIDO_INTERNO");
+            $query->bindParam(":PEDIDO_INTERNO", $PEDIDO_INTERNO, PDO::PARAM_STR);
+            if ($query->execute()) {
+                $result = $query->fetchAll(PDO::FETCH_ASSOC);
+                echo json_encode($result);
+                exit();
+            } else {
+                $err = $query->errorInfo();
+                echo json_encode($err);
+                exit();
+            }
+        } catch (PDOException $e) {
+            $e = $e->getMessage();
+            echo json_encode([$e, 0, 0]);
+            exit();
+        }
+    }
+
+    function Reasignar_Nueva_placa($param)
+    {
+        try {
+            $VAL = $this->Validar_Placa_Existente($param);
+            $PEDIDO_INTERNO = $param["PEDIDO_INTERNO"];
+            $PLACA = $param["PLACA"];
+
+            if ($VAL == 1) {
+                $sql = "UPDATE gui_guias_placa 
+                SET 
+                    placa = :PLACA 
+                where pedido_interno  = :PEDIDO_INTERNO";
+            } else {
+                $sql = "INSERT INTO gui_guias_placa (pedido_interno,placa)values(:PEDIDO_INTERNO,:PLACA)";
+            }
+
+            $PEDIDO_INTERNO = $param["PEDIDO_INTERNO"];
+            $query = $this->db->connect_dobra()->prepare($sql);
+            $query->bindParam(":PEDIDO_INTERNO", $PEDIDO_INTERNO, PDO::PARAM_STR);
+            $query->bindParam(":PLACA", $PLACA, PDO::PARAM_STR);
+            if ($query->execute()) {
+                $result = $query->fetchAll(PDO::FETCH_ASSOC);
+                echo json_encode([1, "DATOS GUARDADOS"]);
+                exit();
+            } else {
+                $err = $query->errorInfo();
+                echo json_encode([0, "ERROR AL GUARDAR"]);
+                exit();
+            }
+        } catch (PDOException $e) {
+            $e = $e->getMessage();
+            echo json_encode([$e, 0, 0]);
+            exit();
+        }
+    }
+    function Validar_Placa_Existente($param)
+    {
+        try {
+            $PEDIDO_INTERNO = $param["PEDIDO_INTERNO"];
+            $query = $this->db->connect_dobra()->prepare("SELECT pedido_interno from gui_guias_placa gd 
+            where pedido_interno  = :PEDIDO_INTERNO");
+            $query->bindParam(":PEDIDO_INTERNO", $PEDIDO_INTERNO, PDO::PARAM_STR);
+            if ($query->execute()) {
+                $result = $query->fetchAll(PDO::FETCH_ASSOC);
+                if (count($result) > 0) {
+                    return 1;
+                } else {
+                    return 0;
+                }
+            } else {
+                $err = $query->errorInfo();
+                echo json_encode($err);
+                exit();
+            }
+        } catch (PDOException $e) {
+            $e = $e->getMessage();
+            echo json_encode([$e, 0, 0]);
+            exit();
+        }
+    }
+
+    //*** GUIAS DESPACHADAS */
+
+    function Guias_Despachadas_General($param)
+    {
+        try {
+            $FECHA_INI = $param["FECHA_INI"];
+            $FECHA_FIN = $param["FECHA_FIN"];
+            $query = $this->db->connect_dobra()->prepare(" SELECT
+            g.*, ggp.placa,uc.usuario_id ,uu.Nombre as chofer_nombre ,
+           case 	
+               when STR_TO_DATE(g.FECHA_VALIDEZ  , '%d.%m.%Y') < curdate() then 0 else 1 
+           end as VENCIDO,
+           STR_TO_DATE(g.FECHA_DE_EMISION , '%d.%m.%Y') as FECHA_DE_EMISION,
+           STR_TO_DATE(g.FECHA_VALIDEZ , '%d.%m.%Y') as FECHA_VALIDEZ,
+           ggde2 .*,
+           uu.Nombre  as PEDIDO_CREADO_POR
+           from gui_guias_despachadas_estado ggde2
+           left join guias g 
+           on g.PEDIDO_INTERNO = ggde2 .PEDIDO_INTERNO 
+             left join gui_guias_placa ggp 
+           on ggp.pedido_interno  = g.PEDIDO_INTERNO
+             left join us_choferes uc 
+           on uc.PLACA  = ggp.placa
+             left join us_usuarios uu 
+           on uu.Usuario_ID = uc.usuario_id
+           WHERE
+                STR_TO_DATE(FECHA_DE_EMISION , '%d.%m.%Y') >= :FECHA_INI 
+                and STR_TO_DATE(FECHA_DE_EMISION , '%d.%m.%Y') <= :FECHA_FIN;");
+            $query->bindParam(":FECHA_INI", $FECHA_INI, PDO::PARAM_STR);
+            $query->bindParam(":FECHA_FIN", $FECHA_FIN, PDO::PARAM_STR);
+            if ($query->execute()) {
+                $result = $query->fetchAll(PDO::FETCH_ASSOC);
+                echo json_encode($result);
+                exit();
+            } else {
+                $err = $query->errorInfo();
+                echo json_encode($err);
+                exit();
+            }
+        } catch (PDOException $e) {
+            $e = $e->getMessage();
+            echo json_encode([$e, 0, 0]);
+            exit();
+        }
+    }
+
+    function Guias_Despachadas_General_detalle($param)
+    {
+        try {
+            $PEDIDO_INTERNO = $param["PEDIDO_INTERNO"];
+            $query = $this->db->connect_dobra()->prepare("     
+            SELECT 
+            gd.PEDIDO_INTERNO,
+            gd.ORD,
+            gd.CODIGO,
+            gd.DESCRIPCION,
+            gd.UNIDAD,
+            gd.POR_DESPACHAR,
+            SUM(ggdd.CANTIDAD_PARCIAL) +  SUM(ggdd.CANTIDAD_TOTAL) AS DESPACHADA,
+            SUM(ggdd.CANTIDAD_PARCIAL) +  SUM(ggdd.CANTIDAD_TOTAL) AS ENTREGADA,
+            SUM(ggdd.CANTIDAD_TOTAL) AS CANTIDAD_TOTAL,
+            gd.POR_DESPACHAR - SUM(ggdd.CANTIDAD_PARCIAL) - SUM(ggdd.CANTIDAD_TOTAL) as RESTANTE
+            FROM 
+                guias_detalle gd
+            LEFT JOIN 
+                gui_guias_despachadas_dt ggdd
+            ON 
+                gd.PEDIDO_INTERNO = ggdd.PEDIDO_INTERNO 
+                AND gd.CODIGO = ggdd.CODIGO
+            WHERE 
+                gd.PEDIDO_INTERNO = :PEDIDO_INTERNO
+            GROUP BY 
+                gd.PEDIDO_INTERNO,
+                gd.ORD,
+                gd.CODIGO,
+                gd.DESCRIPCION,
+                gd.UNIDAD;
+            ");
+            $query->bindParam(":PEDIDO_INTERNO", $PEDIDO_INTERNO, PDO::PARAM_STR);
+            if ($query->execute()) {
+                $result = $query->fetchAll(PDO::FETCH_ASSOC);
+                echo json_encode($result);
+                exit();
+            } else {
+                $err = $query->errorInfo();
+                echo json_encode($err);
+                exit();
+            }
+        } catch (PDOException $e) {
+            $e = $e->getMessage();
+            echo json_encode([$e, 0, 0]);
+            exit();
+        }
+    }
+
+    function Guias_Despachadas_Historial($param)
+    {
+        try {
+            $PEDIDO_INTERNO = trim($param["PEDIDO_INTERNO"]);
+            $USUARIO = $param["USUARIO"];
+            $query = $this->db->connect_dobra()->prepare('SELECT
+            ggde.FECHA_CREADO, 
+            cl.CLIENTE_NOMBRE,
+            ser.nombre as SERVICIO, 
+            gd.nombre as DESTINO,
+            ggde.despacho_ID,
+            ggde.PARCIAL,
+            ggde.PEDIDO_INTERNO
+            from 
+                gui_guias_despachadas ggde
+            left join clientes cl
+            on cl.ID = ggde.CLIENTE_ENTREGA_ID
+            left join gui_servicios ser
+            on ser.ID = ggde.SERVICIO_ID
+            left join gui_destinos gd 
+            on gd.ID = ggde .DESTINO_ID 
+            WHERE ggde.PEDIDO_INTERNO = :PEDIDO_INTERNO
+            ');
+
+            $query->bindParam(":PEDIDO_INTERNO", $PEDIDO_INTERNO, PDO::PARAM_STR);
+            // $query->bindParam(":ESTADO", $ESTADO, PDO::PARAM_STR);
+            if ($query->execute()) {
+                $result = $query->fetchAll(PDO::FETCH_ASSOC);
+                echo json_encode($result);
+                exit();
+            } else {
+                $err = $query->errorInfo();
+                echo json_encode($err);
+                exit();
+            }
+        } catch (PDOException $e) {
+            $e = $e->getMessage();
+            echo json_encode([$e, 0, 0]);
+            exit();
+        }
+    }
+
+    function Guias_Despachadas_Historial_detalle($param)
+    {
+        try {
+            $PEDIDO_INTERNO = trim($param["PEDIDO_INTERNO"]);
+            $despacho_ID = $param["despacho_ID"];
+            $query = $this->db->connect_dobra()->prepare(' SELECT 
+            ggdd .PEDIDO_INTERNO,
+            ggdd.CODIGO,
+            gd.DESCRIPCION,
+            gd.UNIDAD,
+            gd.POR_DESPACHAR,
+            ggdd.PARCIAL,
+            ggdd.CANTIDAD_PARCIAL,
+            ggdd.CANTIDAD_TOTAL
+            from gui_guias_despachadas_dt ggdd 
+            left join guias_detalle gd 
+            on gd.PEDIDO_INTERNO = ggdd.PEDIDO_INTERNO and gd.CODIGO = ggdd.CODIGO 
+            where ggdd.PEDIDO_INTERNO  = :PEDIDO_INTERNO
+            and ggdd.despacho_ID = :despacho_ID
+            ');
+
+            $query->bindParam(":PEDIDO_INTERNO", $PEDIDO_INTERNO, PDO::PARAM_STR);
+            $query->bindParam(":despacho_ID", $despacho_ID, PDO::PARAM_STR);
+            // $query->bindParam(":ESTADO", $ESTADO, PDO::PARAM_STR);
+            if ($query->execute()) {
+                $result = $query->fetchAll(PDO::FETCH_ASSOC);
+                echo json_encode($result);
+                exit();
+            } else {
+                $err = $query->errorInfo();
+                echo json_encode($err);
+                exit();
+            }
+        } catch (PDOException $e) {
+            $e = $e->getMessage();
+            echo json_encode([$e, 0, 0]);
+            exit();
+        }
+    }
 }

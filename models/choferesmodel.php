@@ -207,7 +207,6 @@ class ChoferesModel extends Model
         }
     }
 
-
     function ActivarDesact_Chofer($param)
     {
         // echo json_encode($param1);

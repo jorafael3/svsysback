@@ -22,10 +22,80 @@ class Despacho extends Controller
         $Ventas =  $this->model->Cargar_Guia($param1);
     }
 
+    function Cargar_Guias_Sin_Despachar()
+    {
+        $param = $_POST['param'];
+        if ($param["TOKEN"] == constant("TOKEN_WEB")) {
+            $Ventas =  $this->model->Cargar_Guias_Sin_Despachar($param);
+        } else {
+            die();
+        }
+    }
+
+    function Cargar_Guias_Sin_Despachar_detalle()
+    {
+        $param = $_POST['param'];
+        if ($param["TOKEN"] == constant("TOKEN_WEB")) {
+            $Ventas =  $this->model->Cargar_Guias_Sin_Despachar_detalle($param);
+        } else {
+            die();
+        }
+    }
+
+    function Reasignar_Nueva_placa()
+    {
+        $param = $_POST['param'];
+        if ($param["TOKEN"] == constant("TOKEN_WEB")) {
+            $Ventas =  $this->model->Reasignar_Nueva_placa($param);
+        } else {
+            die();
+        }
+    }
+
+    //****** GUIAS DESPACHADAS */
+
+    function Guias_Despachadas_General()
+    {
+        $param = $_POST['param'];
+        if ($param["TOKEN"] == constant("TOKEN_WEB")) {
+            $Ventas =  $this->model->Guias_Despachadas_General($param);
+        } else {
+            die();
+        }
+    }
+
+    function Guias_Despachadas_General_detalle()
+    {
+        $param = $_POST['param'];
+        if ($param["TOKEN"] == constant("TOKEN_WEB")) {
+            $Ventas =  $this->model->Guias_Despachadas_General_detalle($param);
+        } else {
+            die();
+        }
+    }
+
+    function Guias_Despachadas_Historial()
+    {
+        $param = $_POST['param'];
+        if ($param["TOKEN"] == constant("TOKEN_WEB")) {
+            $Ventas =  $this->model->Guias_Despachadas_Historial($param);
+        } else {
+            die();
+        }
+    }
+
+    function Guias_Despachadas_Historial_detalle()
+    {
+        $param = $_POST['param'];
+        if ($param["TOKEN"] == constant("TOKEN_WEB")) {
+            $Ventas =  $this->model->Guias_Despachadas_Historial_detalle($param);
+        } else {
+            die();
+        }
+    }
 
 
-
-
+    //*********************************************** */
     //***************** MOVIL */
 
     function Cargar_Guia_p()
