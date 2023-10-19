@@ -94,6 +94,38 @@ class Despacho extends Controller
         }
     }
 
+    ///***** FACTURA */
+
+    function Obtener_Parametros()
+    {
+        $param = $_POST['param'];
+        if ($param["TOKEN"] == constant("TOKEN_WEB")) {
+            $Ventas =  $this->model->Obtener_Parametros($param);
+        } else {
+            die();
+        }
+    }
+
+    function Guardar_Factura()
+    {
+        $param = $_POST['param'];
+        if ($param["TOKEN"] == constant("TOKEN_WEB")) {
+            $Ventas =  $this->model->Guardar_Factura($param);
+        } else {
+            die();
+        }
+    }
+
+    function Cargar_facturas_Pedido()
+    {
+        $param = $_POST['param'];
+        if ($param["TOKEN"] == constant("TOKEN_WEB")) {
+            $Ventas =  $this->model->Cargar_facturas_Pedido($param);
+        } else {
+            die();
+        }
+    }
+
 
     //*********************************************** */
     //***************** MOVIL */

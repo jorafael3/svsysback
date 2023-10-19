@@ -1088,4 +1088,122 @@ class DespachoModel extends Model
             exit();
         }
     }
+
+
+    //************* FACTURAS */
+
+    function Obtener_Parametros($param)
+    {
+        try {
+            $query = $this->db->connect_dobra()->prepare(' SELECT 
+            * FROM sis_parametros');
+            // $query->bindParam(":ESTADO", $ESTADO, PDO::PARAM_STR);
+            if ($query->execute()) {
+                $result = $query->fetchAll(PDO::FETCH_ASSOC);
+                echo json_encode($result);
+                exit();
+            } else {
+                $err = $query->errorInfo();
+                echo json_encode($err);
+                exit();
+            }
+        } catch (PDOException $e) {
+            $e = $e->getMessage();
+            echo json_encode([$e, 0, 0]);
+            exit();
+        }
+    }
+
+    function Cargar_facturas_Pedido($param)
+    {
+        try {
+            $PEDIDO_INTERNO = trim($param["PEDIDO_INTERNO"]);
+            $query = $this->db->connect_dobra()->prepare('SELECT * FROM
+                gui_guias_facturas
+            WHERE pedido_interno = :pedido_interno
+            ');
+            $query->bindParam(":pedido_interno", $PEDIDO_INTERNO, PDO::PARAM_STR);
+
+            if ($query->execute()) {
+                $result = $query->fetchAll(PDO::FETCH_ASSOC);
+                echo json_encode($result);
+                exit();
+            } else {
+                $err = $query->errorInfo();
+                echo json_encode($err);
+                exit();
+            }
+        } catch (PDOException $e) {
+            $e = $e->getMessage();
+            echo json_encode([$e, 0, 0]);
+            exit();
+        }
+    }
+
+    function Guardar_Factura($param)
+    {
+        try {
+            $PEDIDO_INTERNO = trim($param["PEDIDO_INTERNO"]);
+            $FECHA = ($param["FECHA"]);
+            $SECUENCIA = trim($param["SECUENCIA"]);
+            $FACT_NOMBRE = ($param["FACT_NOMBRE"]);
+            $NOTA = ($param["NOTA"]);
+            $SUBTOTAL_0 = ($param["SUBTOTAL_0"]);
+            $SUBTOTAL_12 = ($param["SUBTOTAL_12"]);
+            $IVA = ($param["IVA"]);
+            $TOTAL = ($param["TOTAL"]);
+            $CREADO_POR = ($param["USUARIO"]);
+
+            $query = $this->db->connect_dobra()->prepare('INSERT 
+            INTO svsys.gui_guias_facturas 
+            (
+                pedido_interno, 
+                factura_fecha, 
+                factura_secuencia, 
+                factura_nombre, 
+                factura_subtotal_0, 
+                factura_subtotal_12, 
+                factura_impuesto, 
+                factura_total,
+                factura_nota, 
+                CREADO_POR
+            ) VALUES(
+                :pedido_interno, 
+                :factura_fecha, 
+                :factura_secuencia, 
+                :factura_nombre, 
+                :factura_subtotal_0, 
+                :factura_subtotal_12, 
+                :factura_impuesto, 
+                :factura_total,
+                :factura_nota, 
+                :CREADO_POR                
+            );
+            ');
+            $query->bindParam(":pedido_interno", $PEDIDO_INTERNO, PDO::PARAM_STR);
+            $query->bindParam(":factura_fecha", $FECHA, PDO::PARAM_STR);
+            $query->bindParam(":factura_secuencia", $SECUENCIA, PDO::PARAM_STR);
+            $query->bindParam(":factura_nombre", $FACT_NOMBRE, PDO::PARAM_STR);
+            $query->bindParam(":factura_subtotal_0", $SUBTOTAL_0, PDO::PARAM_STR);
+            $query->bindParam(":factura_subtotal_12", $SUBTOTAL_12, PDO::PARAM_STR);
+            $query->bindParam(":factura_impuesto", $IVA, PDO::PARAM_STR);
+            $query->bindParam(":factura_total", $TOTAL, PDO::PARAM_STR);
+            $query->bindParam(":factura_nota", $NOTA, PDO::PARAM_STR);
+            $query->bindParam(":CREADO_POR", $CREADO_POR, PDO::PARAM_STR);
+
+            if ($query->execute()) {
+                $result = $query->fetchAll(PDO::FETCH_ASSOC);
+                echo json_encode([1, "DATOS GUARDADOS"]);
+                exit();
+            } else {
+                $err = $query->errorInfo();
+                echo json_encode([0, $err]);
+                exit();
+            }
+        } catch (PDOException $e) {
+            $e = $e->getMessage();
+            echo json_encode([$e, 0, 0]);
+            exit();
+        }
+    }
 }
