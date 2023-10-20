@@ -799,7 +799,8 @@ class DespachoModel extends Model
                 when STR_TO_DATE(g.FECHA_VALIDEZ  , '%d.%m.%Y') < curdate() then 0 else 1 
             end as VENCIDO,
             STR_TO_DATE(g.FECHA_DE_EMISION , '%d.%m.%Y') as FECHA_DE_EMISION,
-            STR_TO_DATE(g.FECHA_VALIDEZ , '%d.%m.%Y') as FECHA_VALIDEZ
+            STR_TO_DATE(g.FECHA_VALIDEZ , '%d.%m.%Y') as FECHA_VALIDEZ,
+            (select sum(factura_total) from gui_guias_facturas ggf where ggf.pedido_interno = g.PEDIDO_INTERNO) as TOTAL_FACTURAS
             from guias g 
             left join gui_guias_placa ggp 
             on ggp.pedido_interno  = g.PEDIDO_INTERNO

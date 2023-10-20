@@ -279,10 +279,12 @@ class Usuariosmodel extends Model
     }
 
     // ACCESOS
-    function Consultar_Accesos($param1)
+    function Consultar_Accesos($param)
     {
         // echo json_encode($param1);
         // exit();
+        $US_USUARIO = $param["Usuario_ID"];
+
         try {
             $query = $this->db->connect_dobra()->prepare('SELECT sm.menu_ID , sm.Nombre,sm.vista ,
             case
@@ -293,11 +295,13 @@ class Usuariosmodel extends Model
             end as checked
             from sis_menu sm
             left join SIS_USUARIO_ACCESOS acc
-            on sm.menu_ID = acc.menu_ID and acc.submenu_ID is null and acc.usuario_ID  = "1"
+            on sm.menu_ID = acc.menu_ID and acc.submenu_ID is null and acc.usuario_ID  = :US_USUARIO
                 ');
+            $query->bindParam(":US_USUARIO", $US_USUARIO, PDO::PARAM_STR);
+
             if ($query->execute()) {
                 $result = $query->fetchAll(PDO::FETCH_ASSOC);
-                $SUBMENU = $this->Consultar_Submenu($result);
+                $SUBMENU = $this->Consultar_Submenu($result,$param);
                 echo json_encode([$SUBMENU, $result]);
                 exit();
             } else {
@@ -312,11 +316,12 @@ class Usuariosmodel extends Model
         }
     }
 
-    function Consultar_Submenu($param)
+    function Consultar_Submenu($param,$datos)
     {
         // echo json_encode($param1);
         // exit();
         try {
+            $US_USUARIO = $datos["Usuario_ID"];
 
             $ARRAY = [];
             $ARRAY_ACTIVOS = [];
@@ -345,9 +350,10 @@ class Usuariosmodel extends Model
                     end as checked
                     from sis_submenu ss
                     left join SIS_USUARIO_ACCESOS acc
-                    on acc.menu_ID  = ss.submenu_ID  and acc.usuario_ID  = "1"
+                    on acc.menu_ID  = ss.submenu_ID  and acc.usuario_ID  = :US_USUARIO
                     ');
-                    $query->bindParam(":menu_id", $row["menu_ID"], PDO::PARAM_STR);
+                    // $query->bindParam(":menu_id", $row["menu_ID"], PDO::PARAM_STR);
+                    $query->bindParam(":US_USUARIO", $US_USUARIO, PDO::PARAM_STR);
                     if ($query->execute()) {
                         $MENU_ID = $row["menu_ID"];
                         array_push($ARRAY_EXPANDIDOS, $row["menu_ID"]);
@@ -396,7 +402,7 @@ class Usuariosmodel extends Model
     function Guardar_Accesos($param)
     {
         try {
-            $USUARIO_ID = $param["USUARIO_ID"];
+            $USUARIO_ID = $param["usuario_id"];
             $ACCESOS = $param["ACCESOS"];
 
 
