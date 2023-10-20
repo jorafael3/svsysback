@@ -15,7 +15,7 @@ class ClientesModel extends Model
     {
         try {
             $query = $this->db->connect_dobra()->prepare('SELECT  ID as key1 , CLIENTE_NOMBRE as label FROM
-            clientes
+            cli_clientes
             ');
             // $query->bindParam(":CLIENTE_RUC", $CLI_RUC, PDO::PARAM_STR);
             if ($query->execute()) {

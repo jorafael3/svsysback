@@ -294,7 +294,7 @@ class Usuariosmodel extends Model
                 when acc.usuario_ID  is null then 0 else 1
             end as checked
             from sis_menu sm
-            left join SIS_USUARIO_ACCESOS acc
+            left join us_usuarios_accesos acc
             on sm.menu_ID = acc.menu_ID and acc.submenu_ID is null and acc.usuario_ID  = :US_USUARIO
                 ');
             $query->bindParam(":US_USUARIO", $US_USUARIO, PDO::PARAM_STR);
@@ -342,16 +342,16 @@ class Usuariosmodel extends Model
                         array_push($ARRAY_ACTIVOS, $row["menu_ID"]);
                     }
                 } else {
-                    $query = $this->db->connect_dobra()->prepare('SELECT distinct  ss.sub_nombre as label, 
-                    concat(convert(ss.padre_id,varchar(10)),"_",convert(ss.submenu_ID ,varchar(10))) as value,
+                    $query = $this->db->connect_dobra()->prepare("SELECT distinct  ss.sub_nombre as label, 
+                    CONCAT(CONVERT(ss.padre_id, CHAR(10)), '_', CONVERT(ss.submenu_ID, CHAR(10))) AS value,
                     acc.menu_ID,ss.padre_id ,
                     case
                         when acc.menu_ID  is null then 0 else 1
                     end as checked
                     from sis_submenu ss
-                    left join SIS_USUARIO_ACCESOS acc
+                    left join us_usuarios_accesos acc
                     on acc.menu_ID  = ss.submenu_ID  and acc.usuario_ID  = :US_USUARIO
-                    ');
+                    ");
                     // $query->bindParam(":menu_id", $row["menu_ID"], PDO::PARAM_STR);
                     $query->bindParam(":US_USUARIO", $US_USUARIO, PDO::PARAM_STR);
                     if ($query->execute()) {
@@ -406,7 +406,7 @@ class Usuariosmodel extends Model
             $ACCESOS = $param["ACCESOS"];
 
 
-            $query = $this->db->connect_dobra()->prepare('DELETE FROM SIS_USUARIO_ACCESOS
+            $query = $this->db->connect_dobra()->prepare('DELETE FROM us_usuarios_accesos
             Where usuario_ID = :usuario');
             $query->bindParam(":usuario", $USUARIO_ID, PDO::PARAM_STR);
             if ($query->execute()) {
@@ -450,7 +450,7 @@ class Usuariosmodel extends Model
     {
         try {
             $query = $this->db->connect_dobra()->prepare('INSERT
-            into SIS_USUARIO_ACCESOS 
+            into us_usuarios_accesos 
             (
                 usuario_ID,
                 menu_ID,
@@ -482,7 +482,7 @@ class Usuariosmodel extends Model
     {
         try {
             $query = $this->db->connect_dobra()->prepare('SELECT * FROM
-            SIS_USUARIO_ACCESOS
+            us_usuarios_accesos
             where usuario_ID = :USUARIO
             and menu_ID = :menu and submenu_ID is null');
             $query->bindParam(":USUARIO", $USUARIO_ID, PDO::PARAM_STR);
@@ -511,17 +511,21 @@ class Usuariosmodel extends Model
             $user_Contrasena = hash("sha256", $PASS);
 
             $query = $this->db->connect_dobra()->prepare('SELECT
-                us.Usuario,
+            us.Usuario,
                 us.Usuario_ID,
                 dp.nombre as departamento,
                 su.nombre as sucursal,
                 su.ID as sucursal_id,
-                us.password
+                us.password,
+                uc.PLACA,
+                uc.usuario_id as ischofer
             FROM us_usuarios us
             LEFT JOIN us_departamentos dp
             on dp.ID = us.departamento_id
             LEFT JOIN sis_sucursales su
             on su.ID = us.sucursal_id
+            left join us_choferes uc 
+            on uc.usuario_id = us.Usuario_ID 
             WHERE
                 us.Usuario = :usuario
                 and us.password = :pass

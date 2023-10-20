@@ -6,7 +6,7 @@ import Checkbox from 'expo-checkbox';
 
 export default function Guias_parcial({ route, navigation }) {
     const datos_sesion = route.params;
-    console.log('datos_sesion: ', datos_sesion);
+    
     const [usuario, setusuario] = useState('');
     const [usuarioid, setusuarioid] = useState('');
     const [placa, setplaca] = useState('');
@@ -52,8 +52,7 @@ export default function Guias_parcial({ route, navigation }) {
     function Cargar_Clientes() {
         let url = "clientes/Cargar_Clientes_m"
         fetchData(url, [], function (x) {
-
-
+            
             if (x.length == 0) {
 
 
@@ -80,6 +79,7 @@ export default function Guias_parcial({ route, navigation }) {
         let url = "despacho/Cargar_Gui_Servicios"
 
         fetchData(url, [], function (x) {
+            console.log('x: ', x);
 
 
             let datos = x[0];
@@ -276,7 +276,7 @@ export default function Guias_parcial({ route, navigation }) {
                 DETALLE: data_detalle
             }
 
-            console.log('param: ', param);
+            
 
 
             if (val > 0) {
@@ -285,7 +285,7 @@ export default function Guias_parcial({ route, navigation }) {
                 let url = 'despacho/Guardar_Guias_despacho_parcial';
 
                 fetchData(url, param, function (x) {
-                    console.log('x: ', x);
+                    
                     let CAB = x[0];
                     let DET = x[1];
                     if (CAB["GUARDADO"] == 1 && DET["GUARDADO"] == 1) {
@@ -320,7 +320,7 @@ export default function Guias_parcial({ route, navigation }) {
 
     const Cantidad_Parcial_Change = (text, index, item) => {
         const partialAmount = parseFloat(text);
-        console.log('partialAmount: ', partialAmount);
+        
         let maxAmount = item.POR_DESPACHAR - item.CANTIDAD_PARCIAL_TOTAL
 
         if (!isNaN(partialAmount) && partialAmount > maxAmount) {
@@ -352,14 +352,14 @@ export default function Guias_parcial({ route, navigation }) {
                     x.CANT_PARCIAL = partialAmount.toString()
                 }
             });
-            console.log('data_detalle: ', data_detalle);
+            
             setdata_detalle(data_detalle);
 
         }
     };
 
     const Cantidad_Parcial_Check_Change = (newValue, index, item) => {
-        console.log('newValue: ', newValue);
+        
 
 
         const updatedCheckBoxState = [...selectedRows];
@@ -386,7 +386,7 @@ export default function Guias_parcial({ route, navigation }) {
     };
 
     const Cantidad_Parcial_Check_Change_No = (newValue, index, item) => {
-        console.log('newValue: ', newValue);
+        
         // if (newValue == true) {
         //     newValue = false;
         // } else {
@@ -394,7 +394,7 @@ export default function Guias_parcial({ route, navigation }) {
         // }
 
         let chek_seleccionado = selectedRows[index]
-        console.log('selectedRows[index]: ', selectedRows[index]);
+        
 
         const updatedCheckBoxState = [...selectedRows_No];
         updatedCheckBoxState[index] = newValue;

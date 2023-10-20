@@ -16,7 +16,7 @@ class DespachoModel extends Model
     function Cargar_Gui_Servicios($param)
     {
         try {
-            $query = $this->db->connect_dobra()->prepare('SELECT * from GUI_SERVICIOS
+            $query = $this->db->connect_dobra()->prepare('SELECT * from gui_servicios
                 where estado = 1');
             // $query->bindParam(":pedido", $PEDIDO, PDO::PARAM_STR);
             if ($query->execute()) {
@@ -41,7 +41,7 @@ class DespachoModel extends Model
     function Cargar_Gui_Destinos($param)
     {
         try {
-            $query = $this->db->connect_dobra()->prepare('SELECT * from GUI_DESTINOS
+            $query = $this->db->connect_dobra()->prepare('SELECT * from gui_destinos
                 where estado = 1');
             // $query->bindParam(":pedido", $PEDIDO, PDO::PARAM_STR);
             if ($query->execute()) {
@@ -212,7 +212,7 @@ class DespachoModel extends Model
     {
         try {
             $query = $this->db->connect_dobra()->prepare('SELECT PEDIDO_INTERNO
-            from GUI_GUIAS_DESPACHADAS_ESTADO
+            from gui_guias_despachadas_estado
             where PEDIDO_INTERNO = :pedido');
             $query->bindParam(":pedido", $NUMERO_PEDIDO, PDO::PARAM_STR);
             if ($query->execute()) {
@@ -1020,15 +1020,23 @@ class DespachoModel extends Model
             gd.nombre as DESTINO,
             ggde.despacho_ID,
             ggde.PARCIAL,
-            ggde.PEDIDO_INTERNO
+            ggde.PEDIDO_INTERNO,
+            ggde.PLACA_CAMBIADA,
+            ggde.PLACA_CAMBIADA_NUMERO,
+            uc.PLACA,
+            uu.Nombre as DESPACHADO_POR
             from 
                 gui_guias_despachadas ggde
-            left join clientes cl
+            left join cli_clientes cl
             on cl.ID = ggde.CLIENTE_ENTREGA_ID
             left join gui_servicios ser
             on ser.ID = ggde.SERVICIO_ID
-            left join gui_destinos gd 
+            left join gui_destinos gd
             on gd.ID = ggde .DESTINO_ID 
+            left join us_choferes uc 
+            on uc.usuario_id = ggde.CREADO_POR
+            left join us_usuarios uu 
+            on uu.Usuario_ID = ggde .CREADO_POR  
             WHERE ggde.PEDIDO_INTERNO = :PEDIDO_INTERNO
             ');
 

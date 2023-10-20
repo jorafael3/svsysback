@@ -29,3 +29,9 @@ define('DB', 'svsys');
 define('USER', 'root');
 define('PASSWORD', '');
 define('CHARSET', 'utf8mb4');
+
+// define('HOST', 'localhost');
+// define('DB', 'lcaimpor_svsys');
+// define('USER', 'lcaimpor_svsys');
+// define('PASSWORD', 'Equilivre3*');
+// define('CHARSET', 'utf8mb4');

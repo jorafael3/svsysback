@@ -23,28 +23,36 @@ export default function LoginScreen({ navigation }) {
             PASS: password,
         };
         // 
-        navigation.navigate('Menu_opciones', { Usuario: 'jorge', Usuario_ID: 1, Acceso: 1, PLACA: "GSA-115" });
+        // navigation.navigate('Menu_opciones', { Usuario: 'jorge', Usuario_ID: 1, Acceso: 1, PLACA: "GSA-115" });
         // navigation.navigate('Guias', { Usuario: 'jorge', Usuario_ID: 1, Acceso: 1, PLACA: "GSA-115" });
 
         fetchData(url, param, function (x) {
-            console.log('x: ', x[0]);
+            console.log('x: ', x[1]);
 
             // Alert.alert("sesion inciadaa", JSON.stringify(x));
-            console.log('JSON.stringify(x): ', JSON.stringify(x));
+            // console.log('JSON.stringify(x): ', JSON.stringify(x));
             // setvalor1(JSON.stringify(x))
-            // if (x[0] == true) {
-            //     let datos = x[1][0]
-            //     let datos_sesion = {
-            //         Usuario: datos["Usuario"],
-            //         Usuario_ID: datos["Usuario_ID"],
-            //         Acceso: 1,
-            //         PLACA: "GSA-115"
-            //     }
-            //     // 
-            //     navigation.navigate('Guias', datos_sesion);
-            // } else {
-            //     Alert.alert("Error de inicio de sesion", x[1]);
-            // }
+            if (x[0] == true) {
+                let datos = x[1][0]
+
+                if (datos["ischofer"] == null) {
+                    Alert.alert("El usuario no esta asignado como chofer", "o no tiene placa asignada");
+                } else {
+                    let datos_sesion = {
+                        Usuario: datos["Usuario"],
+                        Usuario_ID: datos["Usuario_ID"],
+                        Acceso: 1,
+                        PLACA: datos["PLACA"]
+                    }
+                    navigation.navigate('Menu_opciones', datos_sesion);
+
+                }
+
+
+                // 
+            } else {
+                Alert.alert("Error de inicio de sesion", x[1]);
+            }
         })
 
         // fetchData.fetchData2(url, param, function (x) {

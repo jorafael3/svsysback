@@ -27,9 +27,9 @@ export default function Guias_detalle({ route, navigation }) {
     const datos_sesion = route.params;
 
     useEffect(() => {
-        console.log("********************************");
-        console.log("CARGANDO DETALLE PAGINA");
-        console.log("********************************");
+        
+        
+        
         setusuario(datos_sesion["Usuario"]);
         setusuarioid(datos_sesion["Usuario_ID"]);
         setplaca(datos_sesion["PLACA"]);
@@ -44,10 +44,10 @@ export default function Guias_detalle({ route, navigation }) {
             PEDIDO_INTERNO: pedido,
             // USUARIO: usuario,
         }
-        console.log('param: ', param);
+        
         let url = 'despacho/Consultar_guia_despachadas_cabecera'
         fetchData(url, param, function (x) {
-            console.log('x: ', x);
+            
             setfecha_emision(x[0]["FECHA_DE_EMISION"]);
             setestado_guia_text(x[0]["ESTADO_DESPACHO_TEXTO"]);
             setestado_guia(x[0]["ESTADO_DESPACHO"]);
@@ -60,25 +60,25 @@ export default function Guias_detalle({ route, navigation }) {
             PEDIDO_INTERNO: pedido,
             USUARIO: usuario,
         }
-        console.log('param: ', param);
+        
         let url = 'despacho/Consultar_guia_despachadas'
         fetchData(url, param, function (x) {
-            console.log('x: ', x);
+            
             setdata_detalle(x);
         });
     }
 
     function Consultar_Detalle(text, index, item) {
-        console.log('item: ', item);
+        
 
         let param = {
             PEDIDO_INTERNO: pedido_interno,
             DESPACHO_ID: item.despacho_ID
         }
-        console.log('param: ', param);
+        
         let url = 'despacho/Consultar_guia_despachadas_dt'
         fetchData(url, param, function (x) {
-            console.log('x: ', x);
+            
             setdata_detalle_dt(x);
         });
 

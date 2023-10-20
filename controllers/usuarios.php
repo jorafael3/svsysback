@@ -112,26 +112,26 @@ class Usuarios extends Controller
     //**** MOVIL */
     function Validar_Usuario_movil()
     {
-        // try {
-        //     $json_data = file_get_contents('php://input');
-        //     $data = json_decode($json_data, true);
+        try {
+            $json_data = file_get_contents('php://input');
+            $data = json_decode($json_data, true);
 
-        //     if (isset($json_data)) {
+            if (isset($json_data)) {
 
-        //         if ($data["TOKEN"] == constant("TOKEN_MOVIL")) {
-        //             // $param1 = $data['param1'];
-        //             $funcion =  $this->model->Validar_Usuario_movil($data);
+                if ($data["TOKEN"] == constant("TOKEN_MOVIL")) {
+                    // $param1 = $data['param1'];
+                    $funcion =  $this->model->Validar_Usuario_movil($data);
 
-        //         } else {
-        //             die();
-        //         }
-        //     } else {
-        //         die();
-        //     }
-        // } catch (Exception $e) {
-        //     die();
-        // }
-        echo json_encode("LLEGO DATO");
-        exit();
+                } else {
+                    die();
+                }
+            } else {
+                die();
+            }
+        } catch (Exception $e) {
+            die();
+        }
+        // echo json_encode("LLEGO DATO");
+        // exit();
     }
 }

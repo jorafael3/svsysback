@@ -32,8 +32,8 @@ class MenuModel extends Model
                 when ss.sub_nombre is null or ss.sub_nombre = '' then 0 else 1 
             end as IsSubmenu,
             acc.*
-            from SIS_USUARIO_ACCESOS acc
-            left join us_USUARIOS us on us.usuario_ID = acc.usuario_ID
+            from us_usuarios_accesos acc
+            left join us_usuarios us on us.usuario_ID = acc.usuario_ID
             left join sis_menu sm on sm.menu_ID = acc.menu_ID 
             left join sis_submenu ss on ss.submenu_ID = acc.submenu_ID 
             where us.usuario_ID = :USUARIO_ID
@@ -56,4 +56,29 @@ class MenuModel extends Model
             exit();
         }
     }
+
+    // function Cargar_Menu($param)
+    // {
+    //     try {
+    //         // $USUARIO_ID = $param["Usuario_ID"];
+
+    //         $query = $this->db->connect_dobra()->prepare("SELECT * FROM sis_usuarios_acceso");
+
+    //         // $query->bindParam(":USUARIO_ID", $USUARIO_ID, PDO::PARAM_STR);
+
+    //         if ($query->execute()) {
+    //             $result = $query->fetchAll(PDO::FETCH_ASSOC);
+    //             echo json_encode($result);
+    //             exit();
+    //         } else {
+    //             $err = $query->errorInfo();
+    //             echo json_encode($err);
+    //             exit();
+    //         }
+    //     } catch (PDOException $e) {
+    //         $e = $e->getMessage();
+    //         echo json_encode($e);
+    //         exit();
+    //     }
+    // }
 }
