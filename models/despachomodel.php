@@ -66,14 +66,44 @@ class DespachoModel extends Model
     {
         try {
             $PEDIDO = $param["PEDIDO_INTERNO"];
-            $query = $this->db->connect_dobra()->prepare('SELECT * from guias
-                where PEDIDO_INTERNO = :pedido');
+            $query = $this->db->connect_dobra()->prepare('
+                SELECT g.*, ggp.placa  from guias g
+                left join gui_guias_placa ggp
+                on ggp.pedido_interno = g.PEDIDO_INTERNO
+                where g.PEDIDO_INTERNO = :pedido');
             $query->bindParam(":pedido", $PEDIDO, PDO::PARAM_STR);
             if ($query->execute()) {
                 $result = $query->fetchAll(PDO::FETCH_ASSOC);
                 $DET = $this->Cargar_Guia_detalle($param);
-                echo json_encode([$result, $DET, 1]);
+                $VAL = $this->Validar_Guias_Inicializada($param);
+                echo json_encode([$result, $DET, 1,$VAL]);
                 exit();
+            } else {
+                $err = $query->errorInfo();
+                echo json_encode([$err, 0, 0]);
+                exit();
+            }
+        } catch (PDOException $e) {
+            $e = $e->getMessage();
+            echo json_encode([$e, 0, 0]);
+            exit();
+        }
+    }
+
+    function Validar_Guias_Inicializada($param)
+    {
+        try {
+            $PEDIDO = $param["PEDIDO_INTERNO"];
+            $query = $this->db->connect_dobra()->prepare('SELECT * from gui_guias_despachadas_estado
+                where PEDIDO_INTERNO = :pedido');
+            $query->bindParam(":pedido", $PEDIDO, PDO::PARAM_STR);
+            if ($query->execute()) {
+                $result = $query->fetchAll(PDO::FETCH_ASSOC);
+                if(count($result) > 0){
+                    return 1;
+                }else{
+                    return 0;
+                }
             } else {
                 $err = $query->errorInfo();
                 echo json_encode([$err, 0, 0]);
@@ -781,6 +811,66 @@ class DespachoModel extends Model
     }
 
 
+    //***** GUIAS ASIGNADAS */
+
+    function Cargar_guias_asignadas($param)
+    {
+
+        try {
+            $USUARIO = $param["USUARIO_ID"];
+            $ESTADO = $param["ESTADO"];
+            $PLACA = $param["PLACA"];
+            $ITEMS_POR_PAGINA = $param["ITEMS_POR_PAGINA"];
+            $PAGINA_ACTUAL = $param["PAGINA_ACTUAL"];
+            if ($PAGINA_ACTUAL == 0) {
+                $VALOR = 0;
+            } else if ($PAGINA_ACTUAL == 1) {
+                $VALOR = (int)($ITEMS_POR_PAGINA) * ((int)($PAGINA_ACTUAL));
+            } else {
+                $VALOR = (int)($ITEMS_POR_PAGINA) * ((int)($PAGINA_ACTUAL) - 1);
+            }
+
+
+            $query = $this->db->connect_dobra()->prepare("SELECT 
+            g.* ,
+            ggp.placa,
+            ggde.ESTADO_DESPACHO ,
+            ggde.ESTADO_DESPACHO_TEXTO,
+            ggde.FECHA_COMPLETADO 
+            from  guias g 
+            left join gui_guias_placa ggp
+            on ggp.pedido_interno = g.PEDIDO_INTERNO
+            left join gui_guias_despachadas_estado ggde 
+            on ggde.PEDIDO_INTERNO = g.PEDIDO_INTERNO
+            where ggp.placa = :PLACA; 
+            ");
+
+            $query->bindParam(":PLACA", $PLACA, PDO::PARAM_STR);
+            // $query->bindParam(":ITEMS_POR_PAGINA", $ITEMS_POR_PAGINA, PDO::PARAM_STR);
+            // $query->bindParam(":VALOR", $VALOR, PDO::PARAM_STR);
+            // $query->bindParam(":ESTADO", $ESTADO, PDO::PARAM_STR);
+            if ($query->execute()) {
+                $result = $query->fetchAll(PDO::FETCH_ASSOC);
+                if (count($result) > 0) {
+                    echo json_encode([$result, count($result)]);
+                    exit();
+                } else {
+                    echo json_encode($result);
+                    exit();
+                }
+            } else {
+                $err = $query->errorInfo();
+                echo json_encode([0, $err]);
+                exit();
+            }
+        } catch (PDOException $e) {
+            $e = $e->getMessage();
+            echo json_encode([$e, 0, 0]);
+            exit();
+        }
+    }
+
+
 
     //********************************************************************* */
     //*************************   GUIAS WEB    **************************** */
@@ -928,7 +1018,8 @@ class DespachoModel extends Model
            STR_TO_DATE(g.FECHA_DE_EMISION , '%d.%m.%Y') as FECHA_DE_EMISION,
            STR_TO_DATE(g.FECHA_VALIDEZ , '%d.%m.%Y') as FECHA_VALIDEZ,
            ggde2 .*,
-           uu.Nombre  as PEDIDO_CREADO_POR
+           uu.Nombre  as PEDIDO_CREADO_POR,
+           (select sum(factura_total) from gui_guias_facturas ggf where ggf.pedido_interno = g.PEDIDO_INTERNO) as TOTAL_FACTURAS
            from gui_guias_despachadas_estado ggde2
            left join guias g 
            on g.PEDIDO_INTERNO = ggde2 .PEDIDO_INTERNO 
@@ -1164,7 +1255,7 @@ class DespachoModel extends Model
             $CREADO_POR = ($param["USUARIO"]);
 
             $query = $this->db->connect_dobra()->prepare('INSERT 
-            INTO svsys.gui_guias_facturas 
+            INTO gui_guias_facturas 
             (
                 pedido_interno, 
                 factura_fecha, 

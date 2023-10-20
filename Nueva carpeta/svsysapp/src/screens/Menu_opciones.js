@@ -19,6 +19,12 @@ export default function Menu_opciones({ route, navigation }) {
 
     };
 
+    const handleButton3Press = () => {
+        // Lógica para el botón 2
+        navigation.navigate('Guias_Asignadas', datos_sesion);
+
+    };
+
     return (
         <View style={styles.container}>
             <TouchableOpacity
@@ -31,7 +37,14 @@ export default function Menu_opciones({ route, navigation }) {
                 style={styles.button}
                 onPress={handleButton2Press}
             >
-                <Text style={styles.buttonText}>Mis Guías</Text>
+                <Text style={styles.buttonText}>Guias Despachadas</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+                style={styles.button}
+                onPress={handleButton3Press}
+            >
+                <Text style={styles.buttonText}>Guías Asignadas</Text>
             </TouchableOpacity>
         </View>
     );

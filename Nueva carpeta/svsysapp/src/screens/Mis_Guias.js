@@ -163,9 +163,12 @@ export default function Mis_guias({ route, navigation }) {
                 {/* Barra superior con nombre de usuario y botón de salida */}
                 <View style={styles.header}>
                     <Text style={styles.username}>Usuario: {usuario}</Text>
+                    <Text style={styles.username}>Placa: {placa}</Text>
+
                     <TouchableOpacity onPress={handleLogout}>
                         <Text style={styles.logoutButton}>Salir</Text>
                     </TouchableOpacity>
+                    
                 </View>
 
 

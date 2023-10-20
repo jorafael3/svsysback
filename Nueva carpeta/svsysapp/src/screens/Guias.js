@@ -15,6 +15,7 @@ export default function Guias({ route, navigation }) {
     const [usuario, setusuario] = useState('');
     const [usuarioid, setusuarioid] = useState('');
     const [placa, setplaca] = useState('');
+    const datos_sesion = route.params;
 
     //***SCANNER */
     const [isScannerVisible, setIsScannerVisible] = useState(false);
@@ -91,7 +92,7 @@ export default function Guias({ route, navigation }) {
         let url = "despacho/Cargar_Gui_Servicios"
 
         fetchData(url, [], function (x) {
-            console.log('x: ', x);
+
 
             let datos = x[0];
             if (x[1] == 0) {
@@ -118,7 +119,7 @@ export default function Guias({ route, navigation }) {
     function Cargar_Destinos() {
         let url = "despacho/Cargar_Gui_Destinos"
         fetchData(url, [], function (x) {
-            console.log('x: ', x);
+
 
             let datos = x[0];
             if (x[1] == 0) {
@@ -179,8 +180,16 @@ export default function Guias({ route, navigation }) {
         setScannedData({ type, data });
         setIsScannerVisible(false);
         // Alert.alert("type", data)
-        Cargar_guia(data)
+        Cargar_guia(data);
+        // Completar_Parcial(data);
+
     };
+
+    function Completar_Parcial(pedido) {
+        let PEDIDO_INTERNO = pedido;
+        datos_sesion.PEDIDO_INTERNO = PEDIDO_INTERNO;
+        navigation.navigate('Guias_parcial', datos_sesion);
+    }
 
     function RESET(scanner) {
         setIsScannerVisible(scanner);
@@ -207,14 +216,18 @@ export default function Guias({ route, navigation }) {
         const param = {
             PEDIDO_INTERNO: pedido,
         };
-        setisFormVisible(true);
 
         fetchData(url, param, function (x) {
+            console.log('x: ', x);
 
             let val = x[2];
-
             if (val == 1) {
-                Llenar_Guia(x)
+                if (x[3] == 0) {
+                    Llenar_Guia(x);
+                    // setisFormVisible(true);
+                } else {
+                    Completar_Parcial(pedido);
+                }
             } else {
                 Alert.alert("", x[0].toString())
             }
@@ -226,44 +239,26 @@ export default function Guias({ route, navigation }) {
         // let DATOS = JSON.stringify(data);
         let CABECERA = data[0][0];
         let DETALLE = data[1];
-        // let DETALLE = [{
-        //     "CODIGO": "10016416",
-        //     "DESCRIPCION": "Cemento Holcim Fuerte Tipo GU 50Kg - GU",
-        //     "DESPACHADA": "", "ENTREGADA": "",
-        //     "ID": "82", "ORD": "01",
-        //     "PEDIDO_INTERNO": "505420272",
-        //     "POR_DESPACHAR": "400.00",
-        //     "UNIDAD": "SAC",
-        //     "CANT_PARCIAL": 0,
-        //     "PARCIAL": 0
-        // }, {
-        //     "CODIGO": "91025087",
-        //     "DESCRIPCION": "Groutex Fino Blanco 2Kg",
-        //     "DESPACHADA": "", "ENTREGADA": "",
-        //     "ID": "83",
-        //     "ORD": "02",
-        //     "PEDIDO_INTERNO": "505420272",
-        //     "POR_DESPACHAR": "20.00",
-        //     "UNIDAD": "UN",
-        //     "CANT_PARCIAL": 0,
-        //     "PARCIAL": 0
-        // }];
-        // 
         if (CABECERA.length == 0) {
             Alert.alert("", "Guia no encontrada, verifique el numero, o vuelva a escanear");
         } else {
-            setisFormVisible(true);
-            setfecha_emision(CABECERA["FECHA_DE_EMISION"]);
-            setpedido(CABECERA["PEDIDO_INTERNO"]);
+            if (CABECERA["placa"] == placa) {
+                setisFormVisible(true);
+                setfecha_emision(CABECERA["FECHA_DE_EMISION"]);
+                setpedido(CABECERA["PEDIDO_INTERNO"]);
 
-            DETALLE.map(function (x) {
-                x.PARCIAL = 0;
-                x.CANT_PARCIAL = "NaN";
-                x.NO_ENTREGAR_CODIGO = 0;
-            });
+                DETALLE.map(function (x) {
+                    x.PARCIAL = 0;
+                    x.CANT_PARCIAL = "NaN";
+                    x.NO_ENTREGAR_CODIGO = 0;
+                });
 
-            setdata_detalle(DETALLE)
-            // Alert.alert("asdasd", data[0][0]["ID"]);
+                setdata_detalle(DETALLE)
+                // Alert.alert("asdasd", data[0][0]["ID"]);
+            } else {
+                Alert.alert("GUIA ASOCIADA A OTRA PLACA", CABECERA["placa"]);
+            }
+
         }
 
     }
@@ -280,9 +275,9 @@ export default function Guias({ route, navigation }) {
         let servicio = selectedOption_servicios.key;
         let entrega = selectedOption_destinos.key;
         let placa_nuev = placa_nueva;
-        console.log('placa_nuev: ', placa_nuev);
+
         let isplaca = isChecked == true ? 1 : 0;
-        console.log('isplaca: ', isplaca);
+
 
 
 
@@ -302,7 +297,7 @@ export default function Guias({ route, navigation }) {
                 if (placa_nuev.includes("-")) {
                     let letras = placa_nuev.split("-")[0];
                     let num = placa_nuev.split("-")[1];
-                    console.log('num: ', num.length);
+
                     if (letras.length > 4 || letras.length < 3) {
                         Alert.alert("", "Formato de placa incorrecto");
                         return;
@@ -353,13 +348,13 @@ export default function Guias({ route, navigation }) {
                 PARCIAL: data_detalle.filter(item => item.PARCIAL == 1).length > 0 ? 1 : 0,
                 DETALLE: data_detalle
             }
-            console.log('param: ', param);
+
             if (val > 0) {
                 Alert.alert("Error en cantidad parcial", "La cantidad parcial no puede estar vacia o ser menor o igual a 0");
             } else {
                 let url = 'despacho/Guardar_Guias_despacho';
                 fetchData(url, param, function (x) {
-                    console.log('x: ', x);
+
                     let CAB = x[0];
                     let DET = x[1];
                     let EST = x[2];
@@ -375,7 +370,7 @@ export default function Guias({ route, navigation }) {
                                 Alert.alert("Error al guardar los datos", (CAB["MENSAJE"]).toString());
                             } else if (DET["GUARDADO"] == 0) {
                                 Alert.alert("Error al guardar los datos", (DET["MENSAJE"]).toString());
-                            }else if (EST["GUARDADO"] == 0) {
+                            } else if (EST["GUARDADO"] == 0) {
                                 Alert.alert("Error al guardar los datos", (EST["MENSAJE"]).toString());
                             }
                         }
@@ -456,7 +451,7 @@ export default function Guias({ route, navigation }) {
     };
 
     const Cantidad_Parcial_Check_Change_No = (newValue, index, item) => {
-        console.log('newValue: ', newValue);
+
         // if (newValue == true) {
         //     newValue = false;
         // } else {
@@ -464,7 +459,7 @@ export default function Guias({ route, navigation }) {
         // }
 
         let chek_seleccionado = selectedRows[index]
-        console.log('selectedRows[index]: ', selectedRows[index]);
+
 
         const updatedCheckBoxState = [...selectedRows_No];
         updatedCheckBoxState[index] = newValue;
@@ -506,6 +501,7 @@ export default function Guias({ route, navigation }) {
                 {/* Barra superior con nombre de usuario y botón de salida */}
                 <View style={styles.header}>
                     <Text style={styles.username}>Usuario: {usuario}</Text>
+                    <Text style={styles.username}>Placa: {placa}</Text>
                     <TouchableOpacity onPress={handleLogout}>
                         <Text style={styles.logoutButton}>Salir</Text>
                     </TouchableOpacity>
@@ -519,9 +515,9 @@ export default function Guias({ route, navigation }) {
                         <TouchableOpacity onPress={scanner} style={styles.button}>
                             <Text style={styles.buttonText}>Escanear Código</Text>
                         </TouchableOpacity>
-                        <TouchableOpacity onPress={manual} style={styles.button}>
+                        {/* <TouchableOpacity onPress={manual} style={styles.button}>
                             <Text style={styles.buttonText}>Ingreso Manual</Text>
-                        </TouchableOpacity>
+                        </TouchableOpacity> */}
                     </View>
                     {isScannerVisible ? (
                         <View style={styles.cameraContainer}>

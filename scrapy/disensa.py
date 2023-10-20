@@ -99,7 +99,7 @@ def Buscar_Documentos():
     try:
         desde = driver.find_element(By.XPATH, '//*[@id="inputfdesde"]')
         desde.clear()
-        desde.send_keys("01/09/2023")
+        desde.send_keys("01/10/2023")
         guardar_log("FECHA CAMBIADA",1)
     except:
         pass
@@ -458,8 +458,8 @@ def Guardar_Guias(array_datos):
     guardar_log("FINALIZADO DATOS "+str(cantidad_datos) ,1)
 
 # login()
-# Leer_pdf()
-Limpiar_directorio()
+Leer_pdf()
+# Limpiar_directorio()
 # def p():
 #     c = 'SELECT * FROM guias'
 #     cursor = conexion.cursor()

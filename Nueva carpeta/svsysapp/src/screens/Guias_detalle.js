@@ -12,7 +12,7 @@ export default function Guias_detalle({ route, navigation }) {
     const [placa, setplaca] = useState('');
     const [pedido_interno, setpedido_interno] = useState('');
 
-    //***** DATOS CABECERA */
+    //***** DATOS CABECERA ******/
     const [fecha_emision, setfecha_emision] = useState('');
     const [estado_guia_text, setestado_guia_text] = useState('');
     const [estado_guia, setestado_guia] = useState('');
