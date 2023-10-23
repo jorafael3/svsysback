@@ -68,6 +68,7 @@ export default function Guias_Asignadas({ route, navigation }) {
 
         let url = 'despacho/Cargar_guias_asignadas'
         fetchData(url, param, function (x) {
+            console.log('x: ', x);
             let datos = x[0];
             if (datos == 0) {
                 Alert.alert("Error de conexion intente en un momento", x[1].toString());

@@ -16,9 +16,20 @@ class Menu extends Controller
         //echo "nuevo controlaodr";
     }
 
+    // function Cargar_Menu()
+    // {
+    //     $param1 = $_POST['param'];
+    //     $Ventas =  $this->model->Cargar_Menu($param1);
+    // }
+
+
     function Cargar_Menu()
     {
-        $param1 = $_POST['param'];
-        $Ventas =  $this->model->Cargar_Menu($param1);
+        $param = $_POST['param'];
+        if ($param["TOKEN"] == constant("TOKEN_WEB")) {
+            $Ventas =  $this->model->Cargar_Menu($param);
+        } else {
+            die();
+        }
     }
 }
