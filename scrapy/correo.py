@@ -73,33 +73,45 @@ def main():
         print('Messages in the inbox:')
         for message in messages:
             msg = service.users().messages().get(userId='me', id=message['id']).execute()
+            from_header = [header['value'] for header in msg['payload']['headers'] if header['name'] == 'From']
+            if from_header:
+                    sender_email = from_header[0]
+            # print(f'Sender: {sender_email}')
             print("++++++++++++++++++++++++++++++")
-            # print(msg["snippet"])
-            Obtener_Datos(msg["snippet"])
+            # print(msg)
+            if(sender_email == "ecu-noreply-apps@holcim.com"):
+                Obtener_Datos(msg["snippet"])
             # print(f'Subject: {msg["subject"]}')
             # print(f'From: {msg["from"]}')
             # print(f'Date: {msg["internalDate"]}')
-        Guardar_Datos()
+        # Guardar_Datos()
 
     except HttpError as error:
         # TODO(developer) - Handle errors from gmail API.
         print(f'An error occurred: {error}')
 
 def Obtener_Datos(texto):
+        # print(texto)
+        
     # if "REPORTE DE VEHÍCULO EN PLANTA" in texto:
-        # texto = """GU - REPORTE DE VEHÍCULO EN PLANTA Srs. SALVACERO CIA. LTDA., El Vehículo : GBO7782 Ha salido de la planta Guayaquil :SA-16-09 13:19 Orden #505420274 con 400 Saco Cemento holcim Fuer. Nota: Favor no
-        # No se encontraron todos los datos."""
+        # texto = """Srs. SALVACERO CIA. LTDA., El Vehículo : GBO7782 Ha salido de la planta Guayaquil :MIE-25-10 15:30 Orden # 505610385 con 400 Saco Cemento Holcim Fuer. Nota: Favor no utilizar la opción de responder a"""
         # lineas = texto.split('\n')
-        if "REPORTE DE VEHÍCULO EN PLANTA" in texto:
+        if "SALVACERO " in texto:
             placa_pattern = r"Vehículo : (\w+)"
-            orden_pattern = r"Orden #(\d+)"
+            orden_pattern = r"Orden # (\d+)"
             # Buscamos los datos en el texto
             placa_match = re.search(placa_pattern, texto)
             orden_match = re.search(orden_pattern, texto)
+            # print(placa_match.group(1))
+            # print(orden_match.group(1))
+            placa = placa_match.group(1)
+            if len(placa) > 9:
+                placa = f"{placa[:9]}-{placa[9:]}"
             datos = {
-                "placa": placa_match.group(1),
+                "placa": placa,
                 "orden": orden_match.group(1)
             }
+            print(datos)
             datos_correo.append(datos)
 
             # # Inicializar variables para almacenar los datos
@@ -167,6 +179,8 @@ def Guardar_Datos():
                 return 1
         else:
             print("YA GUARDADO")
+
+
 def Validar_Cabecera(numero):
     # print(numero)
     cursor = conexion.cursor()
