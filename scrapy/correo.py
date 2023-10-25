@@ -1,20 +1,32 @@
 from __future__ import print_function
 
 import os.path
-
+import re
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from datetime import datetime, timedelta
+import mysql.connector
 # If modifying these scopes, delete the file token.json.
 SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
 credential = 'C:\\xampp\\htdocs\\svsysback\\scrapy\\client_secret.json'
 
+datos_correo=[]
+
+conexion = mysql.connector.connect(
+    host="localhost",
+    user="root",
+    password="",
+    database="svsys"
+    )
+
 def main():
     """Shows basic usage of the Gmail API.
     Lists the user's Gmail labels.
+    pip install --upgrade google-api-python-client google-auth-httplib2 google-auth-oauthlib
+
     """
     creds = None
     start_date_str = ''  # Inicializa las variables
@@ -61,17 +73,108 @@ def main():
         print('Messages in the inbox:')
         for message in messages:
             msg = service.users().messages().get(userId='me', id=message['id']).execute()
-            # print(msg)
-            print(msg["snippet"])
-
+            print("++++++++++++++++++++++++++++++")
+            # print(msg["snippet"])
+            Obtener_Datos(msg["snippet"])
             # print(f'Subject: {msg["subject"]}')
             # print(f'From: {msg["from"]}')
             # print(f'Date: {msg["internalDate"]}')
+        Guardar_Datos()
 
     except HttpError as error:
         # TODO(developer) - Handle errors from gmail API.
         print(f'An error occurred: {error}')
 
+def Obtener_Datos(texto):
+    # if "REPORTE DE VEHÍCULO EN PLANTA" in texto:
+        # texto = """GU - REPORTE DE VEHÍCULO EN PLANTA Srs. SALVACERO CIA. LTDA., El Vehículo : GBO7782 Ha salido de la planta Guayaquil :SA-16-09 13:19 Orden #505420274 con 400 Saco Cemento holcim Fuer. Nota: Favor no
+        # No se encontraron todos los datos."""
+        # lineas = texto.split('\n')
+        if "REPORTE DE VEHÍCULO EN PLANTA" in texto:
+            placa_pattern = r"Vehículo : (\w+)"
+            orden_pattern = r"Orden #(\d+)"
+            # Buscamos los datos en el texto
+            placa_match = re.search(placa_pattern, texto)
+            orden_match = re.search(orden_pattern, texto)
+            datos = {
+                "placa": placa_match.group(1),
+                "orden": orden_match.group(1)
+            }
+            datos_correo.append(datos)
+
+            # # Inicializar variables para almacenar los datos
+            #         placa = None
+            #         orden = None
+            #         fecha = None
+            #         detalle = None
+
+            #         # Recorrer cada línea y buscar los datos
+            #         for linea in lineas:
+            #             if "Vehículo :" in linea:
+            #                 placa = linea.split(":")[1].strip()
+            #             elif "Orden #" in linea:
+            #                 orden = linea.split("#")[1].split()[0]
+            #                 detalle = ' '.join(linea.split(" con ")[1:])
+            #             elif ":" in linea:
+            #                 fecha = linea.split(":")[1].strip()
+
+            #         # Comprobar si se encontraron todos los datos
+            #         if placa and orden and fecha and detalle:
+            #             datos = {
+            #                 "placa": placa,
+            #                 "orden": orden,
+            #                 "fecha": fecha,
+            #                 "detalle": detalle
+            #             }
+            #             print(datos)
+            #         else:
+            #             print("No se encontraron todos los datos.")
+
+def Guardar_Datos():
+    for data in datos_correo:
+        print(data)
+        val = Validar_Cabecera(data["orden"])
+        if val == 0:
+            consulta = """
+                INSERT INTO gui_guias_placa (
+                    pedido_interno,
+                    placa
+                    ) VALUES (
+                        %s, %s
+                    )
+                    """
+            valores = (
+                    data["orden"].strip(), 
+                    data["placa"].strip(),           
+            )
+            try:
+                cursor = conexion.cursor()
+            # Intenta ejecutar la consulta con los valores
+            
+                cursor.execute(consulta,valores)
+                # resultados = cursor.fetchall()
+                # for fila in resultados:
+                #     print(fila)
+            # Realiza la confirmación para guardar los cambios en la base de datos
+                print("Inserción exitosa")
+                conexion.commit()
+            except Exception as e:
+                # Captura cualquier excepción que ocurra durante la inserción
+                print("Error durante la inserción:", str(e))
+            finally:
+                # Cierra el cursor y la conexión
+                cursor.close()
+                return 1
+        else:
+            print("YA GUARDADO")
+def Validar_Cabecera(numero):
+    # print(numero)
+    cursor = conexion.cursor()
+    consulta = 'SELECT pedido_interno FROM gui_guias_placa WHERE pedido_interno = %s'
+    valores = (numero,)
+    cursor.execute(consulta,valores)
+    resultados = cursor.fetchall()
+    return len(resultados)
 
 if __name__ == '__main__':
     main()
