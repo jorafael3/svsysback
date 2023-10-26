@@ -266,6 +266,7 @@ export default function Guias_parcial({ route, navigation }) {
             (async () => {
                 let { status } = await Location.requestForegroundPermissionsAsync();
                 if (status !== 'granted') {
+                    Alert.alert("Permisos de ubicacion no activados", "Porfavor permita el acceso a la ubicacion para continuar");
                     setErrorMsg('Permission to access location was denied');
                     return;
                 }
