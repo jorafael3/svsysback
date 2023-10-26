@@ -9,6 +9,7 @@ import Checkbox from 'expo-checkbox';
 import Menu from './Menu'
 import { createStackNavigator } from '@react-navigation/stack';
 import * as Location from 'expo-location';
+import * as ImagePicker from 'expo-image-picker';
 
 const Stack = createStackNavigator();
 
@@ -56,6 +57,7 @@ export default function Guias({ route, navigation }) {
 
     const [location, setLocation] = useState(null);
     const [errorMsg, setErrorMsg] = useState(null);
+    const [image, setImage] = useState(null);
 
     //********** CLIENTES ******/
     const handleOptionChange = (value) => {
@@ -378,37 +380,40 @@ export default function Guias({ route, navigation }) {
                     PLACA_CAMBIADA_NUMERO: isplaca == 0 ? "" : placa_nuev,
                     PARCIAL: data_detalle.filter(item => item.PARCIAL == 1).length > 0 ? 1 : 0,
                     DETALLE: data_detalle,
-                    UBICACION: location["coords"]["latitude"] + "," + location["coords"]["longitude"]
-                
+                    UBICACION: location["coords"]["latitude"] + "," + location["coords"]["longitude"],
+                    IMAGEN: image
+
                 }
 
+                console.log('param: ', param);
 
                 if (val > 0) {
                     Alert.alert("Error en cantidad parcial", "La cantidad parcial no puede estar vacia o ser menor o igual a 0");
                 } else {
                     let url = 'despacho/Guardar_Guias_despacho';
                     fetchData(url, param, function (x) {
+                        console.log('x: ', x);
 
-                        let CAB = x[0];
-                        let DET = x[1];
-                        let EST = x[2];
-                        if (CAB["GUARDADO"] == 2) {
-                            Alert.alert("Guia ya ingresada", "Si desea completar un pedido parcial ir a la seccion de guias parciales");
-                        } else {
-                            if (CAB["GUARDADO"] == 1 && DET["GUARDADO"] == 1 && EST["GUARDADO"] == 1) {
-                                setdata_detalle([]);
-                                setisFormVisible(false);
-                                Alert.alert("Datos Guardados", "Los datos se guardaron con exito");
-                            } else {
-                                if (CAB["GUARDADO"] == 0) {
-                                    Alert.alert("Error al guardar los datos", (CAB["MENSAJE"]).toString());
-                                } else if (DET["GUARDADO"] == 0) {
-                                    Alert.alert("Error al guardar los datos", (DET["MENSAJE"]).toString());
-                                } else if (EST["GUARDADO"] == 0) {
-                                    Alert.alert("Error al guardar los datos", (EST["MENSAJE"]).toString());
-                                }
-                            }
-                        }
+                        // let CAB = x[0];
+                        // let DET = x[1];
+                        // let EST = x[2];
+                        // if (CAB["GUARDADO"] == 2) {
+                        //     Alert.alert("Guia ya ingresada", "Si desea completar un pedido parcial ir a la seccion de guias parciales");
+                        // } else {
+                        //     if (CAB["GUARDADO"] == 1 && DET["GUARDADO"] == 1 && EST["GUARDADO"] == 1) {
+                        //         setdata_detalle([]);
+                        //         setisFormVisible(false);
+                        //         Alert.alert("Datos Guardados", "Los datos se guardaron con exito");
+                        //     } else {
+                        //         if (CAB["GUARDADO"] == 0) {
+                        //             Alert.alert("Error al guardar los datos", (CAB["MENSAJE"]).toString());
+                        //         } else if (DET["GUARDADO"] == 0) {
+                        //             Alert.alert("Error al guardar los datos", (DET["MENSAJE"]).toString());
+                        //         } else if (EST["GUARDADO"] == 0) {
+                        //             Alert.alert("Error al guardar los datos", (EST["MENSAJE"]).toString());
+                        //         }
+                        //     }
+                        // }
 
                         // Alert.alert("", x);
                     })
@@ -530,6 +535,37 @@ export default function Guias({ route, navigation }) {
         });
         setdata_detalle(data_detalle);
 
+    };
+
+
+    const Subir_imagen = async () => {
+        // No permissions request is necessary for launching the image library
+
+
+        // let result = await ImagePicker.launchImageLibraryAsync({
+        //     mediaTypes: ImagePicker.MediaTypeOptions.All,
+        //     allowsEditing: true,
+        //     aspect: [6, 9],
+        //     quality: 1,
+        // });
+        let picker = await ImagePicker.launchImageLibraryAsync();
+        console.log('picker: ', picker);
+        // console.log(picker.uri);
+        const formData = new FormData();
+        formData.append('image', {
+          uri: picker["assets"]["uri"],
+          type: 'image/jpeg',
+          name: 'myImage.jpg',
+        });
+        console.log('a: ', formData);
+        setImage(formData);
+
+        // if (!picker.canceled) {
+        //     // setImage(result.assets[0].uri);
+
+        //     // setImage(payload);
+
+        // }
     };
 
     return (
@@ -672,6 +708,7 @@ export default function Guias({ route, navigation }) {
                                 />
                                 <Text style={{ fontSize: 16, fontWeight: 'bold' }}>Seleccione lugar de entrega *</Text>
                                 <ModalSelector
+                                    style={{ fontSize: 16, fontWeight: 'bold', marginBottom: 15 }}
                                     // keyExtractor={(item) => item.key}
                                     data={datos_destinos}
                                     initValue="Seleccione"
@@ -680,8 +717,10 @@ export default function Guias({ route, navigation }) {
                                         // Handle the selected option here
                                     }}
                                 />
-
-                                <Text style={{ fontSize: 16, fontWeight: 'bold' }}>Cambiar placa * (check para cambiar)</Text>
+                                <TouchableOpacity onPress={Subir_imagen} style={styles.subirButton}>
+                                    <Text style={styles.guardarButtonText}>Cargar foto guia firmada</Text>
+                                </TouchableOpacity>
+                                <Text style={{ fontSize: 16, fontWeight: 'bold', marginTop: 15 }}>Cambiar placa * (check para cambiar)</Text>
                                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                                     <Checkbox
                                         style={{ margin: 10 }}
@@ -830,6 +869,13 @@ const styles = StyleSheet.create({
     },
     guardarButton: {
         backgroundColor: 'green',
+        padding: 12,
+        borderRadius: 6,
+        alignItems: 'center',
+        justifyContent: 'center', // Mantenemos 'center' para centrar verticalmente
+    },
+    subirButton: {
+        backgroundColor: 'blue',
         padding: 12,
         borderRadius: 6,
         alignItems: 'center',
