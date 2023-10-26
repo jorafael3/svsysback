@@ -1125,6 +1125,7 @@ class DespachoModel extends Model
             ggde.PLACA_CAMBIADA,
             ggde.PLACA_CAMBIADA_NUMERO,
             uc.PLACA,
+            ggde.UBICACION
             uu.Nombre as DESPACHADO_POR
             from 
                 gui_guias_despachadas ggde
