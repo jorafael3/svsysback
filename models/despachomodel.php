@@ -76,7 +76,7 @@ class DespachoModel extends Model
                 $result = $query->fetchAll(PDO::FETCH_ASSOC);
                 $DET = $this->Cargar_Guia_detalle($param);
                 $VAL = $this->Validar_Guias_Inicializada($param);
-                echo json_encode([$result, $DET, 1,$VAL]);
+                echo json_encode([$result, $DET, 1, $VAL]);
                 exit();
             } else {
                 $err = $query->errorInfo();
@@ -99,9 +99,13 @@ class DespachoModel extends Model
             $query->bindParam(":pedido", $PEDIDO, PDO::PARAM_STR);
             if ($query->execute()) {
                 $result = $query->fetchAll(PDO::FETCH_ASSOC);
-                if(count($result) > 0){
-                    return 1;
-                }else{
+                if (count($result) > 0) {
+                    if ($result[0]["ESTADO_DESPACHO"] == 0) {
+                        return 2;
+                    } else {
+                        return 1;
+                    }
+                } else {
                     return 0;
                 }
             } else {
@@ -115,7 +119,6 @@ class DespachoModel extends Model
             exit();
         }
     }
-
 
     function Cargar_Guia_detalle($param)
     {
@@ -158,6 +161,7 @@ class DespachoModel extends Model
             $PLACA_CAMBIADA_NUMERO = $param["PLACA_CAMBIADA_NUMERO"];
             $despacho_ID =  date('YmdHis');
             $DETALLE = $param["DETALLE"];
+            $UBICACION = $param["UBICACION"];
 
 
             $VAL_ESTADO = $this->Validar_Estado($PEDIDO_INTERNO);
@@ -174,7 +178,8 @@ class DespachoModel extends Model
                         PARCIAL, 
                         PLACA_CAMBIADA, 
                         PLACA_CAMBIADA_NUMERO,
-                        despacho_ID
+                        despacho_ID,
+                        UBICACION
                     ) VALUES(
                         :PEDIDO_INTERNO,
                         :CLIENTE_ENTREGA_ID,
@@ -184,8 +189,8 @@ class DespachoModel extends Model
                         :PARCIAL, 
                         :PLACA_CAMBIADA, 
                         :PLACA_CAMBIADA_NUMERO,
-                        :despacho_ID
-                        
+                        :despacho_ID,
+                        :UBICACION
                         );
                     ');
                     $query->bindParam(":PEDIDO_INTERNO", $PEDIDO_INTERNO, PDO::PARAM_STR);
@@ -197,6 +202,7 @@ class DespachoModel extends Model
                     $query->bindParam(":PLACA_CAMBIADA", $PLACA_CAMBIADA, PDO::PARAM_STR);
                     $query->bindParam(":PLACA_CAMBIADA_NUMERO", $PLACA_CAMBIADA_NUMERO, PDO::PARAM_STR);
                     $query->bindParam(":despacho_ID", $despacho_ID, PDO::PARAM_STR);
+                    $query->bindParam(":UBICACION", $UBICACION, PDO::PARAM_STR);
                     $mensaje = 0;
                     if ($query->execute()) {
                         $CAB = array("GUARDADO" => 1, "MENSAJE" => "CABECERA GUARDADA");
@@ -649,6 +655,7 @@ class DespachoModel extends Model
             $PLACA_CAMBIADA_NUMERO = $param["PLACA_CAMBIADA_NUMERO"];
             $despacho_ID =  date('YmdHis');
             $DETALLE = $param["DETALLE"];
+            $UBICACION = $param["UBICACION"];
 
 
             $query = $this->db->connect_dobra()->prepare('INSERT INTO gui_guias_despachadas 
@@ -661,7 +668,8 @@ class DespachoModel extends Model
                 PARCIAL, 
                 PLACA_CAMBIADA, 
                 PLACA_CAMBIADA_NUMERO,
-                despacho_ID
+                despacho_ID,
+                UBICACION
             ) VALUES(
                 :PEDIDO_INTERNO,
                 :CLIENTE_ENTREGA_ID,
@@ -671,7 +679,8 @@ class DespachoModel extends Model
                 :PARCIAL, 
                 :PLACA_CAMBIADA, 
                 :PLACA_CAMBIADA_NUMERO,
-                :despacho_ID
+                :despacho_ID,
+                :UBICACION
                 
                 );
             ');
@@ -684,6 +693,7 @@ class DespachoModel extends Model
             $query->bindParam(":PLACA_CAMBIADA", $PLACA_CAMBIADA, PDO::PARAM_STR);
             $query->bindParam(":PLACA_CAMBIADA_NUMERO", $PLACA_CAMBIADA_NUMERO, PDO::PARAM_STR);
             $query->bindParam(":despacho_ID", $despacho_ID, PDO::PARAM_STR);
+            $query->bindParam(":UBICACION", $UBICACION, PDO::PARAM_STR);
             $mensaje = 0;
             if ($query->execute()) {
                 $CAB = array("GUARDADO" => 1, "MENSAJE" => "CABECERA GUARDADA");

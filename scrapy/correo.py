@@ -84,7 +84,8 @@ def main():
             # print(f'Subject: {msg["subject"]}')
             # print(f'From: {msg["from"]}')
             # print(f'Date: {msg["internalDate"]}')
-        # Guardar_Datos()
+        # print(datos_correo)
+        Guardar_Datos()
 
     except HttpError as error:
         # TODO(developer) - Handle errors from gmail API.
@@ -105,11 +106,14 @@ def Obtener_Datos(texto):
             # print(placa_match.group(1))
             # print(orden_match.group(1))
             placa = placa_match.group(1)
-            if len(placa) > 9:
-                placa = f"{placa[:9]}-{placa[9:]}"
+            orden = orden_match.group(1)
+           
+            placa = f"{placa[:3]}-{placa[3:]}"
+            if len(orden) > 9:
+                orden = f"{orden[:9]}-{orden[9:]}"
             datos = {
                 "placa": placa,
-                "orden": orden_match.group(1)
+                "orden": orden
             }
             print(datos)
             datos_correo.append(datos)
@@ -143,10 +147,13 @@ def Obtener_Datos(texto):
             #             print("No se encontraron todos los datos.")
 
 def Guardar_Datos():
+    # print(datos_correo)
     for data in datos_correo:
-        print(data)
+        # print(data)
         val = Validar_Cabecera(data["orden"])
         if val == 0:
+            print(data)
+
             consulta = """
                 INSERT INTO gui_guias_placa (
                     pedido_interno,
@@ -160,9 +167,8 @@ def Guardar_Datos():
                     data["placa"].strip(),           
             )
             try:
-                cursor = conexion.cursor()
             # Intenta ejecutar la consulta con los valores
-            
+                cursor = conexion.cursor()
                 cursor.execute(consulta,valores)
                 # resultados = cursor.fetchall()
                 # for fila in resultados:
@@ -176,10 +182,9 @@ def Guardar_Datos():
             finally:
                 # Cierra el cursor y la conexión
                 cursor.close()
-                return 1
+                # return 1
         else:
             print("YA GUARDADO")
-
 
 def Validar_Cabecera(numero):
     # print(numero)

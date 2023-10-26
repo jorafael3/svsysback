@@ -8,6 +8,7 @@ import Checkbox from 'expo-checkbox';
 
 import Menu from './Menu'
 import { createStackNavigator } from '@react-navigation/stack';
+import * as Location from 'expo-location';
 
 const Stack = createStackNavigator();
 
@@ -53,7 +54,8 @@ export default function Guias({ route, navigation }) {
     const [selectedOption_destinos, setselectedOption_destinos] = useState("");
 
 
-
+    const [location, setLocation] = useState(null);
+    const [errorMsg, setErrorMsg] = useState(null);
 
     //********** CLIENTES ******/
     const handleOptionChange = (value) => {
@@ -147,6 +149,7 @@ export default function Guias({ route, navigation }) {
         Cargar_Clientes();
         Cargar_Servicios();
         Cargar_Destinos();
+
     }, []);
 
     const handleLogout = () => {
@@ -203,33 +206,50 @@ export default function Guias({ route, navigation }) {
     //************************************** */
     //*********** GUIAS */
     const Cargar_guia = (pedido) => {
+
+
+
         let url = 'despacho/Cargar_Guia_p';
         pedido = pedido.trim()
+
         if (pedido.length >= 20) {
             pedido = pedido.slice(0, -8)
+            pedido = pedido.substring(0, 9) + "-" + pedido.substring(9);
+
+
+
         } else {
             pedido = pedido.slice(0, -8)
+            pedido = parseInt(pedido).toString()
         }
+
+
         // fetchData(url, pedido)
-        pedido = parseInt(pedido).toString()
+        // pedido = parseInt(pedido).toString()
+        // 
 
         const param = {
             PEDIDO_INTERNO: pedido,
         };
-
         fetchData(url, param, function (x) {
-            console.log('x: ', x);
-
-            let val = x[2];
-            if (val == 1) {
-                if (x[3] == 0) {
-                    Llenar_Guia(x);
-                    // setisFormVisible(true);
-                } else {
-                    Completar_Parcial(pedido);
-                }
+            if (x[0].length == 0) {
+                Alert.alert("No hay datos que mostrar", "Escanee nuevamente");
             } else {
-                Alert.alert("", x[0].toString())
+                let val = x[2];
+                if (val == 1) {
+                    if (x[3] == 0) {
+                        Llenar_Guia(x);
+                        // setisFormVisible(true);
+                    } else {
+                        if (x[3] == 1) {
+                            Completar_Parcial(pedido);
+                        } else if (x[3] == 2) {
+                            Alert.alert("Guia completa", "El despacho de esta guia esta completo");
+                        }
+                    }
+                } else {
+                    Alert.alert("", x.toString())
+                }
             }
         });
 
@@ -335,50 +355,67 @@ export default function Guias({ route, navigation }) {
                     x.PARCIAL = 1;
                 }
             });
+            (async () => {
 
-            let param = {
-                USUARIO: usuario,
-                CREADO_POR: usuarioid,
-                PEDIDO_INTERNO: pedido,
-                CLIENTE_ENTREGA_ID: cliente,
-                SERVICIO_ID: servicio,
-                DESTINO_ID: entrega,
-                PLACA_CAMBIADA: isplaca,
-                PLACA_CAMBIADA_NUMERO: isplaca == 0 ? "" : placa_nuev,
-                PARCIAL: data_detalle.filter(item => item.PARCIAL == 1).length > 0 ? 1 : 0,
-                DETALLE: data_detalle
-            }
+                let { status } = await Location.requestForegroundPermissionsAsync();
+                if (status !== 'granted') {
+                    setErrorMsg('Permission to access location was denied');
+                    return;
+                }
 
-            if (val > 0) {
-                Alert.alert("Error en cantidad parcial", "La cantidad parcial no puede estar vacia o ser menor o igual a 0");
-            } else {
-                let url = 'despacho/Guardar_Guias_despacho';
-                fetchData(url, param, function (x) {
+                let location = await Location.getCurrentPositionAsync({});
+                // 
+                // 
+                let param = {
+                    USUARIO: usuario,
+                    CREADO_POR: usuarioid,
+                    PEDIDO_INTERNO: pedido,
+                    CLIENTE_ENTREGA_ID: cliente,
+                    SERVICIO_ID: servicio,
+                    DESTINO_ID: entrega,
+                    PLACA_CAMBIADA: isplaca,
+                    PLACA_CAMBIADA_NUMERO: isplaca == 0 ? "" : placa_nuev,
+                    PARCIAL: data_detalle.filter(item => item.PARCIAL == 1).length > 0 ? 1 : 0,
+                    DETALLE: data_detalle,
+                    UBICACION: location["coords"]["latitude"] + "," + location["coords"]["longitude"]
+                
+                }
 
-                    let CAB = x[0];
-                    let DET = x[1];
-                    let EST = x[2];
-                    if (CAB["GUARDADO"] == 2) {
-                        Alert.alert("Guia ya ingresada", "Si desea completar un pedido parcial ir a la seccion de guias parciales");
-                    } else {
-                        if (CAB["GUARDADO"] == 1 && DET["GUARDADO"] == 1 && EST["GUARDADO"] == 1) {
-                            setdata_detalle([]);
-                            setisFormVisible(false);
-                            Alert.alert("Datos Guardados", "Los datos se guardaron con exito");
+
+                if (val > 0) {
+                    Alert.alert("Error en cantidad parcial", "La cantidad parcial no puede estar vacia o ser menor o igual a 0");
+                } else {
+                    let url = 'despacho/Guardar_Guias_despacho';
+                    fetchData(url, param, function (x) {
+
+                        let CAB = x[0];
+                        let DET = x[1];
+                        let EST = x[2];
+                        if (CAB["GUARDADO"] == 2) {
+                            Alert.alert("Guia ya ingresada", "Si desea completar un pedido parcial ir a la seccion de guias parciales");
                         } else {
-                            if (CAB["GUARDADO"] == 0) {
-                                Alert.alert("Error al guardar los datos", (CAB["MENSAJE"]).toString());
-                            } else if (DET["GUARDADO"] == 0) {
-                                Alert.alert("Error al guardar los datos", (DET["MENSAJE"]).toString());
-                            } else if (EST["GUARDADO"] == 0) {
-                                Alert.alert("Error al guardar los datos", (EST["MENSAJE"]).toString());
+                            if (CAB["GUARDADO"] == 1 && DET["GUARDADO"] == 1 && EST["GUARDADO"] == 1) {
+                                setdata_detalle([]);
+                                setisFormVisible(false);
+                                Alert.alert("Datos Guardados", "Los datos se guardaron con exito");
+                            } else {
+                                if (CAB["GUARDADO"] == 0) {
+                                    Alert.alert("Error al guardar los datos", (CAB["MENSAJE"]).toString());
+                                } else if (DET["GUARDADO"] == 0) {
+                                    Alert.alert("Error al guardar los datos", (DET["MENSAJE"]).toString());
+                                } else if (EST["GUARDADO"] == 0) {
+                                    Alert.alert("Error al guardar los datos", (EST["MENSAJE"]).toString());
+                                }
                             }
                         }
-                    }
 
-                    // Alert.alert("", x);
-                })
-            }
+                        // Alert.alert("", x);
+                    })
+                }
+                // setLocation(location);
+            })();
+
+
 
 
         }

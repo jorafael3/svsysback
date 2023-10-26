@@ -49,20 +49,20 @@ conexion = mysql.connector.connect(
 # print(path+"\pdf")
 
 def Limpiar_directorio():
-    directorio = 'C:/xampp/htdocs/svsysback/scrapy/pdf/'
-    archivos_en_directorio = os.listdir(directorio)
-    guardar_log("LIMPIANDO DIRECTORIO",0)
-    if(len(archivos_en_directorio) > 0):
-        for archivo in archivos_en_directorio:
-            ruta_archivo = os.path.join(directorio, archivo)
-            os.remove(ruta_archivo)
-    else:  
-        pass
+    # directorio = 'C:/xampp/htdocs/svsysback/scrapy/pdf/'
+    # archivos_en_directorio = os.listdir(directorio)
+    # guardar_log("LIMPIANDO DIRECTORIO",0)
+    # if(len(archivos_en_directorio) > 0):
+    #     for archivo in archivos_en_directorio:
+    #         ruta_archivo = os.path.join(directorio, archivo)
+    #         os.remove(ruta_archivo)
+    # else:  
+    #     pass
 
     login()
 
 def login():
-    guardar_log("INICIANDO SCRAPY",1)
+    guardar_log("INICIANDO SCRAPY",0)
     driver.get('https://www.portaldisensa.com/b2b_new/init.do')
     time.sleep(2)
     ced = driver.find_element(By.XPATH, '//*[@id="userid"]')
@@ -239,6 +239,11 @@ def Obtener_cabecera(cabecera):
 
         guardar_log("DATOS CABECERA EXTRAIDOS",1)
         return datos_b
+
+#************************************
+#********* LEER DOCUMENTOS **********
+#************************************
+
 
 def Leer_pdf():
 

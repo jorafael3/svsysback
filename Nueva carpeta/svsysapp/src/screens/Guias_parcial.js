@@ -3,10 +3,11 @@ import { View, Text, TouchableOpacity, StyleSheet, Alert, ScrollView, TextInput 
 import ModalSelector from 'react-native-modal-selector';
 import fetchData from "../config/config"
 import Checkbox from 'expo-checkbox';
+import * as Location from 'expo-location';
 
 export default function Guias_parcial({ route, navigation }) {
     const datos_sesion = route.params;
-    
+
     const [usuario, setusuario] = useState('');
     const [usuarioid, setusuarioid] = useState('');
     const [placa, setplaca] = useState('');
@@ -52,7 +53,7 @@ export default function Guias_parcial({ route, navigation }) {
     function Cargar_Clientes() {
         let url = "clientes/Cargar_Clientes_m"
         fetchData(url, [], function (x) {
-            
+
             if (x.length == 0) {
 
 
@@ -262,50 +263,60 @@ export default function Guias_parcial({ route, navigation }) {
                     x.PARCIAL = 1;
                 }
             });
+            (async () => {
+                let { status } = await Location.requestForegroundPermissionsAsync();
+                if (status !== 'granted') {
+                    setErrorMsg('Permission to access location was denied');
+                    return;
+                }
 
-            let param = {
-                USUARIO: usuario,
-                CREADO_POR: usuarioid,
-                PEDIDO_INTERNO: pedido,
-                CLIENTE_ENTREGA_ID: cliente,
-                SERVICIO_ID: servicio,
-                DESTINO_ID: entrega,
-                PLACA_CAMBIADA: isplaca,
-                PLACA_CAMBIADA_NUMERO: isplaca == 0 ? "" : placa_nuev,
-                PARCIAL: data_detalle.filter(item => item.PARCIAL == 1).length > 0 ? 1 : 0,
-                DETALLE: data_detalle
-            }
-
-            
+                let location = await Location.getCurrentPositionAsync({});
 
 
-            if (val > 0) {
-                Alert.alert("Error en cantidad parcial", "La cantidad parcial no puede estar vacia o ser menor o igual a 0");
-            } else {
-                let url = 'despacho/Guardar_Guias_despacho_parcial';
+                let param = {
+                    USUARIO: usuario,
+                    CREADO_POR: usuarioid,
+                    PEDIDO_INTERNO: pedido,
+                    CLIENTE_ENTREGA_ID: cliente,
+                    SERVICIO_ID: servicio,
+                    DESTINO_ID: entrega,
+                    PLACA_CAMBIADA: isplaca,
+                    PLACA_CAMBIADA_NUMERO: isplaca == 0 ? "" : placa_nuev,
+                    PARCIAL: data_detalle.filter(item => item.PARCIAL == 1).length > 0 ? 1 : 0,
+                    DETALLE: data_detalle,
+                    UBICACION: location["coords"]["latitude"] + "," + location["coords"]["longitude"]
 
-                fetchData(url, param, function (x) {
-                    
-                    let CAB = x[0];
-                    let DET = x[1];
-                    if (CAB["GUARDADO"] == 1 && DET["GUARDADO"] == 1) {
-                        setdata_detalle([]);
-                        Alert.alert("Datos Guardados", "Los datos se guardaron con exito");
-                        navigation.goBack('Guias_detalle', datos_sesion);
-                        // navigation.reset({
-                        //     index: 0,
-                        //     routes: [{ name: "Guias_detalle", datos_sesion }],
-                        // });
+                }
 
-                    } else {
-                        if (CAB["GUARDADO"] == 0) {
-                            Alert.alert("Error al guardar los datos", (CAB["MENSAJE"]).toString());
-                        } else if (DET["GUARDADO"] == 0) {
-                            Alert.alert("Error al guardar los datos", (DET["MENSAJE"]).toString());
+                if (val > 0) {
+                    Alert.alert("Error en cantidad parcial", "La cantidad parcial no puede estar vacia o ser menor o igual a 0");
+                } else {
+                    let url = 'despacho/Guardar_Guias_despacho_parcial';
+
+                    fetchData(url, param, function (x) {
+
+                        let CAB = x[0];
+                        let DET = x[1];
+                        if (CAB["GUARDADO"] == 1 && DET["GUARDADO"] == 1) {
+                            setdata_detalle([]);
+                            Alert.alert("Datos Guardados", "Los datos se guardaron con exito");
+                            navigation.goBack('Guias_detalle', datos_sesion);
+                            // navigation.reset({
+                            //     index: 0,
+                            //     routes: [{ name: "Guias_detalle", datos_sesion }],
+                            // });
+
+                        } else {
+                            if (CAB["GUARDADO"] == 0) {
+                                Alert.alert("Error al guardar los datos", (CAB["MENSAJE"]).toString());
+                            } else if (DET["GUARDADO"] == 0) {
+                                Alert.alert("Error al guardar los datos", (DET["MENSAJE"]).toString());
+                            }
                         }
-                    }
-                })
-            }
+                    })
+                }
+            })();
+
 
 
         }
@@ -320,7 +331,7 @@ export default function Guias_parcial({ route, navigation }) {
 
     const Cantidad_Parcial_Change = (text, index, item) => {
         const partialAmount = parseFloat(text);
-        
+
         let maxAmount = item.POR_DESPACHAR - item.CANTIDAD_PARCIAL_TOTAL
 
         if (!isNaN(partialAmount) && partialAmount > maxAmount) {
@@ -352,14 +363,14 @@ export default function Guias_parcial({ route, navigation }) {
                     x.CANT_PARCIAL = partialAmount.toString()
                 }
             });
-            
+
             setdata_detalle(data_detalle);
 
         }
     };
 
     const Cantidad_Parcial_Check_Change = (newValue, index, item) => {
-        
+
 
 
         const updatedCheckBoxState = [...selectedRows];
@@ -386,7 +397,7 @@ export default function Guias_parcial({ route, navigation }) {
     };
 
     const Cantidad_Parcial_Check_Change_No = (newValue, index, item) => {
-        
+
         // if (newValue == true) {
         //     newValue = false;
         // } else {
@@ -394,7 +405,7 @@ export default function Guias_parcial({ route, navigation }) {
         // }
 
         let chek_seleccionado = selectedRows[index]
-        
+
 
         const updatedCheckBoxState = [...selectedRows_No];
         updatedCheckBoxState[index] = newValue;
