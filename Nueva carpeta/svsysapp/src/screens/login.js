@@ -23,14 +23,14 @@ export default function LoginScreen({ navigation }) {
             PASS: password,
         };
         // 
-        navigation.navigate('Menu_opciones', { Usuario: 'jorge', Usuario_ID: 1, Acceso: 1, PLACA: "GMC-7889" });
+        navigation.navigate('Menu_opciones', { Usuario: 'jorge', Usuario_ID: 1, Acceso: 1, PLACA: "GBO-7782" });
         // navigation.navigate('Guias', { Usuario: 'jorge', Usuario_ID: 1, Acceso: 1, PLACA: "GSA-115" });
 
         fetchData(url, param, function (x) {
-            console.log('x: ', x[1]);
+            
 
             // Alert.alert("sesion inciadaa", JSON.stringify(x));
-            // console.log('JSON.stringify(x): ', JSON.stringify(x));
+            // 
             // setvalor1(JSON.stringify(x))
             if (x[0] == true) {
                 let datos = x[1][0]
@@ -58,7 +58,7 @@ export default function LoginScreen({ navigation }) {
         // fetchData.fetchData2(url, param, function (x) {
 
         //     // Alert.alert("sesion inciadaa", JSON.stringify(x));
-        //     console.log('JSON.stringify(x): ', JSON.stringify(x));
+        //     
         //     setvalor2(JSON.stringify(x))
         // })
         // let url2 = 'prueba.php?param1=jorgealav'
@@ -66,7 +66,7 @@ export default function LoginScreen({ navigation }) {
         // fetchData.fetchData3(url2, function (x) {
 
         //     // Alert.alert("sesion inciadaa", JSON.stringify(x));
-        //     console.log('JSON.stringify(x): ', JSON.stringify(x));
+        //     
         //     setvalor3(JSON.stringify(x))
         // })
     }

@@ -148,101 +148,110 @@ class DespachoModel extends Model
     function Guardar_Guias_despacho($param)
     {
         try {
-            if(isset($_FILES['image'])) {
-                $file = $_FILES['image'];
-                echo json_encode($file['name']);
-                exit();
-            }else{
-                echo json_encode("asdasdasd");
-            }
+
             $this->db->connect_dobra()->beginTransaction();
 
-            // $PEDIDO_INTERNO = $param["PEDIDO_INTERNO"];
-            // $CLIENTE_ENTREGA_ID = $param["CLIENTE_ENTREGA_ID"];
-            // $SERVICIO_ID = $param["SERVICIO_ID"];
-            // $DESTINO_ID = $param["DESTINO_ID"];
-            // $CREADO_POR = $param["CREADO_POR"];
-            // $PARCIAL = $param["PARCIAL"] == 0 ? 0 : 1;
-            // $PLACA_CAMBIADA = $param["PLACA_CAMBIADA"];
-            // $PLACA_CAMBIADA_NUMERO = $param["PLACA_CAMBIADA_NUMERO"];
-            // $despacho_ID =  date('YmdHis');
-            // $DETALLE = $param["DETALLE"];
-            // $UBICACION = $param["UBICACION"];
+            $PEDIDO_INTERNO = $param["PEDIDO_INTERNO"];
+            $CLIENTE_ENTREGA_ID = $param["CLIENTE_ENTREGA_ID"];
+            $SERVICIO_ID = $param["SERVICIO_ID"];
+            $DESTINO_ID = $param["DESTINO_ID"];
+            $CREADO_POR = $param["CREADO_POR"];
+            $PARCIAL = $param["PARCIAL"] == 0 ? 0 : 1;
+            $PLACA_CAMBIADA = $param["PLACA_CAMBIADA"];
+            $PLACA_CAMBIADA_NUMERO = $param["PLACA_CAMBIADA_NUMERO"];
+            $despacho_ID =  date('YmdHis');
+            $DETALLE = $param["DETALLE"];
+            $UBICACION = $param["UBICACION"];
+            $imagen = $param["IMAGEN"];
+            $imageData = base64_decode($imagen["image"]);
+            $fileName = $PEDIDO_INTERNO . "_" . $despacho_ID . ".jpg";
 
 
-            // $VAL_ESTADO = $this->Validar_Estado($PEDIDO_INTERNO);
-            // if ($VAL_ESTADO == 1) {
-            //     $INSERT_ESTADO = $this->Insert_Estado($param);
-            //     if ($INSERT_ESTADO["GUARDADO"] == 1) {
-            //         $query = $this->db->connect_dobra()->prepare('INSERT INTO gui_guias_despachadas 
-            //         (
-            //             PEDIDO_INTERNO,
-            //             CLIENTE_ENTREGA_ID,
-            //             SERVICIO_ID, 
-            //             DESTINO_ID,
-            //             CREADO_POR, 
-            //             PARCIAL, 
-            //             PLACA_CAMBIADA, 
-            //             PLACA_CAMBIADA_NUMERO,
-            //             despacho_ID,
-            //             UBICACION
-            //         ) VALUES(
-            //             :PEDIDO_INTERNO,
-            //             :CLIENTE_ENTREGA_ID,
-            //             :SERVICIO_ID, 
-            //             :DESTINO_ID,
-            //             :CREADO_POR, 
-            //             :PARCIAL, 
-            //             :PLACA_CAMBIADA, 
-            //             :PLACA_CAMBIADA_NUMERO,
-            //             :despacho_ID,
-            //             :UBICACION
-            //             );
-            //         ');
-            //         $query->bindParam(":PEDIDO_INTERNO", $PEDIDO_INTERNO, PDO::PARAM_STR);
-            //         $query->bindParam(":CLIENTE_ENTREGA_ID", $CLIENTE_ENTREGA_ID, PDO::PARAM_STR);
-            //         $query->bindParam(":SERVICIO_ID", $SERVICIO_ID, PDO::PARAM_STR);
-            //         $query->bindParam(":DESTINO_ID", $DESTINO_ID, PDO::PARAM_STR);
-            //         $query->bindParam(":CREADO_POR", $CREADO_POR, PDO::PARAM_STR);
-            //         $query->bindParam(":PARCIAL", $PARCIAL, PDO::PARAM_STR);
-            //         $query->bindParam(":PLACA_CAMBIADA", $PLACA_CAMBIADA, PDO::PARAM_STR);
-            //         $query->bindParam(":PLACA_CAMBIADA_NUMERO", $PLACA_CAMBIADA_NUMERO, PDO::PARAM_STR);
-            //         $query->bindParam(":despacho_ID", $despacho_ID, PDO::PARAM_STR);
-            //         $query->bindParam(":UBICACION", $UBICACION, PDO::PARAM_STR);
-            //         $mensaje = 0;
-            //         if ($query->execute()) {
-            //             $CAB = array("GUARDADO" => 1, "MENSAJE" => "CABECERA GUARDADA");
-            //             $DET = $this->Guardar_Guias_despacho_dt($DETALLE, $despacho_ID, $PEDIDO_INTERNO);
-            //             if ($DET["GUARDADO"] == 1) {
-            //                 $this->db->connect_dobra()->commit();
-            //             } else {
-            //                 $this->db->connect_dobra()->rollback();
-            //             }
-            //             $mensaje = [$CAB, $DET, $INSERT_ESTADO, $VAL_ESTADO];
-            //         } else {
-            //             $err = $query->errorInfo();
-            //             $CAB = array("GUARDADO" => 0, "MENSAJE" => $err);
-            //             $mensaje = [$CAB, 0, $INSERT_ESTADO];
-            //             $this->db->connect_dobra()->rollback();
-            //         }
-            //     } else {
-            //         $mensaje = [0, 0, $INSERT_ESTADO, 0];
-            //         $this->db->connect_dobra()->rollback();
-            //     }
-            // } else {
-            //     $INSERT_ESTADO = array("GUARDADO" => 2, "MENSAJE" => "PEDIDO YA GUARDADO");
-            //     $mensaje = [$INSERT_ESTADO];
-            // }
+
+            $VAL_ESTADO = $this->Validar_Estado($PEDIDO_INTERNO);
+            if ($VAL_ESTADO == 1) {
+                $INSERT_ESTADO = $this->Insert_Estado($param);
+                if ($INSERT_ESTADO["GUARDADO"] == 1) {
+                    $query = $this->db->connect_dobra()->prepare('INSERT INTO gui_guias_despachadas 
+                    (
+                        PEDIDO_INTERNO,
+                        CLIENTE_ENTREGA_ID,
+                        SERVICIO_ID, 
+                        DESTINO_ID,
+                        CREADO_POR, 
+                        PARCIAL, 
+                        PLACA_CAMBIADA, 
+                        PLACA_CAMBIADA_NUMERO,
+                        despacho_ID,
+                        UBICACION,
+                        imagen
+                    ) VALUES(
+                        :PEDIDO_INTERNO,
+                        :CLIENTE_ENTREGA_ID,
+                        :SERVICIO_ID, 
+                        :DESTINO_ID,
+                        :CREADO_POR, 
+                        :PARCIAL, 
+                        :PLACA_CAMBIADA, 
+                        :PLACA_CAMBIADA_NUMERO,
+                        :despacho_ID,
+                        :UBICACION,
+                        :imagen
+                        );
+                    ');
+                    $query->bindParam(":PEDIDO_INTERNO", $PEDIDO_INTERNO, PDO::PARAM_STR);
+                    $query->bindParam(":CLIENTE_ENTREGA_ID", $CLIENTE_ENTREGA_ID, PDO::PARAM_STR);
+                    $query->bindParam(":SERVICIO_ID", $SERVICIO_ID, PDO::PARAM_STR);
+                    $query->bindParam(":DESTINO_ID", $DESTINO_ID, PDO::PARAM_STR);
+                    $query->bindParam(":CREADO_POR", $CREADO_POR, PDO::PARAM_STR);
+                    $query->bindParam(":PARCIAL", $PARCIAL, PDO::PARAM_STR);
+                    $query->bindParam(":PLACA_CAMBIADA", $PLACA_CAMBIADA, PDO::PARAM_STR);
+                    $query->bindParam(":PLACA_CAMBIADA_NUMERO", $PLACA_CAMBIADA_NUMERO, PDO::PARAM_STR);
+                    $query->bindParam(":despacho_ID", $despacho_ID, PDO::PARAM_STR);
+                    $query->bindParam(":UBICACION", $UBICACION, PDO::PARAM_STR);
+                    $query->bindParam(":imagen", $fileName, PDO::PARAM_STR);
+                    
+                    $mensaje = 0;
+                    if ($query->execute()) {
+                        $CAB = array("GUARDADO" => 1, "MENSAJE" => "CABECERA GUARDADA");
+                        $DET = $this->Guardar_Guias_despacho_dt($DETALLE, $despacho_ID, $PEDIDO_INTERNO);
+                        if ($DET["GUARDADO"] == 1) {
+                            $targetDirectory = "C:/xampp/htdocs/svsysback/recursos/guias_subidas/";
+                            $targetFile = $targetDirectory . $fileName;
+                            if (file_put_contents($targetFile, $imageData)) {
+                                // echo "La imagen se ha guardado correctamente en: " . $targetFile;
+                            } else {
+                                // echo "Error al guardar la imagen.";
+                            }
+                            $this->db->connect_dobra()->commit();
+                        } else {
+                            $this->db->connect_dobra()->rollback();
+                        }
+                        $mensaje = [$CAB, $DET, $INSERT_ESTADO, $VAL_ESTADO];
+                    } else {
+                        $err = $query->errorInfo();
+                        $CAB = array("GUARDADO" => 0, "MENSAJE" => $err);
+                        $mensaje = [$CAB, 0, $INSERT_ESTADO];
+                        $this->db->connect_dobra()->rollback();
+                    }
+                } else {
+                    $mensaje = [0, 0, $INSERT_ESTADO, 0];
+                    $this->db->connect_dobra()->rollback();
+                }
+            } else {
+                $INSERT_ESTADO = array("GUARDADO" => 2, "MENSAJE" => "PEDIDO YA GUARDADO");
+                $mensaje = [$INSERT_ESTADO];
+            }
 
 
-            // // $query = $this->db->connect_dobra()->prepare('CALL svsys.GUI_GUIAS_DESPACHO_INSERT (
-            // //     ?,?,?,?,?
-            // //     ?,?,?,?,?
-            // // )');
+            // $query = $this->db->connect_dobra()->prepare('CALL svsys.GUI_GUIAS_DESPACHO_INSERT (
+            //     ?,?,?,?,?
+            //     ?,?,?,?,?
+            // )');
 
 
-            // echo json_encode($mensaje);
-            // exit();
+            echo json_encode($mensaje);
+            exit();
         } catch (PDOException $e) {
             $e = $e->getMessage();
             echo json_encode($e);

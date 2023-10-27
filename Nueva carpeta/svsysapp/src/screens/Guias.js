@@ -2,6 +2,8 @@ import { View, Text, TouchableOpacity, StyleSheet, Alert, ScrollView, TextInput 
 import React, { useState, Component, useEffect } from 'react';
 import { BarCodeScanner } from 'expo-barcode-scanner';
 import fetchData from "../config/config"
+import fetchimagenes from "../config/prueba"
+
 import { DataTable } from 'react-native-paper';
 import ModalSelector from 'react-native-modal-selector';
 import Checkbox from 'expo-checkbox';
@@ -10,6 +12,7 @@ import Menu from './Menu'
 import { createStackNavigator } from '@react-navigation/stack';
 import * as Location from 'expo-location';
 import * as ImagePicker from 'expo-image-picker';
+import { Image } from 'react-native';
 
 const Stack = createStackNavigator();
 
@@ -234,6 +237,8 @@ export default function Guias({ route, navigation }) {
             PEDIDO_INTERNO: pedido,
         };
         fetchData(url, param, function (x) {
+
+
             if (x[0].length == 0) {
                 Alert.alert("No hay datos que mostrar", "Escanee nuevamente");
             } else {
@@ -260,6 +265,7 @@ export default function Guias({ route, navigation }) {
     function Llenar_Guia(data) {
         // let DATOS = JSON.stringify(data);
         let CABECERA = data[0][0];
+        console.log('CABECERA: ', CABECERA);
         let DETALLE = data[1];
         if (CABECERA.length == 0) {
             Alert.alert("", "Guia no encontrada, verifique el numero, o vuelva a escanear");
@@ -277,6 +283,8 @@ export default function Guias({ route, navigation }) {
 
                 setdata_detalle(DETALLE)
                 // Alert.alert("asdasd", data[0][0]["ID"]);
+            } else if (CABECERA["placa"] == null) {
+                Alert.alert("ESTA GUIA NO TIENE CHOFER ASIGNADO", CABECERA["placa"]);
             } else {
                 Alert.alert("GUIA ASOCIADA A OTRA PLACA", CABECERA["placa"]);
             }
@@ -387,33 +395,33 @@ export default function Guias({ route, navigation }) {
 
                 console.log('param: ', param);
 
+
                 if (val > 0) {
                     Alert.alert("Error en cantidad parcial", "La cantidad parcial no puede estar vacia o ser menor o igual a 0");
                 } else {
                     let url = 'despacho/Guardar_Guias_despacho';
                     fetchData(url, param, function (x) {
-                        console.log('x: ', x);
-
-                        // let CAB = x[0];
-                        // let DET = x[1];
-                        // let EST = x[2];
-                        // if (CAB["GUARDADO"] == 2) {
-                        //     Alert.alert("Guia ya ingresada", "Si desea completar un pedido parcial ir a la seccion de guias parciales");
-                        // } else {
-                        //     if (CAB["GUARDADO"] == 1 && DET["GUARDADO"] == 1 && EST["GUARDADO"] == 1) {
-                        //         setdata_detalle([]);
-                        //         setisFormVisible(false);
-                        //         Alert.alert("Datos Guardados", "Los datos se guardaron con exito");
-                        //     } else {
-                        //         if (CAB["GUARDADO"] == 0) {
-                        //             Alert.alert("Error al guardar los datos", (CAB["MENSAJE"]).toString());
-                        //         } else if (DET["GUARDADO"] == 0) {
-                        //             Alert.alert("Error al guardar los datos", (DET["MENSAJE"]).toString());
-                        //         } else if (EST["GUARDADO"] == 0) {
-                        //             Alert.alert("Error al guardar los datos", (EST["MENSAJE"]).toString());
-                        //         }
-                        //     }
-                        // }
+                        // console.log('x: ', x);
+                        let CAB = x[0];
+                        let DET = x[1];
+                        let EST = x[2];
+                        if (CAB["GUARDADO"] == 2) {
+                            Alert.alert("Guia ya ingresada", "Si desea completar un pedido parcial ir a la seccion de guias parciales");
+                        } else {
+                            if (CAB["GUARDADO"] == 1 && DET["GUARDADO"] == 1 && EST["GUARDADO"] == 1) {
+                                setdata_detalle([]);
+                                setisFormVisible(false);
+                                Alert.alert("Datos Guardados", "Los datos se guardaron con exito");
+                            } else {
+                                if (CAB["GUARDADO"] == 0) {
+                                    Alert.alert("Error al guardar los datos", (CAB["MENSAJE"]).toString());
+                                } else if (DET["GUARDADO"] == 0) {
+                                    Alert.alert("Error al guardar los datos", (DET["MENSAJE"]).toString());
+                                } else if (EST["GUARDADO"] == 0) {
+                                    Alert.alert("Error al guardar los datos", (EST["MENSAJE"]).toString());
+                                }
+                            }
+                        }
 
                         // Alert.alert("", x);
                     })
@@ -537,28 +545,43 @@ export default function Guias({ route, navigation }) {
 
     };
 
-
     const Subir_imagen = async () => {
         // No permissions request is necessary for launching the image library
-
-
         // let result = await ImagePicker.launchImageLibraryAsync({
         //     mediaTypes: ImagePicker.MediaTypeOptions.All,
         //     allowsEditing: true,
         //     aspect: [6, 9],
         //     quality: 1,
         // });
-        let picker = await ImagePicker.launchImageLibraryAsync();
-        console.log('picker: ', picker);
-        // console.log(picker.uri);
-        const formData = new FormData();
-        formData.append('image', {
-          uri: picker["assets"]["uri"],
-          type: 'image/jpeg',
-          name: 'myImage.jpg',
-        });
-        console.log('a: ', formData);
-        setImage(formData);
+        let picker = await ImagePicker.launchImageLibraryAsync({ base64: true });
+        // console.log('picker: ', picker);
+        // const imageBase64 = await ImageManipulator.manipulateAsync(picker["assets"]["uri"], [], {
+        //     format: ImageManipulator.SaveFormat.JPEG,
+        //     compress: 1,
+        // });
+        // 
+        // const formData = new FormData();
+        // formData.append('file', {
+        //     uri: picker["assets"]["base64"],
+        //     type: 'image/jpeg',
+        //     name: 'myImage.jpg',
+        // });
+        let tipo = picker["assets"][0]["uri"];
+        tipo = tipo.split(".")[1];
+        console.log('tipo: ', tipo);
+
+        let a = {
+            image: picker["assets"][0]["base64"],
+            // type: tipo
+        }
+
+        setImage(a);
+        // let url = "despacho/Guardar_Imagenes"
+
+        // fetchimagenes(url, a, function (x) {
+        //     console.log('x: ', x);
+
+        // })
 
         // if (!picker.canceled) {
         //     // setImage(result.assets[0].uri);

@@ -206,6 +206,24 @@ class Despacho extends Controller
         }
     }
 
+    function Guardar_Imagenes()
+    {
+        $data = json_decode(file_get_contents("php://input"), true);
+        // $data = json_decode($json_data, true);
+        $imageData = base64_decode($data["image"]);
+        $targetDirectory = "C:/xampp/htdocs/svsysback/recursos/guias_subidas/";
+        $fileName = "imagen.jpg";
+        $targetFile = $targetDirectory . $fileName;
+        if (file_put_contents($targetFile, $imageData)) {
+            echo "La imagen se ha guardado correctamente en: " . $targetFile;
+        } else {
+            echo "Error al guardar la imagen.";
+        }
+
+        // echo json_encode($data->image);
+        // exit();
+    }
+
     //************** MIS GUIAS */
 
     function Guias_Usuario()
