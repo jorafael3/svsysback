@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, StyleSheet, Alert, ScrollView, TextInput } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Alert, ScrollView, TextInput, ActivityIndicator } from 'react-native';
 import React, { useState, Component, useEffect } from 'react';
 import { BarCodeScanner } from 'expo-barcode-scanner';
 import fetchData from "../config/config"
@@ -13,6 +13,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import * as Location from 'expo-location';
 import * as ImagePicker from 'expo-image-picker';
 import { Image } from 'react-native';
+import Icon from 'react-native-vector-icons/FontAwesome'; // Importa el icono
 
 const Stack = createStackNavigator();
 
@@ -61,6 +62,9 @@ export default function Guias({ route, navigation }) {
     const [location, setLocation] = useState(null);
     const [errorMsg, setErrorMsg] = useState(null);
     const [image, setImage] = useState(null);
+
+    const [loading, setLoading] = useState(false);
+
 
     //********** CLIENTES ******/
     const handleOptionChange = (value) => {
@@ -212,54 +216,50 @@ export default function Guias({ route, navigation }) {
     //*********** GUIAS */
     const Cargar_guia = (pedido) => {
 
-
-
         let url = 'despacho/Cargar_Guia_p';
         pedido = pedido.trim()
 
         if (pedido.length >= 20) {
             pedido = pedido.slice(0, -8)
             pedido = pedido.substring(0, 9) + "-" + pedido.substring(9);
-
-
-
         } else {
             pedido = pedido.slice(0, -8)
             pedido = parseInt(pedido).toString()
         }
-
-
         // fetchData(url, pedido)
         // pedido = parseInt(pedido).toString()
         // 
-
         const param = {
             PEDIDO_INTERNO: pedido,
         };
+        setLoading(true);
         fetchData(url, param, function (x) {
+            setLoading(false);
+            if (x == -1) {
+                Alert.alert("Error de conexion", "Asegurese que este conectado a internet");
 
-
-            if (x[0].length == 0) {
-                Alert.alert("No hay datos que mostrar", "Escanee nuevamente");
             } else {
-                let val = x[2];
-                if (val == 1) {
-                    if (x[3] == 0) {
-                        Llenar_Guia(x);
-                        // setisFormVisible(true);
-                    } else {
-                        if (x[3] == 1) {
-                            Completar_Parcial(pedido);
-                        } else if (x[3] == 2) {
-                            Alert.alert("Guia completa", "El despacho de esta guia esta completo");
-                        }
-                    }
+                if (x[0].length == 0) {
+                    Alert.alert("No hay datos que mostrar", "Escanee nuevamente");
                 } else {
-                    Alert.alert("", x.toString())
+                    let val = x[2];
+                    if (val == 1) {
+                        if (x[3] == 0) {
+                            Llenar_Guia(x);
+                            // setisFormVisible(true);
+                        } else {
+                            if (x[3] == 1) {
+                                Completar_Parcial(pedido);
+                            } else if (x[3] == 2) {
+                                Alert.alert("Guia completa", "El despacho de esta guia esta completo");
+                            }
+                        }
+                    } else {
+                        Alert.alert("", x.toString())
+                    }
                 }
             }
         });
-
     };
 
     function Llenar_Guia(data) {
@@ -400,33 +400,39 @@ export default function Guias({ route, navigation }) {
                     Alert.alert("Error en cantidad parcial", "La cantidad parcial no puede estar vacia o ser menor o igual a 0");
                 } else {
                     let url = 'despacho/Guardar_Guias_despacho';
+
+
+
+                    setLoading(true);
                     fetchData(url, param, function (x) {
-                        // console.log('x: ', x);
-                        let CAB = x[0];
-                        let DET = x[1];
-                        let EST = x[2];
-                        if (CAB["GUARDADO"] == 2) {
-                            Alert.alert("Guia ya ingresada", "Si desea completar un pedido parcial ir a la seccion de guias parciales");
+                        setLoading(false);
+                        if (x == -1) {
+                            Alert.alert("Error de conexion", "Asegurese que este conectado a internet");
                         } else {
-                            if (CAB["GUARDADO"] == 1 && DET["GUARDADO"] == 1 && EST["GUARDADO"] == 1) {
-                                setdata_detalle([]);
-                                setisFormVisible(false);
-                                Alert.alert("Datos Guardados", "Los datos se guardaron con exito");
+                            let CAB = x[0];
+                            let DET = x[1];
+                            let EST = x[2];
+                            if (CAB["GUARDADO"] == 2) {
+                                Alert.alert("Guia ya ingresada", "Si desea completar un pedido parcial ir a la seccion de guias parciales");
                             } else {
-                                if (CAB["GUARDADO"] == 0) {
-                                    Alert.alert("Error al guardar los datos", (CAB["MENSAJE"]).toString());
-                                } else if (DET["GUARDADO"] == 0) {
-                                    Alert.alert("Error al guardar los datos", (DET["MENSAJE"]).toString());
-                                } else if (EST["GUARDADO"] == 0) {
-                                    Alert.alert("Error al guardar los datos", (EST["MENSAJE"]).toString());
+                                if (CAB["GUARDADO"] == 1 && DET["GUARDADO"] == 1 && EST["GUARDADO"] == 1) {
+                                    setdata_detalle([]);
+                                    setisFormVisible(false);
+                                    Alert.alert("Datos Guardados", "Los datos se guardaron con exito");
+                                } else {
+                                    if (CAB["GUARDADO"] == 0) {
+                                        Alert.alert("Error al guardar los datos", (CAB["MENSAJE"]).toString());
+                                    } else if (DET["GUARDADO"] == 0) {
+                                        Alert.alert("Error al guardar los datos", (DET["MENSAJE"]).toString());
+                                    } else if (EST["GUARDADO"] == 0) {
+                                        Alert.alert("Error al guardar los datos", (EST["MENSAJE"]).toString());
+                                    }
                                 }
                             }
                         }
 
-                        // Alert.alert("", x);
                     })
                 }
-                // setLocation(location);
             })();
 
 
@@ -546,53 +552,24 @@ export default function Guias({ route, navigation }) {
     };
 
     const Subir_imagen = async () => {
-        // No permissions request is necessary for launching the image library
-        // let result = await ImagePicker.launchImageLibraryAsync({
-        //     mediaTypes: ImagePicker.MediaTypeOptions.All,
-        //     allowsEditing: true,
-        //     aspect: [6, 9],
-        //     quality: 1,
-        // });
         let picker = await ImagePicker.launchImageLibraryAsync({ base64: true });
-        // console.log('picker: ', picker);
-        // const imageBase64 = await ImageManipulator.manipulateAsync(picker["assets"]["uri"], [], {
-        //     format: ImageManipulator.SaveFormat.JPEG,
-        //     compress: 1,
-        // });
-        // 
-        // const formData = new FormData();
-        // formData.append('file', {
-        //     uri: picker["assets"]["base64"],
-        //     type: 'image/jpeg',
-        //     name: 'myImage.jpg',
-        // });
-        let tipo = picker["assets"][0]["uri"];
-        tipo = tipo.split(".")[1];
-        console.log('tipo: ', tipo);
+        console.log('picker: ', picker);
+        if (picker.assets != null) {
+            let tipo = picker["assets"][0]["uri"];
+            tipo = tipo.split(".")[1];
+            console.log('tipo: ', tipo);
 
-        let a = {
-            image: picker["assets"][0]["base64"],
-            // type: tipo
+            let a = {
+                image: picker["assets"][0]["base64"],
+                // type: tipo
+            }
+            setImage(a);
         }
 
-        setImage(a);
-        // let url = "despacho/Guardar_Imagenes"
-
-        // fetchimagenes(url, a, function (x) {
-        //     console.log('x: ', x);
-
-        // })
-
-        // if (!picker.canceled) {
-        //     // setImage(result.assets[0].uri);
-
-        //     // setImage(payload);
-
-        // }
     };
 
     return (
-        <ScrollView style={{ flex: 1 }}>
+        <ScrollView style={{ flex: 1, backgroundColor: "#ffffff" }}>
 
             <View style={styles.container}>
                 {/* Barra superior con nombre de usuario y botón de salida */}
@@ -600,7 +577,7 @@ export default function Guias({ route, navigation }) {
                     <Text style={styles.username}>Usuario: {usuario}</Text>
                     <Text style={styles.username}>Placa: {placa}</Text>
                     <TouchableOpacity onPress={handleLogout}>
-                        <Text style={styles.logoutButton}>Salir</Text>
+                        {/* <Text style={styles.logoutButton}>Salir</Text> */}
                     </TouchableOpacity>
                 </View>
                 {/* <Stack.Navigator>
@@ -608,25 +585,25 @@ export default function Guias({ route, navigation }) {
             </Stack.Navigator> */}
 
                 <View style={styles.card}>
+                    {loading && <ActivityIndicator size="large" color="black" style={{ margin: 5 }} />}
+
                     <View style={styles.buttonContainer}>
                         <TouchableOpacity onPress={scanner} style={styles.button}>
+                            <Icon name="barcode" size={30} color="white" />
                             <Text style={styles.buttonText}>Escanear Código</Text>
                         </TouchableOpacity>
                         {/* <TouchableOpacity onPress={manual} style={styles.button}>
                             <Text style={styles.buttonText}>Ingreso Manual</Text>
                         </TouchableOpacity> */}
                     </View>
-                    {isScannerVisible ? (
+
+                    {isScannerVisible && (
                         <View style={styles.cameraContainer}>
                             <BarCodeScanner
                                 onBarCodeScanned={scanned ? undefined : handleBarCodeScanned}
                                 style={styles.camera}
                             />
                         </View>
-                    ) : (
-                        <TouchableOpacity onPress={toggleScanner} style={styles.toggleButton}>
-                            <Text></Text>
-                        </TouchableOpacity>
                     )}
                     {/* {scanned && (
                     <View style={styles.scanResultContainer}>
@@ -648,12 +625,8 @@ export default function Guias({ route, navigation }) {
                                     <Text style={styles.label}>Pedido Interno:</Text>
                                     <Text style={styles.text}>{pedido}</Text>
                                 </View>
-                                {/* Agregar más campos y valores aquí */}
                             </View>
                             <ScrollView horizontal={true}>
-
-
-
                                 <View style={styles.container}>
                                     {/* Encabezados de la tabla */}
                                     <View style={styles.row}>
@@ -675,7 +648,7 @@ export default function Guias({ route, navigation }) {
                                             <Text style={[styles.cell, { width: 100 }]}>{item.CODIGO}</Text>
                                             <Text style={[styles.cell, { width: 300 }]}>{item.DESCRIPCION}</Text>
                                             <Text style={[styles.cell, { width: 80 }]}>{item.UNIDAD}</Text>
-                                            <Text style={[styles.cell, { width: 110 }]}>{item.POR_DESPACHAR}</Text>
+                                            <Text style={[styles.cell, { width: 110, fontWeight: "bold" }]}>{item.POR_DESPACHAR}</Text>
                                             {data_detalle.length > 1 && (
                                                 <View style={[styles.cell, { width: 110 }]}>
 
@@ -741,12 +714,18 @@ export default function Guias({ route, navigation }) {
                                     }}
                                 />
                                 <TouchableOpacity onPress={Subir_imagen} style={styles.subirButton}>
-                                    <Text style={styles.guardarButtonText}>Cargar foto guia firmada</Text>
+                                    <View style={styles.buttonContent}>
+                                        <Icon name="camera" size={20} color="white" />
+                                        <Text style={styles.guardarButtonText}>  Cargar foto guía firmada  </Text>
+                                        {image != null && (
+                                            <Icon name="check" size={20} color="yellow" />
+                                        )}
+                                    </View>
                                 </TouchableOpacity>
                                 <Text style={{ fontSize: 16, fontWeight: 'bold', marginTop: 15 }}>Cambiar placa * (check para cambiar)</Text>
-                                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                <View style={{ flexDirection: 'row', alignItems: 'center', margin: 10 }}>
                                     <Checkbox
-                                        style={{ margin: 10 }}
+                                        style={{ margin: 5 }}
                                         value={isChecked}
                                         onValueChange={setChecked}
                                         color={isChecked ? '#4630EB' : undefined}
@@ -759,7 +738,7 @@ export default function Guias({ route, navigation }) {
                                             padding: 8,
                                             backgroundColor: isChecked == false ? '#B2BABB' : undefined,
                                         }}
-                                        placeholder="Ingrese su texto"
+                                        placeholder="AAA-0000"
                                         editable={isChecked}
                                         onChangeText={(text) => setplaca_nueva(text)}
                                         value={placa_nueva}
@@ -769,8 +748,30 @@ export default function Guias({ route, navigation }) {
                             </View>
 
                             <View style={styles.footer}>
-                                <TouchableOpacity onPress={Guardar_datos_guia} style={styles.guardarButton}>
-                                    <Text style={styles.guardarButtonText}>Guardar datos</Text>
+                                <TouchableOpacity onPress={() => {
+                                    Alert.alert(
+                                        'Se guardarn los datos seleccionados',
+                                        'Porfavor asegurese que sean los correctos',
+                                        [
+                                            {
+                                                text: 'Cancelar',
+                                                // onPress: () => Guardar_datos_guia(),
+                                                style: 'cancel',
+                                            },
+                                            {
+                                                text: 'Si, continuar!',
+                                                onPress: () => Guardar_datos_guia(),
+                                            },
+                                        ],
+                                        { cancelable: false },
+                                    );
+
+                                }} style={styles.guardarButton} disabled={loading}>
+                                    <View style={styles.buttonContent}>
+                                        <Text style={styles.guardarButtonText}>Guardar datos  </Text>
+                                        <Icon name="save" size={25} color="white" />
+
+                                    </View>
                                 </TouchableOpacity>
                             </View>
                         </View>
@@ -785,7 +786,7 @@ export default function Guias({ route, navigation }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#fff',
+        backgroundColor: '#ffffff',
     },
     row: {
         flexDirection: 'row',
@@ -798,20 +799,23 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingHorizontal: 20,
         paddingTop: 40,
+        marginBottom: 10,
     },
     username: {
         fontSize: 16,
+        fontWeight: 'bold',
     },
     logoutButton: {
-        color: 'red',
         fontSize: 16,
+        color: 'red',
+        fontWeight: 'bold',
     },
     card: {
         flex: 1,
-        margin: 20,
-        padding: 20,
+        margin: 10,
+        padding: 10,
         borderRadius: 10,
-        backgroundColor: '#f0f0f0',
+        backgroundColor: '#F4F6F6',
     },
     buttonContainer: {
         flexDirection: 'row',
@@ -820,15 +824,19 @@ const styles = StyleSheet.create({
     },
     button: {
         flex: 1,
-        backgroundColor: 'green',
+        backgroundColor: 'blue',
         padding: 12,
-        borderRadius: 6,
+        borderRadius: 20,
         marginHorizontal: 8,
         alignItems: 'center',
+        fontWeight: 'bold',
+
     },
     buttonText: {
         color: 'white',
         fontWeight: 'bold',
+        fontSize: 14
+
     },
     input: {
         height: 40,
@@ -865,7 +873,8 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         fontWeight: 'bold',
         padding: 10,
-
+        backgroundColor: "#000000",
+        color: "#ffffff"
     },
     cell: {
         // width: 100,
@@ -891,14 +900,14 @@ const styles = StyleSheet.create({
         marginTop: 16,
     },
     guardarButton: {
-        backgroundColor: 'green',
-        padding: 12,
-        borderRadius: 6,
+        backgroundColor: 'red',
+        padding: 15,
+        borderRadius: 20,
         alignItems: 'center',
         justifyContent: 'center', // Mantenemos 'center' para centrar verticalmente
     },
     subirButton: {
-        backgroundColor: 'blue',
+        backgroundColor: '#273746',
         padding: 12,
         borderRadius: 6,
         alignItems: 'center',
@@ -916,6 +925,13 @@ const styles = StyleSheet.create({
         flex: 1,
         marginLeft: 10, // Espacio entre columnas (ajusta según tu preferencia)
     },
+    buttonContent: {
+        flexDirection: 'row', // Coloca los elementos en una fila
+        alignItems: 'center', // Alinea los elementos verticalmente
+        justifyContent: 'center', // Alinea los elementos horizontalmente
+    },
+
+
 });
 
 

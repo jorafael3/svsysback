@@ -210,7 +210,7 @@ class DespachoModel extends Model
                     $query->bindParam(":despacho_ID", $despacho_ID, PDO::PARAM_STR);
                     $query->bindParam(":UBICACION", $UBICACION, PDO::PARAM_STR);
                     $query->bindParam(":imagen", $fileName, PDO::PARAM_STR);
-                    
+
                     $mensaje = 0;
                     if ($query->execute()) {
                         $CAB = array("GUARDADO" => 1, "MENSAJE" => "CABECERA GUARDADA");
@@ -671,7 +671,9 @@ class DespachoModel extends Model
             $despacho_ID =  date('YmdHis');
             $DETALLE = $param["DETALLE"];
             $UBICACION = $param["UBICACION"];
-
+            $imagen = $param["IMAGEN"];
+            $imageData = base64_decode($imagen["image"]);
+            $fileName = $PEDIDO_INTERNO . "_" . $despacho_ID . ".jpg";
 
             $query = $this->db->connect_dobra()->prepare('INSERT INTO gui_guias_despachadas 
             (
@@ -684,7 +686,8 @@ class DespachoModel extends Model
                 PLACA_CAMBIADA, 
                 PLACA_CAMBIADA_NUMERO,
                 despacho_ID,
-                UBICACION
+                UBICACION,
+                imagen
             ) VALUES(
                 :PEDIDO_INTERNO,
                 :CLIENTE_ENTREGA_ID,
@@ -695,8 +698,8 @@ class DespachoModel extends Model
                 :PLACA_CAMBIADA, 
                 :PLACA_CAMBIADA_NUMERO,
                 :despacho_ID,
-                :UBICACION
-                
+                :UBICACION,
+                :imagen
                 );
             ');
             $query->bindParam(":PEDIDO_INTERNO", $PEDIDO_INTERNO, PDO::PARAM_STR);
@@ -709,6 +712,7 @@ class DespachoModel extends Model
             $query->bindParam(":PLACA_CAMBIADA_NUMERO", $PLACA_CAMBIADA_NUMERO, PDO::PARAM_STR);
             $query->bindParam(":despacho_ID", $despacho_ID, PDO::PARAM_STR);
             $query->bindParam(":UBICACION", $UBICACION, PDO::PARAM_STR);
+            $query->bindParam(":imagen", $fileName, PDO::PARAM_STR);
             $mensaje = 0;
             if ($query->execute()) {
                 $CAB = array("GUARDADO" => 1, "MENSAJE" => "CABECERA GUARDADA");
@@ -720,6 +724,13 @@ class DespachoModel extends Model
                         if ($COM["GUARDADO"] == 0) {
                             $this->db->connect_dobra()->rollback();
                         } else {
+                            $targetDirectory = "C:/xampp/htdocs/svsysback/recursos/guias_subidas/";
+                            $targetFile = $targetDirectory . $fileName;
+                            if (file_put_contents($targetFile, $imageData)) {
+                                // echo "La imagen se ha guardado correctamente en: " . $targetFile;
+                            } else {
+                                // echo "Error al guardar la imagen.";
+                            }
                             $this->db->connect_dobra()->commit();
                         }
                     } else {

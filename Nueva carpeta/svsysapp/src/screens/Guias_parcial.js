@@ -1,9 +1,11 @@
 import React, { useState, Component, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Alert, ScrollView, TextInput } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Alert, ScrollView, TextInput,ActivityIndicator } from 'react-native';
 import ModalSelector from 'react-native-modal-selector';
 import fetchData from "../config/config"
 import Checkbox from 'expo-checkbox';
 import * as Location from 'expo-location';
+import * as ImagePicker from 'expo-image-picker';
+import Icon from 'react-native-vector-icons/FontAwesome'; // Importa el icono
 
 export default function Guias_parcial({ route, navigation }) {
     const datos_sesion = route.params;
@@ -43,6 +45,9 @@ export default function Guias_parcial({ route, navigation }) {
     const [datos_destinos, setdatos_destinos] = useState([]);
     const [selectedOption_destinos, setselectedOption_destinos] = useState("");
 
+    const [image, setImage] = useState(null);
+    const [loading, setLoading] = useState(false);
+
 
     //********** CLIENTES ******/
     const handleOptionChange = (value) => {
@@ -53,21 +58,24 @@ export default function Guias_parcial({ route, navigation }) {
     function Cargar_Clientes() {
         let url = "clientes/Cargar_Clientes_m"
         fetchData(url, [], function (x) {
-
-            if (x.length == 0) {
-
+            if (x == -1) {
 
             } else {
-                let t = [];
-                x.map(function (x) {
-                    let b = {
-                        key: x.key1,
-                        label: x.label
-                    }
-                    t.push(b)
-                })
-                setdatos_clientes(t)
+                if (x.length == 0) {
+
+                } else {
+                    let t = [];
+                    x.map(function (x) {
+                        let b = {
+                            key: x.key1,
+                            label: x.label
+                        }
+                        t.push(b)
+                    })
+                    setdatos_clientes(t)
+                }
             }
+
         })
     }
 
@@ -80,22 +88,22 @@ export default function Guias_parcial({ route, navigation }) {
         let url = "despacho/Cargar_Gui_Servicios"
 
         fetchData(url, [], function (x) {
-            console.log('x: ', x);
-
-
-            let datos = x[0];
-            if (x[1] == 0) {
-
+            if (x == -1) {
             } else {
-                let t = [];
-                datos.map(function (x) {
-                    let b = {
-                        key: x.ID,
-                        label: x.nombre
-                    }
-                    t.push(b)
-                })
-                setdatos_servicios(t)
+                let datos = x[0];
+                if (x[1] == 0) {
+
+                } else {
+                    let t = [];
+                    datos.map(function (x) {
+                        let b = {
+                            key: x.ID,
+                            label: x.nombre
+                        }
+                        t.push(b)
+                    })
+                    setdatos_servicios(t)
+                }
             }
         })
     }
@@ -108,22 +116,26 @@ export default function Guias_parcial({ route, navigation }) {
     function Cargar_Destinos() {
         let url = "despacho/Cargar_Gui_Destinos"
         fetchData(url, [], function (x) {
-
-
-            let datos = x[0];
-            if (x[1] == 0) {
+            if (x == -1) {
 
             } else {
-                let t = [];
-                datos.map(function (x) {
-                    let b = {
-                        key: x.ID,
-                        label: x.nombre
-                    }
-                    t.push(b)
-                })
-                setdatos_destinos(t)
+                let datos = x[0];
+                if (x[1] == 0) {
+
+                } else {
+                    let t = [];
+                    datos.map(function (x) {
+                        let b = {
+                            key: x.ID,
+                            label: x.nombre
+                        }
+                        t.push(b)
+                    })
+                    setdatos_destinos(t)
+                }
             }
+
+
         })
     }
 
@@ -152,17 +164,17 @@ export default function Guias_parcial({ route, navigation }) {
             PEDIDO_INTERNO: pedido,
             DESPACHO_ID: despacho,
         };
-
-
         fetchData(url, param, function (x) {
 
-
-            let val = x[2];
-
-            if (val == 1) {
-                Llenar_Guia(x)
+            if (x == -1) {
+                Alert.alert("Error de conexion", "Asegurese que este conectado a internet");
             } else {
-                Alert.alert("", x[0].toString())
+                let val = x[2];
+                if (val == 1) {
+                    Llenar_Guia(x)
+                } else {
+                    Alert.alert("", x[0].toString())
+                }
             }
         });
 
@@ -285,7 +297,9 @@ export default function Guias_parcial({ route, navigation }) {
                     PLACA_CAMBIADA_NUMERO: isplaca == 0 ? "" : placa_nuev,
                     PARCIAL: data_detalle.filter(item => item.PARCIAL == 1).length > 0 ? 1 : 0,
                     DETALLE: data_detalle,
-                    UBICACION: location["coords"]["latitude"] + "," + location["coords"]["longitude"]
+                    UBICACION: location["coords"]["latitude"] + "," + location["coords"]["longitude"],
+                    IMAGEN: image
+
 
                 }
 
@@ -294,26 +308,35 @@ export default function Guias_parcial({ route, navigation }) {
                 } else {
                     let url = 'despacho/Guardar_Guias_despacho_parcial';
 
+                    setLoading(true);
                     fetchData(url, param, function (x) {
+                        console.log('x: ', x);
+                        setLoading(false);
 
-                        let CAB = x[0];
-                        let DET = x[1];
-                        if (CAB["GUARDADO"] == 1 && DET["GUARDADO"] == 1) {
-                            setdata_detalle([]);
-                            Alert.alert("Datos Guardados", "Los datos se guardaron con exito");
-                            navigation.goBack('Guias_detalle', datos_sesion);
-                            // navigation.reset({
-                            //     index: 0,
-                            //     routes: [{ name: "Guias_detalle", datos_sesion }],
-                            // });
-
+                        if (x == -1) {
+                            Alert.alert("Error de conexion", "Asegurese que este conectado a internet");
                         } else {
-                            if (CAB["GUARDADO"] == 0) {
-                                Alert.alert("Error al guardar los datos", (CAB["MENSAJE"]).toString());
-                            } else if (DET["GUARDADO"] == 0) {
-                                Alert.alert("Error al guardar los datos", (DET["MENSAJE"]).toString());
+                            let CAB = x[0];
+                            let DET = x[1];
+                            if (CAB["GUARDADO"] == 1 && DET["GUARDADO"] == 1) {
+                                setdata_detalle([]);
+                                Alert.alert("Datos Guardados", "Los datos se guardaron con exito");
+                                navigation.goBack('Guias_detalle', datos_sesion);
+                                // navigation.reset({
+                                //     index: 0,
+                                //     routes: [{ name: "Guias_detalle", datos_sesion }],
+                                // });
+
+                            } else {
+                                if (CAB["GUARDADO"] == 0) {
+                                    Alert.alert("Error al guardar los datos", (CAB["MENSAJE"]).toString());
+                                } else if (DET["GUARDADO"] == 0) {
+                                    Alert.alert("Error al guardar los datos", (DET["MENSAJE"]).toString());
+                                }
                             }
                         }
+
+
                     })
                 }
             })();
@@ -444,6 +467,18 @@ export default function Guias_parcial({ route, navigation }) {
     };
 
 
+    const Subir_imagen = async () => {
+
+        let picker = await ImagePicker.launchImageLibraryAsync({ base64: true });
+        let tipo = picker["assets"][0]["uri"];
+        tipo = tipo.split(".")[1];
+
+        let a = {
+            image: picker["assets"][0]["base64"],
+            // type: tipo
+        }
+        setImage(a);
+    };
 
     return (
         <ScrollView style={{ flex: 1 }}>
@@ -451,13 +486,15 @@ export default function Guias_parcial({ route, navigation }) {
                 {/* Barra superior con nombre de usuario y botón de salida */}
                 <View style={styles.header}>
                     <Text style={styles.username}>Usuario: {usuario}</Text>
+                    <Text style={styles.username}>Placa: {placa}</Text>
                     <TouchableOpacity onPress={handleLogout}>
-                        <Text style={styles.logoutButton}>Salir</Text>
+                        {/* <Text style={styles.logoutButton}>Salir</Text> */}
                     </TouchableOpacity>
                 </View>
                 {/* <Stack.Navigator>
                 <Stack.Screen name="Menu" component={Menu} />
             </Stack.Navigator> */}
+                {loading && <ActivityIndicator size="large" color="black" style={{ margin: 5 }} />}
 
                 <View style={styles.card}>
                     <View style={styles.formContainer}>
@@ -561,9 +598,17 @@ export default function Guias_parcial({ route, navigation }) {
                                     // Handle the selected option here
                                 }}
                             />
-
-                            <Text style={{ fontSize: 16, fontWeight: 'bold' }}>Cambiar placa * (check para cambiar)</Text>
-                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                            <TouchableOpacity onPress={Subir_imagen} style={styles.subirButton}>
+                                <View style={styles.buttonContent}>
+                                    <Icon name="camera" size={20} color="white" />
+                                    <Text style={styles.guardarButtonText}>  Cargar foto guía firmada  </Text>
+                                    {image != null && (
+                                        <Icon name="check" size={20} color="yellow" />
+                                    )}
+                                </View>
+                            </TouchableOpacity>
+                            <Text style={{ fontSize: 16, fontWeight: 'bold', marginTop: 15 }}>Cambiar placa * (check para cambiar)</Text>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 10 }}>
                                 <Checkbox
                                     style={{ margin: 10 }}
                                     value={isChecked}
@@ -588,8 +633,30 @@ export default function Guias_parcial({ route, navigation }) {
                         </View>
 
                         <View style={styles.footer}>
-                            <TouchableOpacity onPress={Guardar_datos_guia} style={styles.guardarButton}>
-                                <Text style={styles.guardarButtonText}>Guardar datos</Text>
+                            <TouchableOpacity onPress={() => {
+                                Alert.alert(
+                                    'Se guardarn los datos seleccionados',
+                                    'Porfavor asegurese que sean los correctos',
+                                    [
+                                        {
+                                            text: 'Cancelar',
+                                            // onPress: () => Guardar_datos_guia(),
+                                            style: 'cancel',
+                                        },
+                                        {
+                                            text: 'Si, continuar!',
+                                            onPress: () => Guardar_datos_guia(),
+                                        },
+                                    ],
+                                    { cancelable: false },
+                                );
+
+                            }} style={styles.guardarButton}  disabled={loading}>
+                                <View style={styles.buttonContent}>
+                                    <Text style={styles.guardarButtonText}>Guardar datos  </Text>
+                                    <Icon name="save" size={25} color="white" />
+
+                                </View>
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -603,7 +670,7 @@ export default function Guias_parcial({ route, navigation }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#fff',
+        backgroundColor: '#ffffff',
     },
     row: {
         flexDirection: 'row',
@@ -616,20 +683,23 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingHorizontal: 20,
         paddingTop: 40,
+        marginBottom: 10,
     },
     username: {
         fontSize: 16,
+        fontWeight: 'bold',
     },
     logoutButton: {
-        color: 'red',
         fontSize: 16,
+        color: 'red',
+        fontWeight: 'bold',
     },
     card: {
         flex: 1,
-        margin: 20,
-        padding: 20,
+        margin: 10,
+        padding: 10,
         borderRadius: 10,
-        backgroundColor: '#f0f0f0',
+        backgroundColor: '#F4F6F6',
     },
     buttonContainer: {
         flexDirection: 'row',
@@ -638,15 +708,19 @@ const styles = StyleSheet.create({
     },
     button: {
         flex: 1,
-        backgroundColor: 'green',
+        backgroundColor: 'blue',
         padding: 12,
-        borderRadius: 6,
+        borderRadius: 20,
         marginHorizontal: 8,
         alignItems: 'center',
+        fontWeight: 'bold',
+
     },
     buttonText: {
         color: 'white',
         fontWeight: 'bold',
+        fontSize: 14
+
     },
     input: {
         height: 40,
@@ -683,7 +757,8 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         fontWeight: 'bold',
         padding: 10,
-
+        backgroundColor: "#000000",
+        color: "#ffffff"
     },
     cell: {
         // width: 100,
@@ -709,11 +784,19 @@ const styles = StyleSheet.create({
         marginTop: 16,
     },
     guardarButton: {
-        backgroundColor: 'green',
+        backgroundColor: 'red',
+        padding: 15,
+        borderRadius: 20,
+        alignItems: 'center',
+        justifyContent: 'center', // Mantenemos 'center' para centrar verticalmente
+    },
+    subirButton: {
+        backgroundColor: '#273746',
         padding: 12,
         borderRadius: 6,
         alignItems: 'center',
         justifyContent: 'center', // Mantenemos 'center' para centrar verticalmente
+        marginTop: 10
     },
     guardarButtonText: {
         color: 'white',
@@ -727,4 +810,11 @@ const styles = StyleSheet.create({
         flex: 1,
         marginLeft: 10, // Espacio entre columnas (ajusta según tu preferencia)
     },
+    buttonContent: {
+        flexDirection: 'row', // Coloca los elementos en una fila
+        alignItems: 'center', // Alinea los elementos verticalmente
+        justifyContent: 'center', // Alinea los elementos horizontalmente
+    },
+
+
 });

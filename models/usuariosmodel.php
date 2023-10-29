@@ -518,7 +518,9 @@ class Usuariosmodel extends Model
                 su.ID as sucursal_id,
                 us.password,
                 uc.PLACA,
-                uc.usuario_id as ischofer
+                uc.usuario_id as ischofer,
+                uc.ESTADO as ESTADO_CHOFER,
+                us.Estado as ESTADO_USUARIO
             FROM us_usuarios us
             LEFT JOIN us_departamentos dp
             on dp.ID = us.departamento_id
@@ -529,7 +531,6 @@ class Usuariosmodel extends Model
             WHERE
                 us.Usuario = :usuario
                 and us.password = :pass
-                and us.Estado = 1
             ');
             $query->bindParam(":usuario", $USUARIO, PDO::PARAM_STR);
             $query->bindParam(":pass", $user_Contrasena, PDO::PARAM_STR);
@@ -540,12 +541,12 @@ class Usuariosmodel extends Model
                     echo json_encode([true, $result]);
                     exit();
                 } else {
-                    echo json_encode([false, "CREDENCIALES INCORRECTAS"]);
+                    echo json_encode([false, "Credenciales incorrectas"]);
                     exit();
                 }
             } else {
                 $err = $query->errorInfo();
-                echo json_encode($err);
+                echo json_encode([-1, $err]);
                 exit();
             }
         } catch (PDOException $e) {
