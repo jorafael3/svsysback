@@ -7,4 +7,6 @@ npm install @react-native-async-storage/async-storage
 https://docs.expo.dev/build/setup/
 npx create-expo-app svsysapp
 eas build -p android --profile preview
+ftp.lcaimport.com
+lcaimpor
 
