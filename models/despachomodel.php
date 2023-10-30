@@ -402,6 +402,8 @@ class DespachoModel extends Model
             $ESTADO = $param["ESTADO"];
             $ITEMS_POR_PAGINA = $param["ITEMS_POR_PAGINA"];
             $PAGINA_ACTUAL = $param["PAGINA_ACTUAL"];
+            $FECHA_INICIO = $param["FECHA_INICIO"];
+            $FECHA_FIN = $param["FECHA_FIN"];
             if ($PAGINA_ACTUAL == 0) {
                 $VALOR = 0;
             } else if ($PAGINA_ACTUAL == 1) {
@@ -425,18 +427,19 @@ class DespachoModel extends Model
             FECHA_CREADO, 
             CREADO_POR,
             FECHA_COMPLETADO,
-            (select count(*) from gui_guias_despachadas_estado where ggde.CREADO_POR = "1") as CANTIDAD
+            (select count(*) from gui_guias_despachadas_estado where ggde.CREADO_POR = :USUARIO) as CANTIDAD
             from 
             gui_guias_despachadas_estado ggde   
             where ggde.CREADO_POR = :USUARIO
             AND ggde.ESTADO_DESPACHO in ' . $EST . '
+            AND DATE(ggde.FECHA_CREADO) between :FECHA_INICIO and :FECHA_FIN
             ORDER by ID
             LIMIT ' . $ITEMS_POR_PAGINA . ' OFFSET ' . $VALOR . '; 
             ');
 
             $query->bindParam(":USUARIO", $USUARIO, PDO::PARAM_STR);
-            // $query->bindParam(":ITEMS_POR_PAGINA", $ITEMS_POR_PAGINA, PDO::PARAM_STR);
-            // $query->bindParam(":VALOR", $VALOR, PDO::PARAM_STR);
+            $query->bindParam(":FECHA_INICIO", $FECHA_INICIO, PDO::PARAM_STR);
+            $query->bindParam(":FECHA_FIN", $FECHA_FIN, PDO::PARAM_STR);
             // $query->bindParam(":ESTADO", $ESTADO, PDO::PARAM_STR);
             if ($query->execute()) {
                 $result = $query->fetchAll(PDO::FETCH_ASSOC);
@@ -473,7 +476,7 @@ class DespachoModel extends Model
             ggde.PARCIAL
             from 
                 gui_guias_despachadas ggde
-            left join clientes cl
+            left join cli_clientes cl
             on cl.ID = ggde.CLIENTE_ENTREGA_ID
             left join gui_servicios ser
             on ser.ID = ggde.SERVICIO_ID
@@ -858,6 +861,8 @@ class DespachoModel extends Model
             $PLACA = $param["PLACA"];
             $ITEMS_POR_PAGINA = $param["ITEMS_POR_PAGINA"];
             $PAGINA_ACTUAL = $param["PAGINA_ACTUAL"];
+            $FECHA_INICIO = $param["FECHA_INICIO"];
+            $FECHA_FIN = $param["FECHA_FIN"];
             if ($PAGINA_ACTUAL == 0) {
                 $VALOR = 0;
             } else if ($PAGINA_ACTUAL == 1) {
@@ -867,28 +872,44 @@ class DespachoModel extends Model
             }
 
 
-            $query = $this->db->connect_dobra()->prepare("SELECT 
+            $query = $this->db->connect_dobra()->prepare('SELECT 
             g.* ,
             ggp.placa,
             ggde.ESTADO_DESPACHO ,
             ggde.ESTADO_DESPACHO_TEXTO,
-            ggde.FECHA_COMPLETADO 
+            ggde.FECHA_COMPLETADO,
+            STR_TO_DATE(g.FECHA_DE_EMISION, "%d.%m.%Y") as FECHA_DE_EMISION,
+            (select count(*) from  guias g 
+                left join gui_guias_placa ggp
+                on ggp.pedido_interno = g.PEDIDO_INTERNO
+                left join gui_guias_despachadas_estado ggde 
+                on ggde.PEDIDO_INTERNO = g.PEDIDO_INTERNO
+                where ggp.placa = :PLACA
+                AND STR_TO_DATE(g.FECHA_DE_EMISION, "%d.%m.%Y") BETWEEN :FECHA_INICIO AND :FECHA_FIN 
+            ) as CANTIDAD,
+            CASE
+        		WHEN STR_TO_DATE(g.FECHA_VALIDEZ, "%d.%m.%Y") >= CURDATE() THEN 0
+        	ELSE 1
+    			END AS ESTADO_VALIDEZ,
+    		DATEDIFF(STR_TO_DATE(g.FECHA_VALIDEZ, "%d.%m.%Y"), CURDATE()) AS DIAS_RESTANTES
             from  guias g 
             left join gui_guias_placa ggp
             on ggp.pedido_interno = g.PEDIDO_INTERNO
             left join gui_guias_despachadas_estado ggde 
             on ggde.PEDIDO_INTERNO = g.PEDIDO_INTERNO
-            where ggp.placa = :PLACA; 
-            ");
+            where ggp.placa = :PLACA
+            AND STR_TO_DATE(FECHA_DE_EMISION, "%d.%m.%Y") BETWEEN :FECHA_INICIO AND :FECHA_FIN 
+            ORDER by  g.FECHA_DE_EMISION desc
+            LIMIT ' . $ITEMS_POR_PAGINA . ' OFFSET ' . $VALOR . ';
+            ');
 
             $query->bindParam(":PLACA", $PLACA, PDO::PARAM_STR);
-            // $query->bindParam(":ITEMS_POR_PAGINA", $ITEMS_POR_PAGINA, PDO::PARAM_STR);
-            // $query->bindParam(":VALOR", $VALOR, PDO::PARAM_STR);
-            // $query->bindParam(":ESTADO", $ESTADO, PDO::PARAM_STR);
+            $query->bindParam(":FECHA_INICIO", $FECHA_INICIO, PDO::PARAM_STR);
+            $query->bindParam(":FECHA_FIN", $FECHA_FIN, PDO::PARAM_STR);
             if ($query->execute()) {
                 $result = $query->fetchAll(PDO::FETCH_ASSOC);
                 if (count($result) > 0) {
-                    echo json_encode([$result, count($result)]);
+                    echo json_encode([$result, $result[0]["CANTIDAD"]]);
                     exit();
                 } else {
                     echo json_encode($result);

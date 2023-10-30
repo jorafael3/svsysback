@@ -6,7 +6,8 @@ import fetchData from "../config/config"
 import { useIsFocused } from '@react-navigation/native'
 import Icon from 'react-native-vector-icons/FontAwesome'; // Puedes cambiar 'FontAwesome' por el conjunto de íconos que estés usando
 const itemsPerPage = 5; // Número de elementos por página
-import DatePicker from '@react-native-community/datetimepicker';
+import DateTimePicker from '@react-native-community/datetimepicker';
+
 import moment from 'moment';
 
 let ESTADO_FILTRO = [
@@ -30,13 +31,8 @@ export default function Mis_guias({ route, navigation }) {
     const [placa, setplaca] = useState('');
     const isFocused = useIsFocused()
     //****** DATE */
-    const [selectedDate_ini, setSelectedDate_ini] = useState(new Date());
-    const [selectedDate_fin, setSelectedDate_fin] = useState(new Date());
-    const [showDatePicker_1, setShowDatePicker_1] = useState(false);
-    const [showDatePicker_2, setShowDatePicker_2] = useState(false);
-    const [fecha_inicio, setfecha_inicio] = useState(moment().startOf("week").format("YYYY-MM-DD"));
-    const [fecha_fin, setfecha_fin] = useState(moment().format("YYYY-MM-DD"));
-
+    const [fecha_inicio, setfecha_inicio] = useState(new Date());
+    const [showDatePicker, setShowDatePicker] = useState(false);
 
     //**** DATOS TABLA *****/
     const [data_detalle, setdata_detalle] = useState([]);
@@ -54,57 +50,33 @@ export default function Mis_guias({ route, navigation }) {
         setusuario(datos_sesion["Usuario"]);
         setusuarioid(datos_sesion["Usuario_ID"]);
         setplaca(datos_sesion["PLACA"])
-        let fecha_inicio = moment().startOf('month').format("YYYY-MM-DD");
-        let fecha_fin = moment().format("YYYY-MM-DD");
 
 
-        Consultar_guias(estado_filtro, pagina_actual, fecha_inicio, fecha_fin)
+        Consultar_guias(estado_filtro, pagina_actual)
     }, [isFocused]);
 
-    const handleLogout = () => {
-        // Agrega la lógica para cerrar sesión aquí y navegar de regreso a la pantalla de inicio de sesión.
-    };
-
-
-    const FECHA_INICIO_DATEPICKER = (event, date) => {
-        console.log('date: ', date);
-        setfecha_inicio(moment(date).format("YYYY-MM-DD"));
-        setShowDatePicker_1(false);
-        if (date !== undefined) {
-            setSelectedDate_ini(date);
+    const handleDateChange = (event, date) => {
+        setShowDatePicker(false);
+        if (event.type === 'set') {
+            setfecha_inicio(date);
         }
     };
 
-    const FECHA_FIN_DATEPICKER = (event, date) => {
-        console.log('date: ', moment(date).format("YYYY-MM-DD"));
-        setfecha_fin(moment(date).format("YYYY-MM-DD"));
-        setShowDatePicker_2(false);
 
-        if (date !== undefined) {
-            setSelectedDate_fin(date);
-        }
-    };
-
-    const openDatePicker_1 = () => {
-        setShowDatePicker_1(true);
-    };
-    const openDatePicker_2 = () => {
-        setShowDatePicker_2(true);
-    };
-
-    function Consultar_guias(estado_filtro, pagina, inicio, fin) {
+    function Consultar_guias(estado_filtro, pagina) {
         let USUARIO = usuarioid;
         let param = {
             USUARIO_ID: datos_sesion["Usuario_ID"],
             ESTADO: estado_filtro,
             ITEMS_POR_PAGINA: itemsPerPage,
             PAGINA_ACTUAL: pagina,
-            FECHA_INICIO: inicio,
-            FECHA_FIN: fin,
+            FECHA_INICIO: moment(fecha_inicio).format("YYYY-MM-DD"),
+            FECHA_FIN: moment().format("YYYY-MM-DD"),
         }
 
         let url = 'despacho/Guias_Usuario'
         fetchData(url, param, function (x) {
+            console.log('x: ', x);
 
             let datos = x[0];
             if (datos == 0) {
@@ -165,10 +137,10 @@ export default function Mis_guias({ route, navigation }) {
                     <Text style={styles.username}>Usuario: {usuario}</Text>
                     <Text style={styles.username}>Placa: {placa}</Text>
 
-                    <TouchableOpacity onPress={handleLogout}>
+                    {/* <TouchableOpacity onPress={handleLogout}>
                         <Text style={styles.logoutButton}>Salir</Text>
-                    </TouchableOpacity>
-                    
+                    </TouchableOpacity> */}
+
                 </View>
 
 
@@ -177,38 +149,46 @@ export default function Mis_guias({ route, navigation }) {
                     <View style={styles.formContainer}>
                         <View style={styles.rowContainer}>
                             <View style={styles.column}>
-
-                                <View style={[styles.clientSelector, { marginTop: 1 }]}>
-                                    <TouchableOpacity
-                                        style={[styles.cell, { width: 100, margin: 1, backgroundColor: '#F2F4F4', borderRadius: 5, justifyContent: 'center', alignItems: 'center' }]}
-                                        onPress={openDatePicker_1}>
-                                        <Text>Fecha Inicio {fecha_inicio}</Text>
-                                    </TouchableOpacity>
-                                    {showDatePicker_1 && (
-                                        <DatePicker
-                                            mode="date"
-                                            value={selectedDate_ini}
-                                            onChange={FECHA_INICIO_DATEPICKER}
-                                        />
-                                    )}
-                                </View>
+                            <Text style={{ fontWeight: 'bold' }}>Desde</Text>
+                                <TouchableOpacity
+                                    style={{
+                                        flexDirection: 'row',
+                                        alignItems: 'center',
+                                        marginTop: 10
+                                    }}
+                                    onPress={() => {
+                                        setShowDatePicker(true);
+                                    }}
+                                >
+                                    <Icon name="calendar" size={20} color="#3498DB" style={{ marginRight: 5 }} />
+                                    <Text>{moment(fecha_inicio).locale('es').format("LL")}</Text>
+                                </TouchableOpacity>
+                                {showDatePicker && (
+                                    <DateTimePicker
+                                        value={fecha_inicio}
+                                        mode="date"
+                                        display="default"
+                                        onChange={handleDateChange}
+                                    />
+                                )}
                             </View>
                             <View style={styles.column}>
+                                <TouchableOpacity
+                                    style={[styles.cell, {
+                                        width: 50,
+                                        margin: 1,
+                                        backgroundColor: "#3498DB",
+                                        borderRadius: 10,
+                                        justifyContent: 'center',
+                                        alignItems: 'center',
+                                        marginStart: 50
+                                    }]}
+                                    onPress={() => {
+                                        Consultar_guias(estado_filtro, 0)
+                                    }}>
+                                    <Icon name="refresh" size={20} color="white" />
+                                </TouchableOpacity>
 
-                                <View style={[styles.clientSelector, { marginTop: 1 }]}>
-                                    <TouchableOpacity
-                                        style={[styles.cell, { width: 100, margin: 1, backgroundColor: '#F2F4F4', borderRadius: 5, justifyContent: 'center', alignItems: 'center' }]}
-                                        onPress={openDatePicker_2}>
-                                        <Text>Fecha Fin {fecha_fin}</Text>
-                                    </TouchableOpacity>
-                                    {showDatePicker_2 && (
-                                        <DatePicker
-                                            mode="date"
-                                            value={selectedDate_fin}
-                                            onChange={FECHA_FIN_DATEPICKER}
-                                        />
-                                    )}
-                                </View>
                             </View>
                         </View>
 
@@ -229,39 +209,20 @@ export default function Mis_guias({ route, navigation }) {
                                 }}
                             />
                         </View>
-                        <View style={[styles.clientSelector, { marginTop: 5 }]}>
-                            <TouchableOpacity
-                                style={[styles.cell, {
-                                    width: 50, margin: 1,
-                                    backgroundColor: "#3498DB",
-                                    borderRadius: 10,
-                                    justifyContent: 'center',
-                                    alignItems: 'center'
-                                }]}
-
-                                onPress={() => {
-
-                                }}
-                            >
-                                <Text>
-                                    <Icon name="refresh" size={30} color="#fff" />
-                                </Text>
-                            </TouchableOpacity>
-                        </View>
-
-                        <ScrollView horizontal={true} style={{ marginTop: 5 }}>
+                      
+                        <ScrollView horizontal={true} style={{ marginTop: 10 }}>
                             <View style={styles.container}>
                                 {/* Encabezados de la tabla */}
                                 <View style={styles.row}>
-                                    <Text style={[styles.columnHeader, { width: 80 }]}>ESTADO</Text>
+                                    <Text style={[styles.columnHeader, { width: 100 }]}>ESTADO</Text>
                                     <Text style={[styles.columnHeader, { width: 100 }]}>PEDIDO #</Text>
-                                    <Text style={[styles.columnHeader, { width: 80, margin: 2 }]}>DETALLE</Text>
+                                    <Text style={[styles.columnHeader, { width: 80 }]}>DETALLE</Text>
                                     <Text style={[styles.columnHeader, { width: 70 }]}>COM</Text>
                                 </View>
 
                                 {data_detalle.map((item, index) => (
                                     <View style={styles.row} key={index}>
-                                        <Text style={[styles.cell, { width: 80, fontWeight: "bold", backgroundColor: item.ESTADO_DESPACHO == 1 ? '#EC7063' : '#2ECC71', color: 'white' }]}>{item.ESTADO_DESPACHO_TEXTO}</Text>
+                                        <Text style={[styles.cell, { width: 100, fontWeight: "bold", backgroundColor: item.ESTADO_DESPACHO == 1 ? '#EC7063' : '#2ECC71', color: 'white' }]}>{item.ESTADO_DESPACHO_TEXTO}</Text>
                                         <Text style={[styles.cell, { width: 100, fontWeight: "bold", fontSize: 15 }]}>{item.PEDIDO_INTERNO}</Text>
 
                                         <TouchableOpacity
@@ -346,7 +307,7 @@ export default function Mis_guias({ route, navigation }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#fff',
+        backgroundColor: '#ffffff',
     },
     row: {
         flexDirection: 'row',
@@ -359,20 +320,23 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingHorizontal: 20,
         paddingTop: 40,
+        marginBottom: 10,
     },
     username: {
         fontSize: 16,
+        fontWeight: 'bold',
     },
     logoutButton: {
-        color: 'red',
         fontSize: 16,
+        color: 'red',
+        fontWeight: 'bold',
     },
     card: {
         flex: 1,
-        margin: 20,
-        padding: 20,
+        margin: 10,
+        padding: 10,
         borderRadius: 10,
-        backgroundColor: '#f0f0f0',
+        backgroundColor: '#F4F6F6',
     },
     buttonContainer: {
         flexDirection: 'row',
@@ -381,15 +345,19 @@ const styles = StyleSheet.create({
     },
     button: {
         flex: 1,
-        backgroundColor: 'green',
+        backgroundColor: 'blue',
         padding: 12,
-        borderRadius: 6,
+        borderRadius: 20,
         marginHorizontal: 8,
         alignItems: 'center',
+        fontWeight: 'bold',
+
     },
     buttonText: {
         color: 'white',
         fontWeight: 'bold',
+        fontSize: 14
+
     },
     input: {
         height: 40,
@@ -426,7 +394,8 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         fontWeight: 'bold',
         padding: 10,
-
+        backgroundColor: "#000000",
+        color: "#ffffff"
     },
     cell: {
         // width: 100,
@@ -452,7 +421,14 @@ const styles = StyleSheet.create({
         marginTop: 16,
     },
     guardarButton: {
-        backgroundColor: 'green',
+        backgroundColor: 'red',
+        padding: 15,
+        borderRadius: 20,
+        alignItems: 'center',
+        justifyContent: 'center', // Mantenemos 'center' para centrar verticalmente
+    },
+    subirButton: {
+        backgroundColor: '#273746',
         padding: 12,
         borderRadius: 6,
         alignItems: 'center',
@@ -470,5 +446,11 @@ const styles = StyleSheet.create({
         flex: 1,
         marginLeft: 10, // Espacio entre columnas (ajusta según tu preferencia)
     },
-});
+    buttonContent: {
+        flexDirection: 'row', // Coloca los elementos en una fila
+        alignItems: 'center', // Alinea los elementos verticalmente
+        justifyContent: 'center', // Alinea los elementos horizontalmente
+    },
 
+
+});

@@ -101,9 +101,10 @@ export default function Guias_detalle({ route, navigation }) {
                 {/* Barra superior con nombre de usuario y botón de salida */}
                 <View style={styles.header}>
                     <Text style={styles.username}>Usuario: {usuario}</Text>
-                    <TouchableOpacity onPress={handleLogout}>
+                    <Text style={styles.username}>Placa: {placa}</Text>
+                    {/* <TouchableOpacity onPress={handleLogout}>
                         <Text style={styles.logoutButton}>Salir</Text>
-                    </TouchableOpacity>
+                    </TouchableOpacity> */}
                 </View>
 
 
@@ -223,7 +224,7 @@ export default function Guias_detalle({ route, navigation }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#fff',
+        backgroundColor: '#ffffff',
     },
     row: {
         flexDirection: 'row',
@@ -236,20 +237,23 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingHorizontal: 20,
         paddingTop: 40,
+        marginBottom: 10,
     },
     username: {
         fontSize: 16,
+        fontWeight: 'bold',
     },
     logoutButton: {
-        color: 'red',
         fontSize: 16,
+        color: 'red',
+        fontWeight: 'bold',
     },
     card: {
         flex: 1,
-        margin: 20,
-        padding: 20,
+        margin: 10,
+        padding: 10,
         borderRadius: 10,
-        backgroundColor: '#f0f0f0',
+        backgroundColor: '#F4F6F6',
     },
     buttonContainer: {
         flexDirection: 'row',
@@ -258,15 +262,19 @@ const styles = StyleSheet.create({
     },
     button: {
         flex: 1,
-        backgroundColor: 'green',
+        backgroundColor: 'blue',
         padding: 12,
-        borderRadius: 6,
+        borderRadius: 20,
         marginHorizontal: 8,
         alignItems: 'center',
+        fontWeight: 'bold',
+
     },
     buttonText: {
         color: 'white',
         fontWeight: 'bold',
+        fontSize: 14
+
     },
     input: {
         height: 40,
@@ -303,7 +311,8 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         fontWeight: 'bold',
         padding: 10,
-
+        backgroundColor: "#000000",
+        color: "#ffffff"
     },
     cell: {
         // width: 100,
@@ -329,7 +338,14 @@ const styles = StyleSheet.create({
         marginTop: 16,
     },
     guardarButton: {
-        backgroundColor: 'green',
+        backgroundColor: 'red',
+        padding: 15,
+        borderRadius: 20,
+        alignItems: 'center',
+        justifyContent: 'center', // Mantenemos 'center' para centrar verticalmente
+    },
+    subirButton: {
+        backgroundColor: '#273746',
         padding: 12,
         borderRadius: 6,
         alignItems: 'center',
@@ -347,5 +363,12 @@ const styles = StyleSheet.create({
         flex: 1,
         marginLeft: 10, // Espacio entre columnas (ajusta según tu preferencia)
     },
+    buttonContent: {
+        flexDirection: 'row', // Coloca los elementos en una fila
+        alignItems: 'center', // Alinea los elementos verticalmente
+        justifyContent: 'center', // Alinea los elementos horizontalmente
+    },
+
+
 });
 
