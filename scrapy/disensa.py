@@ -99,7 +99,7 @@ def Buscar_Documentos():
     try:
         desde = driver.find_element(By.XPATH, '//*[@id="inputfdesde"]')
         desde.clear()
-        desde.send_keys("01/10/2023")
+        desde.send_keys("20/10/2023")
         guardar_log("FECHA CAMBIADA",1)
     except:
         pass

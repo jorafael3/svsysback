@@ -1,5 +1,5 @@
 import React, { useState, Component, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Alert, ScrollView, TextInput,ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Alert, ScrollView, TextInput, ActivityIndicator } from 'react-native';
 import ModalSelector from 'react-native-modal-selector';
 import fetchData from "../config/config"
 import Checkbox from 'expo-checkbox';
@@ -47,6 +47,8 @@ export default function Guias_parcial({ route, navigation }) {
 
     const [image, setImage] = useState(null);
     const [loading, setLoading] = useState(false);
+
+    const [btn_guardar_est, setbtn_guardar_est] = useState(false);
 
 
     //********** CLIENTES ******/
@@ -145,6 +147,7 @@ export default function Guias_parcial({ route, navigation }) {
 
     useEffect(() => {
         const datos_sesion = route.params;
+        console.log('datos_sesion: ', datos_sesion);
         setusuario(datos_sesion["Usuario"]);
         setusuarioid(datos_sesion["Usuario_ID"]);
         setplaca(datos_sesion["PLACA"])
@@ -165,6 +168,7 @@ export default function Guias_parcial({ route, navigation }) {
             DESPACHO_ID: despacho,
         };
         fetchData(url, param, function (x) {
+            console.log('x: ', x);
 
             if (x == -1) {
                 Alert.alert("Error de conexion", "Asegurese que este conectado a internet");
@@ -188,18 +192,34 @@ export default function Guias_parcial({ route, navigation }) {
         if (CABECERA.length == 0) {
             Alert.alert("", "Guia no encontrada, verifique el numero, o vuelva a escanear");
         } else {
-            setisFormVisible(true);
-            setfecha_emision(CABECERA["FECHA_DE_EMISION"]);
-            setpedido(CABECERA["PEDIDO_INTERNO"]);
-            DETALLE.map(function (x) {
-                x.PARCIAL = 0;
-                x.CANT_PARCIAL = "NaN";
-                x.NO_ENTREGAR_CODIGO = 0;
-            });
+            console.log('placa: ', placa);
 
-            let filtro_solo_por_entregar = DETALLE.filter(item => item.RESTANTE > 0);
-            setdata_detalle(filtro_solo_por_entregar)
-            // Alert.alert("asdasd", data[0][0]["ID"]);
+            if (CABECERA["placa"] == datos_sesion["PLACA"]) {
+                setbtn_guardar_est(true);
+                setisFormVisible(true);
+                setfecha_emision(CABECERA["FECHA_DE_EMISION"]);
+                setpedido(CABECERA["PEDIDO_INTERNO"]);
+                DETALLE.map(function (x) {
+                    x.PARCIAL = 0;
+                    x.CANT_PARCIAL = "NaN";
+                    x.NO_ENTREGAR_CODIGO = 0;
+                });
+
+                let filtro_solo_por_entregar = DETALLE.filter(item => item.RESTANTE > 0);
+                setdata_detalle(filtro_solo_por_entregar)
+                // Alert.alert("asdasd", data[0][0]["ID"]);
+            } else if (CABECERA["placa"] == null) {
+                Alert.alert("ESTA GUIA NO TIENE CHOFER ASIGNADO", CABECERA["placa"]);
+                navigation.navigate('Guias', datos_sesion);
+                setbtn_guardar_est(false);
+
+            } else {
+                navigation.navigate('Guias', datos_sesion);
+                Alert.alert("GUIA ASOCIADA A OTRA PLACA", CABECERA["placa"]);
+                setbtn_guardar_est(false);
+            }
+
+
         }
 
     }
@@ -310,7 +330,7 @@ export default function Guias_parcial({ route, navigation }) {
 
                     setLoading(true);
                     fetchData(url, param, function (x) {
-                        console.log('x: ', x);
+
                         setLoading(false);
 
                         if (x == -1) {
@@ -634,24 +654,27 @@ export default function Guias_parcial({ route, navigation }) {
 
                         <View style={styles.footer}>
                             <TouchableOpacity onPress={() => {
-                                Alert.alert(
-                                    'Se guardarn los datos seleccionados',
-                                    'Porfavor asegurese que sean los correctos',
-                                    [
-                                        {
-                                            text: 'Cancelar',
-                                            // onPress: () => Guardar_datos_guia(),
-                                            style: 'cancel',
-                                        },
-                                        {
-                                            text: 'Si, continuar!',
-                                            onPress: () => Guardar_datos_guia(),
-                                        },
-                                    ],
-                                    { cancelable: false },
-                                );
+                                if (btn_guardar_est == true) {
+                                    Alert.alert(
+                                        'Se guardarn los datos seleccionados',
+                                        'Porfavor asegurese que sean los correctos',
+                                        [
+                                            {
+                                                text: 'Cancelar',
+                                                // onPress: () => Guardar_datos_guia(),
+                                                style: 'cancel',
+                                            },
+                                            {
+                                                text: 'Si, continuar!',
+                                                onPress: () => Guardar_datos_guia(),
+                                            },
+                                        ],
+                                        { cancelable: false },
+                                    );
+                                }
 
-                            }} style={styles.guardarButton}  disabled={loading}>
+
+                            }} style={styles.guardarButton} disabled={loading}>
                                 <View style={styles.buttonContent}>
                                     <Text style={styles.guardarButtonText}>Guardar datos  </Text>
                                     <Icon name="save" size={25} color="white" />

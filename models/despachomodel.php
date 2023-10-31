@@ -163,8 +163,13 @@ class DespachoModel extends Model
             $DETALLE = $param["DETALLE"];
             $UBICACION = $param["UBICACION"];
             $imagen = $param["IMAGEN"];
-            $imageData = base64_decode($imagen["image"]);
-            $fileName = $PEDIDO_INTERNO . "_" . $despacho_ID . ".jpg";
+            if ($imagen != null) {
+                $imageData = base64_decode($imagen["image"]);
+                $fileName = $PEDIDO_INTERNO . "_" . $despacho_ID . ".jpg";
+            } else {
+                $fileName = "";
+            }
+
 
 
 
@@ -216,13 +221,14 @@ class DespachoModel extends Model
                         $CAB = array("GUARDADO" => 1, "MENSAJE" => "CABECERA GUARDADA");
                         $DET = $this->Guardar_Guias_despacho_dt($DETALLE, $despacho_ID, $PEDIDO_INTERNO);
                         if ($DET["GUARDADO"] == 1) {
-                            $targetDirectory = "C:/xampp/htdocs/svsysback/recursos/guias_subidas/";
-                            $targetFile = $targetDirectory . $fileName;
-                            if (file_put_contents($targetFile, $imageData)) {
-                                // echo "La imagen se ha guardado correctamente en: " . $targetFile;
-                            } else {
-                                // echo "Error al guardar la imagen.";
+                            if ($imagen != null) {
+                                $targetDirectory = "C:/xampp/htdocs/svsysback/recursos/guias_subidas/";
+                                $targetFile = $targetDirectory . $fileName;
+                                if (file_put_contents($targetFile, $imageData)) {
+                                    // echo "La imagen se ha guardado correctamente en: " . $targetFile;
+                                }
                             }
+
                             $this->db->connect_dobra()->commit();
                         } else {
                             $this->db->connect_dobra()->rollback();
@@ -588,8 +594,10 @@ class DespachoModel extends Model
     {
         try {
             $PEDIDO = $param["PEDIDO_INTERNO"];
-            $query = $this->db->connect_dobra()->prepare('SELECT * from guias
-                where PEDIDO_INTERNO = :pedido');
+            $query = $this->db->connect_dobra()->prepare('SELECT g.*, ggp.placa  from guias g
+            left join gui_guias_placa ggp
+            on ggp.pedido_interno = g.PEDIDO_INTERNO
+            where g.PEDIDO_INTERNO = :pedido');
             $query->bindParam(":pedido", $PEDIDO, PDO::PARAM_STR);
             if ($query->execute()) {
                 $result = $query->fetchAll(PDO::FETCH_ASSOC);
