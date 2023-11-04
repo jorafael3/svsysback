@@ -101,7 +101,20 @@ class ReportesModel extends Model
                 WHERE ggde.FECHA_COMPLETADO IS NOT null and CREADO_POR = uc.usuario_id
                 and date(FECHA_CREADO) between :FECHA_INI and :FECHA_FIN
                 GROUP BY CREADO_POR
-            ),null) as PROMEDIO_DEMORA_HORAS_TOTAL_MES
+            ),null) as PROMEDIO_DEMORA_HORAS_TOTAL_MES,
+            (
+                select count(*)  from gui_guias_placa ggp 
+                left join guias g 
+                on g.PEDIDO_INTERNO = ggp.pedido_interno 
+                where STR_TO_DATE(g.FECHA_DE_EMISION  , "%d.%m.%Y") between :FECHA_INI and :FECHA_FIN
+                and ggp.placa = uc.PLACA
+            ) as GUIAS_ASIGNADAS_PERIODO,
+            (
+                select count(*)  from gui_guias_placa ggp 
+                left join guias g 
+                on g.PEDIDO_INTERNO = ggp.pedido_interno 
+                where ggp.placa = uc.PLACA
+            ) as GUIAS_ASIGNADAS_TOTAL
             from us_choferes uc 
             left join us_usuarios uu 
             on uu.Usuario_ID = uc.usuario_id 
