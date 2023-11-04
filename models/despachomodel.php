@@ -1172,6 +1172,7 @@ class DespachoModel extends Model
             $query = $this->db->connect_dobra()->prepare('SELECT
             ggde.FECHA_CREADO, 
             cl.CLIENTE_NOMBRE,
+            cl.ID as CLIENTE_ID,
             ser.nombre as SERVICIO, 
             gd.nombre as DESTINO,
             ggde.despacho_ID,
@@ -1284,8 +1285,10 @@ class DespachoModel extends Model
     {
         try {
             $PEDIDO_INTERNO = trim($param["PEDIDO_INTERNO"]);
-            $query = $this->db->connect_dobra()->prepare('SELECT * FROM
-                gui_guias_facturas
+            $query = $this->db->connect_dobra()->prepare('SELECT f.*,c.CLIENTE_NOMBRE FROM
+                gui_guias_facturas f
+                left join cli_clientes c
+                on f.CLIENTE_ID = c.ID
             WHERE pedido_interno = :pedido_interno
             ');
             $query->bindParam(":pedido_interno", $PEDIDO_INTERNO, PDO::PARAM_STR);
@@ -1319,6 +1322,7 @@ class DespachoModel extends Model
             $IVA = ($param["IVA"]);
             $TOTAL = ($param["TOTAL"]);
             $CREADO_POR = ($param["USUARIO"]);
+            $CLIENTE_ID = ($param["FACT_CLIENTES"]);
 
             $query = $this->db->connect_dobra()->prepare('INSERT 
             INTO gui_guias_facturas 
@@ -1332,7 +1336,8 @@ class DespachoModel extends Model
                 factura_impuesto, 
                 factura_total,
                 factura_nota, 
-                CREADO_POR
+                CREADO_POR,
+                CLIENTE_ID
             ) VALUES(
                 :pedido_interno, 
                 :factura_fecha, 
@@ -1343,7 +1348,8 @@ class DespachoModel extends Model
                 :factura_impuesto, 
                 :factura_total,
                 :factura_nota, 
-                :CREADO_POR                
+                :CREADO_POR,
+                :CLIENTE_ID            
             );
             ');
             $query->bindParam(":pedido_interno", $PEDIDO_INTERNO, PDO::PARAM_STR);
@@ -1356,6 +1362,7 @@ class DespachoModel extends Model
             $query->bindParam(":factura_total", $TOTAL, PDO::PARAM_STR);
             $query->bindParam(":factura_nota", $NOTA, PDO::PARAM_STR);
             $query->bindParam(":CREADO_POR", $CREADO_POR, PDO::PARAM_STR);
+            $query->bindParam(":CLIENTE_ID", $CLIENTE_ID, PDO::PARAM_STR);
 
             if ($query->execute()) {
                 $result = $query->fetchAll(PDO::FETCH_ASSOC);
