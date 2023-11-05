@@ -20,6 +20,7 @@ import zipfile
 import mysql.connector
 from datetime import datetime
 from log import *
+from datetime import datetime, timedelta
 
 options = Options()
 options.add_argument("--start-maximized")
@@ -99,7 +100,13 @@ def Buscar_Documentos():
     try:
         desde = driver.find_element(By.XPATH, '//*[@id="inputfdesde"]')
         desde.clear()
-        desde.send_keys("20/10/2023")
+        fecha_actual = datetime.now()
+        # Calcula la fecha de hace 7 días
+        fecha_hace_7_dias = fecha_actual - timedelta(days=7)
+
+        # Formatea la fecha en "dd/mm/yyyy"
+        fecha_formateada = fecha_hace_7_dias.strftime("%d/%m/%Y")
+        desde.send_keys(fecha_formateada)
         guardar_log("FECHA CAMBIADA",1)
     except:
         pass
@@ -154,9 +161,13 @@ def Buscar_Documentos():
     guardar_log("ELEMENTOS EN TABLA RECORRIDOS "+ str(contador_elemento),1)
     guardar_log("ARCHIVOS DESCARGADOS "+ str(contador_archivos),1)
     guardar_log("SCRAPY REALIZADO",1)
-
+    print("SCRAPY REALIZADO")
     Leer_pdf()
 
+
+#************************************
+#********* LEER DOCUMENTOS **********
+#************************************
 def Obtener_tabla(texto):
     texto_limpio = texto.replace("PRODUCTO", "").replace("CANTIDAD", "")
 
@@ -240,10 +251,6 @@ def Obtener_cabecera(cabecera):
         guardar_log("DATOS CABECERA EXTRAIDOS",1)
         return datos_b
 
-#************************************
-#********* LEER DOCUMENTOS **********
-#************************************
-
 
 def Leer_pdf():
 
@@ -294,7 +301,7 @@ def Leer_pdf():
                         # print(datos_cabecera)
                         lista = [datos_cabecera,datos_tabla,]
                         array_datos.append(lista)
-                        print("*******************************************")
+                        # print("*******************************************")
                         # print(array_datos)
                    
                 except:
@@ -460,16 +467,9 @@ def Guardar_Guias(array_datos):
             pedido  =cabecera["PEDIDO_INTERNO"].strip()
             pedido = pedido.replace(" ","")
             Guadar_detalle(detalle,pedido)
+    print("FINALIZADO DATOS")
     guardar_log("FINALIZADO DATOS "+str(cantidad_datos) ,1)
 
-# login()
-Leer_pdf()
-# Limpiar_directorio()
-# def p():
-#     c = 'SELECT * FROM guias'
-#     cursor = conexion.cursor()
-#     cursor.execute(c)
-#     resultados = cursor.fetchall()
-#     for fila in resultados:
-#         print(fila)
-# p()
+login()
+# Leer_pdf()
+

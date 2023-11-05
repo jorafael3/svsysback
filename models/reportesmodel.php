@@ -114,7 +114,15 @@ class ReportesModel extends Model
                 left join guias g 
                 on g.PEDIDO_INTERNO = ggp.pedido_interno 
                 where ggp.placa = uc.PLACA
-            ) as GUIAS_ASIGNADAS_TOTAL
+            ) as GUIAS_ASIGNADAS_TOTAL,
+            (
+                ((select count(*)  from gui_guias_placa ggp 
+                left join guias g 
+                on g.PEDIDO_INTERNO = ggp.pedido_interno 
+                where ggp.placa = uc.PLACA) /
+                (select count(*) from gui_guias_placa ggp2))*100
+                
+            ) as GUIAS_ASIGNADAS_TOTAL_PORCENTAJE
             from us_choferes uc 
             left join us_usuarios uu 
             on uu.Usuario_ID = uc.usuario_id 
@@ -129,7 +137,8 @@ class ReportesModel extends Model
 
             if ($query->execute()) {
                 $result = $query->fetchAll(PDO::FETCH_ASSOC);
-                // $tiempo = $this->Reporte_Chofer_Tiempos();
+                $result = $this->Reporte_Chofer_DESTINOS($param, $result);
+                $result = $this->Reporte_Chofer_CLIENTES($param, $result);
                 echo json_encode($result);
                 exit();
             } else {
@@ -144,23 +153,100 @@ class ReportesModel extends Model
         }
     }
 
-    function Reporte_Chofer_Tiempos()
+    function Reporte_Chofer_DESTINOS($param, $result)
     {
         try {
-            $query = $this->db->connect_dobra()->prepare('SELECT
-            ggde.CREADO_POR ,
-            AVG(TIMESTAMPDIFF(SECOND, FECHA_CREADO, FECHA_COMPLETADO)) / 3600 AS Tiempo_Estimado_Entrega_Horas
-            FROM gui_guias_despachadas_estado ggde 
-            WHERE ggde.FECHA_COMPLETADO IS NOT NULL
-            GROUP BY CREADO_POR;
-            ');
-            if ($query->execute()) {
-                $result = $query->fetchAll(PDO::FETCH_ASSOC);
-                return $result;
-            } else {
-                $err = $query->errorInfo();
-                return $err;
+            $FECHA_INI = $param["FECHA_INI"];
+            $FECHA_FIN = $param["FECHA_FIN"];
+            for ($i = 0; $i < count($result); $i++) {
+                $USUARIO_ID = $result[$i]["CHOFER_ID"];
+                $query = $this->db->connect_dobra()->prepare('SELECT DISTINCT
+                gd.nombre AS TipoDestino,
+                (
+                    select count(*) from gui_guias_despachadas ggd where ggd.DESTINO_ID = gd.ID and ggd.CREADO_POR = :USUARIO_ID
+                )as CANTIDAD_TOTAL,
+                (
+                    select count(*) from gui_guias_despachadas ggd where ggd.DESTINO_ID = gd.ID and ggd.CREADO_POR = :USUARIO_ID
+                    and date(ggd.FECHA_CREADO) between :FECHA_INI and :FECHA_FIN
+                )as CANTIDAD__PARCIAL,
+                  (
+                    select count(*) from gui_guias_despachadas ggd where ggd.DESTINO_ID = gd.ID 
+                    and date(ggd.FECHA_CREADO) between :FECHA_INI and :FECHA_FIN
+                )as CANTIDAD_TOTAL_GENERAL_OTROS_CHOFERES,
+                (
+                    ((select count(*) from gui_guias_despachadas ggd where ggd.DESTINO_ID = gd.ID and ggd.CREADO_POR = :USUARIO_ID
+                    and date(ggd.FECHA_CREADO) between :FECHA_INI and :FECHA_FIN)/
+                    (select count(*) from gui_guias_despachadas ggd where ggd.DESTINO_ID = gd.ID 
+                    and date(ggd.FECHA_CREADO) between :FECHA_INI and :FECHA_FIN))*100
+                ) as CANTIDAD__PARCIAL_PORCENTAJE
+                FROM gui_destinos gd
+                LEFT JOIN gui_guias_despachadas gg ON gd.ID = gg.DESTINO_ID
+                ORDER BY gd.nombre;
+                ');
+                $query->bindParam(":FECHA_INI", $FECHA_INI, PDO::PARAM_STR);
+                $query->bindParam(":FECHA_FIN", $FECHA_FIN, PDO::PARAM_STR);
+                $query->bindParam(":USUARIO_ID", $USUARIO_ID, PDO::PARAM_STR);
+                if ($query->execute()) {
+                    $res = $query->fetchAll(PDO::FETCH_ASSOC);
+                    $result[$i]["DATOS_DESTINO"] = $res;
+                } else {
+                    $err = $query->errorInfo();
+                    $result[$i]["DATOS_DESTINO"] = [];
+                }
             }
+            return $result;
+        } catch (PDOException $e) {
+            $e = $e->getMessage();
+            echo json_encode($e);
+            exit();
+        }
+    }
+
+    function Reporte_Chofer_CLIENTES($param, $result)
+    {
+        try {
+            $FECHA_INI = $param["FECHA_INI"];
+            $FECHA_FIN = $param["FECHA_FIN"];
+
+            for ($i = 0; $i < count($result); $i++) {
+                $USUARIO_ID = $result[$i]["CHOFER_ID"];
+                $query = $this->db->connect_dobra()->prepare('SELECT DISTINCT
+                cc.ID as CLIENTE_ID,
+                cc.CLIENTE_NOMBRE,
+                (
+                    select count(*) from gui_guias_despachadas ggd2 where ggd2.CLIENTE_ENTREGA_ID = cc.ID and ggd2.CREADO_POR = :USUARIO_ID
+                )as CANTIDAD_ENTREGAS_TOTAL,
+                (
+                    select count(*) from gui_guias_despachadas ggd2 where ggd2.CLIENTE_ENTREGA_ID = cc.ID and ggd2.CREADO_POR = :USUARIO_ID
+                    and date(ggd2.FECHA_CREADO) between :FECHA_INI and :FECHA_FIN
+                )as CANTIDAD_ENTREGAS_PERIODO,
+                (
+                    select count(*) from gui_guias_despachadas ggd2 where ggd2.CLIENTE_ENTREGA_ID = cc.ID
+                    and date(ggd2.FECHA_CREADO) between :FECHA_INI and :FECHA_FIN
+                )as CANTIDAD_ENTREGAS_TOTAL_OTROS_CHOFERES,
+                (
+                        ((select count(*) from gui_guias_despachadas ggd where ggd.CLIENTE_ENTREGA_ID  = cc.ID and ggd.CREADO_POR = :USUARIO_ID
+                      and date(ggd.FECHA_CREADO) between :FECHA_INI and :FECHA_FIN)/
+                      (select count(*) from gui_guias_despachadas ggd where ggd.CLIENTE_ENTREGA_ID = cc.ID 
+                      and date(ggd.FECHA_CREADO) between :FECHA_INI and :FECHA_FIN))*100
+                )as CANTIDAD_PARCIAL_PORCENTAJE
+                from cli_clientes cc 
+                left join gui_guias_despachadas ggd 
+                on cc.ID = ggd.CLIENTE_ENTREGA_ID                 
+                ');
+                $query->bindParam(":FECHA_INI", $FECHA_INI, PDO::PARAM_STR);
+                $query->bindParam(":FECHA_FIN", $FECHA_FIN, PDO::PARAM_STR);
+                $query->bindParam(":USUARIO_ID", $USUARIO_ID, PDO::PARAM_STR);
+
+                if ($query->execute()) {
+                    $res = $query->fetchAll(PDO::FETCH_ASSOC);
+                    $result[$i]["DATOS_CLIENTE"] = $res;
+                } else {
+                    $err = $query->errorInfo();
+                    $result[$i]["DATOS_CLIENTE"] = [];
+                }
+            }
+            return $result;
         } catch (PDOException $e) {
             $e = $e->getMessage();
             echo json_encode($e);
