@@ -222,6 +222,7 @@ class ReportesModel extends Model
                 $query = $this->db->connect_dobra()->prepare('SELECT DISTINCT
                 cc.ID as CLIENTE_ID,
                 cc.CLIENTE_NOMBRE,
+                ggd.CLIENTE_ENTREGA_ID,
                 cc.fecha_creado as CLIENTE_FECHA_REGISTRO,
                 (
                     select count(*) from gui_guias_despachadas ggd2 where ggd2.CLIENTE_ENTREGA_ID = cc.ID and ggd2.CREADO_POR = :USUARIO_ID
@@ -235,10 +236,10 @@ class ReportesModel extends Model
                     and date(ggd2.FECHA_CREADO) between :FECHA_INI and :FECHA_FIN
                 )as CANTIDAD_ENTREGAS_TOTAL_OTROS_CHOFERES,
                 ifnull( (
-                    ((select count(*) from gui_guias_despachadas ggd where ggd.CLIENTE_ENTREGA_ID  = cc.ID and ggd.CREADO_POR = :USUARIO_ID
-                    and date(ggd.FECHA_CREADO) between :FECHA_INI and :FECHA_FIN)/
-                    (select count(*) from gui_guias_despachadas ggd where ggd.CLIENTE_ENTREGA_ID = cc.ID 
-                    and date(ggd.FECHA_CREADO) between :FECHA_INI and :FECHA_FIN))*100
+                    ((select count(*) from gui_guias_despachadas gd where gd.CLIENTE_ENTREGA_ID  = cc.ID and gd.CREADO_POR = :USUARIO_ID
+                    and date(gd.FECHA_CREADO) between :FECHA_INI and :FECHA_FIN)/
+                    (select count(*) from gui_guias_despachadas gd where gd.CLIENTE_ENTREGA_ID = cc.ID 
+                    and date(gd.FECHA_CREADO) between :FECHA_INI and :FECHA_FIN))*100
                 ),0)as CANTIDAD_PARCIAL_PORCENTAJE,
                 ifnull( (
                     select
@@ -251,7 +252,7 @@ class ReportesModel extends Model
                     FROM gui_guias_despachadas ggd3 
                     WHERE ggd3.CREADO_POR = :USUARIO_ID
                     and date(ggd3.FECHA_CREADO) between :FECHA_INI and :FECHA_FIN
-                    and ggd3.CLIENTE_ENTREGA_ID = ggd.CLIENTE_ENTREGA_ID 
+                    and ggd3.CLIENTE_ENTREGA_ID = cc.ID
 
                 ),"N/A") as ULTIMO_DESPACHO,
                 IFNULL((
@@ -259,11 +260,12 @@ class ReportesModel extends Model
                     AVG(TIMESTAMPDIFF(SECOND, ggp.FECHA_SALE_PLANTA, ggde.FECHA_COMPLETADO)) / 3600 AS Tiempo_Estimado_Entrega_Horas
                     from gui_guias_despachadas_estado ggde
                     left join gui_guias_despachadas ggd2 
-                    on ggd2.PEDIDO_INTERNO = ggde.PEDIDO_INTERNO and ggd2.CLIENTE_ENTREGA_ID = ggd.CLIENTE_ENTREGA_ID 
+                    on ggd2.PEDIDO_INTERNO = ggde.PEDIDO_INTERNO
                     left join gui_guias_placa ggp 
                     on ggp.pedido_interno = ggde.PEDIDO_INTERNO 
                     where ggde.CREADO_POR  = :USUARIO_ID
                     and ggd2.PARCIAL = 0
+                    and ggd2.CLIENTE_ENTREGA_ID = cc.ID
                     group by ggde.CREADO_POR
                     
                 ),0) as TIEMPO_ESTIMADO_DESPACHO_GENERAL,
@@ -294,7 +296,7 @@ class ReportesModel extends Model
                     $result[$i]["DATOS_CLIENTE"] = $res;
                 } else {
                     $err = $query->errorInfo();
-                    $result[$i]["DATOS_CLIENTE"] = [];
+                    $result[$i]["DATOS_CLIENTE"] = $err;
                 }
             }
             return $result;
