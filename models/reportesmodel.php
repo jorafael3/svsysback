@@ -87,26 +87,34 @@ class ReportesModel extends Model
             (select count(*) from gui_guias_despachadas ggd where ggd.CREADO_POR = uu.usuario_id and ggd.PARCIAL  = 0) as GUIAS_COMPLETAS,
             (select count(*) from gui_guias_despachadas ggd where ggd.CREADO_POR = uu.usuario_id and ggd.PARCIAL  = 1) as GUIAS_PARCIALES,
             (select count(*) from gui_guias_despachadas_estado ggd where ggd.CREADO_POR = uu.usuario_id) as GUIAS_TOTALES,
+            (
+                select count(*) from gui_guias_despachadas_estado ggd where ggd.CREADO_POR = uu.usuario_id
+                and date(ggd.FECHA_CREADO) between :FECHA_INI and :FECHA_FIN
+            ) as GUIAS_TOTALES_PERIODO,
             ifnull( (
                 select
-                AVG(TIMESTAMPDIFF(SECOND, FECHA_CREADO, FECHA_COMPLETADO)) / 3600 AS Tiempo_Estimado_Entrega_Horas
+                AVG(TIMESTAMPDIFF(SECOND, ggp3.FECHA_SALE_PLANTA, ggde.FECHA_COMPLETADO)) / 3600 AS Tiempo_Estimado_Entrega_Horas
                 FROM gui_guias_despachadas_estado ggde 
+                left join gui_guias_placa ggp3 
+                on ggp3.pedido_interno = ggde.PEDIDO_INTERNO
                 WHERE ggde.FECHA_COMPLETADO IS NOT null and CREADO_POR = uc.usuario_id 
                 GROUP BY CREADO_POR
             ),null) as PROMEDIO_DEMORA_HORAS_TOTAL,
             ifnull( (
                 select
-                AVG(TIMESTAMPDIFF(SECOND, FECHA_CREADO, FECHA_COMPLETADO)) / 3600 AS Tiempo_Estimado_Entrega_Horas
+                AVG(TIMESTAMPDIFF(SECOND, ggp3.FECHA_SALE_PLANTA, ggde.FECHA_COMPLETADO)) / 3600 AS Tiempo_Estimado_Entrega_Horas
                 FROM gui_guias_despachadas_estado ggde 
-                WHERE ggde.FECHA_COMPLETADO IS NOT null and CREADO_POR = uc.usuario_id
-                and date(FECHA_CREADO) between :FECHA_INI and :FECHA_FIN
+                left join gui_guias_placa ggp3 
+                on ggp3.pedido_interno = ggde.PEDIDO_INTERNO
+                WHERE ggde.FECHA_COMPLETADO IS NOT null and ggde.CREADO_POR = uc.usuario_id
+                and date(ggde.FECHA_CREADO) between :FECHA_INI and :FECHA_FIN
                 GROUP BY CREADO_POR
             ),null) as PROMEDIO_DEMORA_HORAS_TOTAL_MES,
             (
                 select count(*)  from gui_guias_placa ggp 
                 left join guias g 
-                on g.PEDIDO_INTERNO = ggp.pedido_interno 
-                where STR_TO_DATE(g.FECHA_DE_EMISION  , "%d.%m.%Y") between :FECHA_INI and :FECHA_FIN
+                on g.PEDIDO_INTERNO = ggp.pedido_interno
+                where DATE(ggp.FECHA_CREADO) between :FECHA_INI and :FECHA_FIN
                 and ggp.placa = uc.PLACA
             ) as GUIAS_ASIGNADAS_PERIODO,
             (
@@ -139,6 +147,7 @@ class ReportesModel extends Model
                 $result = $query->fetchAll(PDO::FETCH_ASSOC);
                 $result = $this->Reporte_Chofer_DESTINOS($param, $result);
                 $result = $this->Reporte_Chofer_CLIENTES($param, $result);
+                $result = $this->Reporte_Chofer_GRAFICO_ENTREGAS($param, $result);
                 echo json_encode($result);
                 exit();
             } else {
@@ -213,6 +222,7 @@ class ReportesModel extends Model
                 $query = $this->db->connect_dobra()->prepare('SELECT DISTINCT
                 cc.ID as CLIENTE_ID,
                 cc.CLIENTE_NOMBRE,
+                cc.fecha_creado as CLIENTE_FECHA_REGISTRO,
                 (
                     select count(*) from gui_guias_despachadas ggd2 where ggd2.CLIENTE_ENTREGA_ID = cc.ID and ggd2.CREADO_POR = :USUARIO_ID
                 )as CANTIDAD_ENTREGAS_TOTAL,
@@ -224,12 +234,53 @@ class ReportesModel extends Model
                     select count(*) from gui_guias_despachadas ggd2 where ggd2.CLIENTE_ENTREGA_ID = cc.ID
                     and date(ggd2.FECHA_CREADO) between :FECHA_INI and :FECHA_FIN
                 )as CANTIDAD_ENTREGAS_TOTAL_OTROS_CHOFERES,
+                ifnull( (
+                    ((select count(*) from gui_guias_despachadas ggd where ggd.CLIENTE_ENTREGA_ID  = cc.ID and ggd.CREADO_POR = :USUARIO_ID
+                    and date(ggd.FECHA_CREADO) between :FECHA_INI and :FECHA_FIN)/
+                    (select count(*) from gui_guias_despachadas ggd where ggd.CLIENTE_ENTREGA_ID = cc.ID 
+                    and date(ggd.FECHA_CREADO) between :FECHA_INI and :FECHA_FIN))*100
+                ),0)as CANTIDAD_PARCIAL_PORCENTAJE,
+                ifnull( (
+                    select
+                    CONCAT(
+                        FLOOR(TIMESTAMPDIFF(HOUR, MAX(FECHA_CREADO), NOW()) / 24), 
+                        " días ", 
+                        MOD(TIMESTAMPDIFF(HOUR, MAX(FECHA_CREADO), NOW()), 24), 
+                        " horas"
+                    ) AS diferencia_tiempo
+                    FROM gui_guias_despachadas ggd3 
+                    WHERE ggd3.CREADO_POR = :USUARIO_ID
+                    and date(ggd3.FECHA_CREADO) between :FECHA_INI and :FECHA_FIN
+                    and ggd3.CLIENTE_ENTREGA_ID = ggd.CLIENTE_ENTREGA_ID 
+
+                ),"N/A") as ULTIMO_DESPACHO,
+                IFNULL((
+                    select 
+                    AVG(TIMESTAMPDIFF(SECOND, ggp.FECHA_SALE_PLANTA, ggde.FECHA_COMPLETADO)) / 3600 AS Tiempo_Estimado_Entrega_Horas
+                    from gui_guias_despachadas_estado ggde
+                    left join gui_guias_despachadas ggd2 
+                    on ggd2.PEDIDO_INTERNO = ggde.PEDIDO_INTERNO and ggd2.CLIENTE_ENTREGA_ID = ggd.CLIENTE_ENTREGA_ID 
+                    left join gui_guias_placa ggp 
+                    on ggp.pedido_interno = ggde.PEDIDO_INTERNO 
+                    where ggde.CREADO_POR  = :USUARIO_ID
+                    and ggd2.PARCIAL = 0
+                    group by ggde.CREADO_POR
+                    
+                ),0) as TIEMPO_ESTIMADO_DESPACHO_GENERAL,
                 (
-                        ((select count(*) from gui_guias_despachadas ggd where ggd.CLIENTE_ENTREGA_ID  = cc.ID and ggd.CREADO_POR = :USUARIO_ID
-                      and date(ggd.FECHA_CREADO) between :FECHA_INI and :FECHA_FIN)/
-                      (select count(*) from gui_guias_despachadas ggd where ggd.CLIENTE_ENTREGA_ID = cc.ID 
-                      and date(ggd.FECHA_CREADO) between :FECHA_INI and :FECHA_FIN))*100
-                )as CANTIDAD_PARCIAL_PORCENTAJE
+                    select 
+                    AVG(TIMESTAMPDIFF(SECOND, ggp.FECHA_SALE_PLANTA, ggde.FECHA_COMPLETADO)) / 3600 AS Tiempo_Estimado_Entrega_Horas
+                    from gui_guias_despachadas_estado ggde
+                    left join gui_guias_despachadas ggd2 
+                    on ggd2.PEDIDO_INTERNO = ggde.PEDIDO_INTERNO
+                    left join gui_guias_placa ggp 
+                    on ggp.pedido_interno = ggde.PEDIDO_INTERNO 
+                    where ggde.CREADO_POR  = :USUARIO_ID
+                    and ggd2.PARCIAL = 0
+                    and date(ggd2.FECHA_CREADO) between :FECHA_INI and :FECHA_FIN
+                    group by ggde.CREADO_POR
+                    
+                ) as TIEMPO_ESTIMADO_DESPACHO_PERIODO
                 from cli_clientes cc 
                 left join gui_guias_despachadas ggd 
                 on cc.ID = ggd.CLIENTE_ENTREGA_ID                 
@@ -253,4 +304,44 @@ class ReportesModel extends Model
             exit();
         }
     }
+
+    function Reporte_Chofer_GRAFICO_ENTREGAS($param, $result)
+    {
+        try {
+            $FECHA_INI = $param["FECHA_INI"];
+            $FECHA_FIN = $param["FECHA_FIN"];
+
+            for ($i = 0; $i < count($result); $i++) {
+                $USUARIO_ID = $result[$i]["CHOFER_ID"];
+                $query = $this->db->connect_dobra()->prepare('SELECT 
+                ggd.CREADO_POR, 
+                date(ggd.FECHA_COMPLETADO) as fecha, 
+                count(*)  as cantidad
+                from gui_guias_despachadas_estado   ggd 
+                where CREADO_POR = :USUARIO_ID and FECHA_COMPLETADO is not null 
+                and date(FECHA_CREADO) between :FECHA_INI and :FECHA_FIN
+                group  by  date(ggd.FECHA_COMPLETADO)             
+                ');
+                $query->bindParam(":FECHA_INI", $FECHA_INI, PDO::PARAM_STR);
+                $query->bindParam(":FECHA_FIN", $FECHA_FIN, PDO::PARAM_STR);
+                $query->bindParam(":USUARIO_ID", $USUARIO_ID, PDO::PARAM_STR);
+
+                if ($query->execute()) {
+                    $res = $query->fetchAll(PDO::FETCH_ASSOC);
+                    $result[$i]["DATOS_GRAFICO"] = $res;
+                } else {
+                    $err = $query->errorInfo();
+                    $result[$i]["DATOS_GRAFICO"] = [];
+                }
+            }
+            return $result;
+        } catch (PDOException $e) {
+            $e = $e->getMessage();
+            echo json_encode($e);
+            exit();
+        }
+    }
+
+
+
 }
