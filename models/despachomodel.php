@@ -306,21 +306,19 @@ class DespachoModel extends Model
                 PEDIDO_INTERNO, 
                 ESTADO_DESPACHO, 
                 ESTADO_DESPACHO_TEXTO, 
-                CREADO_POR,
-                FECHA_COMPLETADO
+                CREADO_POR
                 ) VALUES(
                     :PEDIDO_INTERNO, 
                     :ESTADO_DESPACHO, 
                     :ESTATO_DESPACHO_TEXTO, 
-                    :CREADO_POR,
-                    :FECHA_COMPLETADO
+                    :CREADO_POR
                 )
             ');
             $query->bindParam(":PEDIDO_INTERNO", $PEDIDO_INTERNO, PDO::PARAM_STR);
             $query->bindParam(":ESTADO_DESPACHO", $PARCIAL, PDO::PARAM_STR);
             $query->bindParam(":ESTATO_DESPACHO_TEXTO", $ESTATO_DESPACHO_TEXTO, PDO::PARAM_STR);
             $query->bindParam(":CREADO_POR", $CREADO_POR, PDO::PARAM_STR);
-            $query->bindParam(":FECHA_COMPLETADO", $FECHA_COMPLETO, PDO::PARAM_STR);
+            // $query->bindParam(":FECHA_COMPLETADO", $FECHA_COMPLETO, PDO::PARAM_STR);
             if ($query->execute()) {
                 return array("GUARDADO" => 1, "MENSAJE" => "ESTADO GUARDADO");
             } else {
@@ -398,6 +396,7 @@ class DespachoModel extends Model
             exit();
         }
     }
+
 
     //***** GUIAS USUARIO */
     function Guias_usuario($param)
@@ -683,8 +682,12 @@ class DespachoModel extends Model
             $DETALLE = $param["DETALLE"];
             $UBICACION = $param["UBICACION"];
             $imagen = $param["IMAGEN"];
-            $imageData = base64_decode($imagen["image"]);
-            $fileName = $PEDIDO_INTERNO . "_" . $despacho_ID . ".jpg";
+            if ($imagen != null) {
+                $imageData = base64_decode($imagen["image"]);
+                $fileName = $PEDIDO_INTERNO . "_" . $despacho_ID . ".jpg";
+            } else {
+                $fileName = "";
+            }
 
             $query = $this->db->connect_dobra()->prepare('INSERT INTO gui_guias_despachadas 
             (
@@ -735,12 +738,12 @@ class DespachoModel extends Model
                         if ($COM["GUARDADO"] == 0) {
                             $this->db->connect_dobra()->rollback();
                         } else {
-                            $targetDirectory = "C:/xampp/htdocs/svsysback/recursos/guias_subidas/";
-                            $targetFile = $targetDirectory . $fileName;
-                            if (file_put_contents($targetFile, $imageData)) {
-                                // echo "La imagen se ha guardado correctamente en: " . $targetFile;
-                            } else {
-                                // echo "Error al guardar la imagen.";
+                            if ($imagen != null) {
+                                $targetDirectory = "C:/xampp/htdocs/svsysback/recursos/guias_subidas/";
+                                $targetFile = $targetDirectory . $fileName;
+                                if (file_put_contents($targetFile, $imageData)) {
+                                    // echo "La imagen se ha guardado correctamente en: " . $targetFile;
+                                }
                             }
                             $this->db->connect_dobra()->commit();
                         }
@@ -833,16 +836,18 @@ class DespachoModel extends Model
     function Actualizar_Parcial_Completo($param)
     {
         try {
+            // date_default_timezone_set('America/Guayaquil');
             $PEDIDO = $param["PEDIDO_INTERNO"];
-            // $FECHA_COMPLETO = $param["PARCIAL"] == 0 ? date("Y-m-d h:m:s") : "";
+            // $FECHA_COMPLETO = date("Y-m-d h:m:s");
 
             $query = $this->db->connect_dobra()->prepare('UPDATE gui_guias_despachadas_estado
             SET 
                 ESTADO_DESPACHO = 0, 
-                ESTADO_DESPACHO_TEXTO = "COMPLETO",
-                FECHA_COMPLETADO = NOW()
+                ESTADO_DESPACHO_TEXTO = "COMPLETO"
             where PEDIDO_INTERNO = :pedido');
             $query->bindParam(":pedido", $PEDIDO, PDO::PARAM_STR);
+            // $query->bindParam(":FECHA_COMPLETO", $FECHA_COMPLETO, PDO::PARAM_STR);
+
             if ($query->execute()) {
                 $result = $query->fetchAll(PDO::FETCH_ASSOC);
                 return array("GUARDADO" => 1, "MENSAJE" => "GUIA COMPLETA");
@@ -935,7 +940,50 @@ class DespachoModel extends Model
         }
     }
 
+    function Cargar_guias_asignadas_detalle($param)
+    {
+        try {
+            $PEDIDO_INTERNO = $param["PEDIDO_INTERNO"];
+            $query = $this->db->connect_dobra()->prepare('SELECT  * from guias g 
+            where PEDIDO_INTERNO = :PEDIDO_INTERNO');
+            $query->bindParam(":PEDIDO_INTERNO", $PEDIDO_INTERNO, PDO::PARAM_STR);
+            if ($query->execute()) {
+                $result = $query->fetchAll(PDO::FETCH_ASSOC);
+                $det = $this->Cargar_guias_asignadas_detalle_dt($param);
+                echo json_encode([$result, $det]);
+                exit();
+            } else {
+                $err = $query->errorInfo();
+                echo json_encode($err);
+                exit();
+            }
+        } catch (PDOException $e) {
+            $e = $e->getMessage();
+            echo json_encode([$e, 0, 0]);
+            exit();
+        }
+    }
 
+    function Cargar_guias_asignadas_detalle_dt($param)
+    {
+        try {
+            $PEDIDO_INTERNO = $param["PEDIDO_INTERNO"];
+            $query = $this->db->connect_dobra()->prepare('SELECT  * from guias_detalle g 
+            where PEDIDO_INTERNO = :PEDIDO_INTERNO');
+            $query->bindParam(":PEDIDO_INTERNO", $PEDIDO_INTERNO, PDO::PARAM_STR);
+            if ($query->execute()) {
+                $result = $query->fetchAll(PDO::FETCH_ASSOC);
+                return $result;
+            } else {
+                $err = $query->errorInfo();
+                return $err;
+            }
+        } catch (PDOException $e) {
+            $e = $e->getMessage();
+            echo json_encode([$e, 0, 0]);
+            exit();
+        }
+    }
 
     //********************************************************************* */
     //*************************   GUIAS WEB    **************************** */

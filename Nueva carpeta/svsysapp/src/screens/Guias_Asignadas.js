@@ -50,18 +50,14 @@ export default function Guias_Asignadas({ route, navigation }) {
         if (event.type === 'set') {
             setfecha_inicio(date);
         }
-
-
     };
 
 
     useEffect(() => {
-
         setusuario(datos_sesion["Usuario"]);
         setusuarioid(datos_sesion["Usuario_ID"]);
         setplaca(datos_sesion["PLACA"]);
         Cargar_guias_asignadas(estado_filtro, pagina_actual)
-
     }, [isFocused]);
 
     function Cargar_guias_asignadas(estado_filtro, pagina) {
@@ -77,11 +73,8 @@ export default function Guias_Asignadas({ route, navigation }) {
         }
         console.log('param: ', param);
 
-
-
         let url = 'despacho/Cargar_guias_asignadas'
         fetchData(url, param, function (x) {
-
             if (x == -1) {
                 Alert.alert("Error de conexion", "Asegurese que este conectado a internet");
             } else {
@@ -97,14 +90,11 @@ export default function Guias_Asignadas({ route, navigation }) {
                         let CANTDAD_REG = x[1];
                         datos.sort((a, b) => a.PEDIDO_INTERNO - b.PEDIDO_INTERNO);
                         let cantidad_pag = Math.ceil(CANTDAD_REG / itemsPerPage);
-
-
                         console.log('setpagina_final: ', cantidad_pag);
                         console.log('pagina_actual: ', pagina_actual);
                         // setpagina_actual(pagina_actual)
                         setpagina_final(cantidad_pag);
                         setelementos_retornados(CANTDAD_REG);
-
                         let datafiltro;
                         if (estado_filtro == "") {
                             datafiltro = datos;
@@ -115,14 +105,10 @@ export default function Guias_Asignadas({ route, navigation }) {
                         } else if (estado_filtro == "V") {
                             datafiltro = datos.filter(item => item.ESTADO_DESPACHO == null);
                         }
-
                         setdata_detalle(datafiltro);
                     }
                 }
             }
-
-
-
         })
 
     }
@@ -130,7 +116,7 @@ export default function Guias_Asignadas({ route, navigation }) {
     function Completar_Parcial(text, index, item) {
         let PEDIDO_INTERNO = item.PEDIDO_INTERNO;
         datos_sesion.PEDIDO_INTERNO = PEDIDO_INTERNO;
-        navigation.navigate('Guias_parcial', datos_sesion);
+        navigation.navigate('Guias_Asignadas_Detalle', datos_sesion);
     }
 
     return (
@@ -241,7 +227,7 @@ export default function Guias_Asignadas({ route, navigation }) {
                                     <Text style={[styles.columnHeader, { width: 100 }]}>ESTADO</Text>
                                     <Text style={[styles.columnHeader, { width: 100 }]}>PEDIDO #</Text>
                                     <Text style={[styles.columnHeader, { width: 80 }]}>DETALLE</Text>
-                                    <Text style={[styles.columnHeader, { width: 70 }]}>COM</Text>
+                                    {/* <Text style={[styles.columnHeader, { width: 70 }]}>COM</Text> */}
                                 </View>
 
                                 {data_detalle.map((item, index) => (
@@ -259,13 +245,13 @@ export default function Guias_Asignadas({ route, navigation }) {
                                         <Text style={[styles.cell, { width: 100, fontWeight: "bold", fontSize: 15 }]}>{item.PEDIDO_INTERNO}</Text>
                                         <TouchableOpacity
                                             style={[styles.cell, { width: 60, margin: 8, backgroundColor: '#F2F4F4', borderRadius: 5, justifyContent: 'center', alignItems: 'center' }]}
-                                        // onPress={(text) => Ver_Detalle(text, index, item)}
+                                        onPress={(text) => Completar_Parcial(text, index, item)}
                                         >
                                             <Text style={{ color: 'white', fontWeight: 'bold' }}>
                                                 <Icon name="eye" size={30} color="#1C2833" />
                                             </Text>
                                         </TouchableOpacity>
-                                        {item.ESTADO_DESPACHO == 1 ? (
+                                        {/* {item.ESTADO_DESPACHO == 1 ? (
                                             <TouchableOpacity
                                                 style={[styles.cell, { width: 60, margin: 8, backgroundColor: '#A9DFBF', borderRadius: 10, justifyContent: 'center', alignItems: 'center' }]}
                                                 onPress={(text) => Completar_Parcial(text, index, item)}
@@ -280,7 +266,7 @@ export default function Guias_Asignadas({ route, navigation }) {
                                             </Text>
                                         )
 
-                                        }
+                                        } */}
 
                                     </View>
                                 ))}

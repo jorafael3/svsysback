@@ -113,8 +113,8 @@ class Usuariosmodel extends Model
         try {
             $VAL = $this->Validar_Usuario($param);
             if ($VAL == 0) {
-                $US_USUARIO = $param["US_USUARIO"];
-                $US_NOMBRE = $param["US_NOMBRE"];
+                $US_USUARIO = strtoupper($param["US_USUARIO"]);
+                $US_NOMBRE = strtoupper($param["US_NOMBRE"]);
                 $US_EMAIL = $param["US_EMAIL"];
                 $US_PASS = $param["US_PASS"];
                 $US_DEPT = $param["US_DEPT"];

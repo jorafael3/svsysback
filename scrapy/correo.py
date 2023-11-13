@@ -24,11 +24,17 @@ credential = 'C:\\xampp\\htdocs\\svsysback\\scrapy\\client_secret.json'
 
 datos_correo=[]
 
+# conexion = mysql.connector.connect(
+#     host="localhost",
+#     user="root",
+#     password="",
+#     database="svsys"
+#     )
 conexion = mysql.connector.connect(
-    host="localhost",
-    user="root",
-    password="",
-    database="svsys"
+    host="mx102.hostgator.mx",
+    user="lcaimpor_svsys",
+    password="Equilivre3*",
+    database="lcaimpor_svsys"
     )
 
 def main():
