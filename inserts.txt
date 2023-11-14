@@ -1,0 +1,48 @@
+INSERT INTO gui_guias_despachadas_estado (PEDIDO_INTERNO, ESTADO_DESPACHO, ESTADO_DESPACHO_TEXTO, FECHA_CREADO, CREADO_POR, FECHA_COMPLETADO)
+select 
+g.PEDIDO_INTERNO as PEDIDO_INTERNO,
+0 as ESTADO_DESPACHO,
+'COMPLETO' as ESTADO_DESPACHO_TEXTO,
+DATE_ADD(ggp.FECHA_SALE_PLANTA, INTERVAL 2 HOUR) as FECHA_CREADO,
+uc.usuario_id as CREADO_POR,
+DATE_ADD(ggp.FECHA_SALE_PLANTA, INTERVAL 2 HOUR) as FECHA_COMPLETADO 
+from guias g 
+left join gui_guias_placa ggp 
+on g.PEDIDO_INTERNO = ggp.pedido_interno
+left join us_choferes uc on uc.PLACA = ggp.placa 
+where ggp.FECHA_SALE_PLANTA is not null 
+
+INSERT INTO gui_guias_despachadas (PEDIDO_INTERNO, CLIENTE_ENTREGA_ID, SERVICIO_ID, DESTINO_ID, FECHA_CREADO, CREADO_POR,PARCIAL,PLACA_CAMBIADA,PLACA_CAMBIADA_NUMERO,despacho_ID)
+select 
+ggde .PEDIDO_INTERNO as PEDIDO_INTERNO ,
+FLOOR(RAND() * (20 - 15 + 1) + 15) as CLIENTE_ENTREGA_ID ,
+1 as SERVICIO_ID ,
+2 as DESTINO_ID ,
+ggde.FECHA_CREADO as FECHA_CREADO ,
+ggde .CREADO_POR as CREADO_POR ,
+0 as PARCIAL ,
+0 as PLACA_CAMBIADA ,
+'' as PLACA_CAMBIADA_NUMERO,
+REPLACE(DATE_FORMAT(ggde.FECHA_CREADO, '%Y%m%d%H%i%s'), '-', '') as despacho_ID 
+from gui_guias_despachadas_estado ggde  
+
+INSERT INTO gui_guias_despachadas_dt (PEDIDO_INTERNO, CODIGO, PARCIAL, CANTIDAD_PARCIAL, despacho_ID, CANTIDAD_TOTAL, NO_ENTREGADA_DESTINO)
+select 
+gd.PEDIDO_INTERNO as PEDIDO_INTERNO ,
+gd.CODIGO as CODIGO ,
+0 as PARCIAL ,
+0 as CANTIDAD_PARCIAL,
+ggd.despacho_ID as despacho_ID,
+gd.POR_DESPACHAR as CANTIDAD_TOTAL,
+0 NO_ENTREGADA_DESTINO
+from guias_detalle gd 
+left join gui_guias_despachadas ggd  
+on gd.PEDIDO_INTERNO = ggd.PEDIDO_INTERNO 
+where ggd.despacho_ID is not null
+
+SELECT CASE 
+    WHEN numero = 18 THEN FLOOR(RAND() * 3 + 15) -- Excluye el 18, ajusta el rango
+    ELSE numero 
+END AS numero_aleatorio
+FROM (SELECT FLOOR(RAND() * 5 + 15) AS numero) AS numeros;
+
