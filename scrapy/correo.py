@@ -13,6 +13,7 @@ from datetime import datetime
 import email
 import smtplib
 import ssl
+import time
 from email import encoders
 from email.mime.base import MIMEBase
 from email.mime.text import MIMEText
@@ -24,18 +25,18 @@ credential = 'C:\\xampp\\htdocs\\svsysback\\scrapy\\client_secret.json'
 
 datos_correo=[]
 
-# conexion = mysql.connector.connect(
-#     host="localhost",
-#     user="root",
-#     password="",
-#     database="svsys"
-#     )
 conexion = mysql.connector.connect(
-    host="mx102.hostgator.mx",
-    user="lcaimpor_svsys",
-    password="Equilivre3*",
-    database="lcaimpor_svsys"
+    host="localhost",
+    user="root",
+    password="",
+    database="svsys"
     )
+# conexion = mysql.connector.connect(
+#     host="mx102.hostgator.mx",
+#     user="lcaimpor_svsys",
+#     password="Equilivre3*",
+#     database="lcaimpor_svsys"
+#     )
 
 def main():
     try:
@@ -268,8 +269,12 @@ def guardar_log(dato):
     except IOError:
         print("Error al escribir en el archivo.")
 
+
+
 if __name__ == '__main__':
-    main()
+    while True:
+        main()
+        time.sleep(180)
 
 
 # from google_auth_oauthlib.flow import InstalledAppFlow

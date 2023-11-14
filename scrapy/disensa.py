@@ -106,7 +106,7 @@ def Buscar_Documentos():
 
         # Formatea la fecha en "dd/mm/yyyy"
         fecha_formateada = fecha_hace_7_dias.strftime("%d/%m/%Y")
-        desde.send_keys(fecha_formateada)
+        desde.send_keys('01/10/2023')
         guardar_log("FECHA CAMBIADA",1)
     except:
         pass
