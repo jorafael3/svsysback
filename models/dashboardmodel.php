@@ -223,7 +223,8 @@ class dashboardmodel extends Model
             $query = $this->db->connect_dobra()->prepare("SELECT 
             date(ggde.FECHA_COMPLETADO) as FECHA,
             ggdd.CODIGO,
-            SUM(GGDD.CANTIDAD_PARCIAL) + SUM(GGDD.CANTIDAD_TOTAL) as cantidad
+            '1' as TIPO,
+            SUM(ggdd.CANTIDAD_PARCIAL) + SUM(ggdd.CANTIDAD_TOTAL) as cantidad
             from gui_guias_despachadas_estado ggde
             left join gui_guias_despachadas_dt ggdd 
             on ggde.PEDIDO_INTERNO = ggdd.PEDIDO_INTERNO
@@ -255,7 +256,8 @@ class dashboardmodel extends Model
             $query = $this->db->connect_dobra()->prepare("SELECT 
             date(ggde.FECHA_COMPLETADO) as FECHA_ANT,
             ggdd.CODIGO,
-            SUM(GGDD.CANTIDAD_PARCIAL) + SUM(GGDD.CANTIDAD_TOTAL) as cantidad
+            '2' as TIPO,
+            SUM(ggdd.CANTIDAD_PARCIAL) + SUM(ggdd.CANTIDAD_TOTAL) as cantidad
             from gui_guias_despachadas_estado ggde
             left join gui_guias_despachadas_dt ggdd 
             on ggde.PEDIDO_INTERNO = ggdd.PEDIDO_INTERNO

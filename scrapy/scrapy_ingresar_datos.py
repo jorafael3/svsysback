@@ -1,4 +1,3 @@
-#!/usr/bin/env python3.5
 import pandas as pd
 import os
 from PyPDF2 import PdfReader
@@ -8,13 +7,18 @@ from datetime import datetime
 from log import *
 from datetime import datetime, timedelta
 
+# conexion = mysql.connector.connect(
+#     host="localhost",
+#     user="root",
+#     password="",
+#     database="svsys"
+#     )
 conexion = mysql.connector.connect(
-    host="localhost",
-    user="root",
-    password="",
-    database="svsys"
+    host="gator4166.hostgator.com",
+    user="salvacer_jorge",
+    password="Equilivre3*",
+    database="salvacer_svsys"
     )
-
 
 def Obtener_tabla(texto):
     texto_limpio = texto.replace("PRODUCTO", "").replace("CANTIDAD", "")

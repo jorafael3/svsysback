@@ -10,11 +10,11 @@ header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers
 
 function prueba_datos()
 {
-    $data = json_decode(file_get_contents('php://input'), true);
-    $respuesta = array('mensaje' => 'Hola desde PHP');
-    // $param1 = $_POST['param'];
-    $param2 = isset($_GET['param1']) == true ? $_GET['param1'] : false;
-    echo json_encode([$respuesta,$data,$param2]);
+    // $data = json_decode(file_get_contents('php://input'), true);
+    // $respuesta = array('mensaje' => 'Hola desde PHP');
+    // // $param1 = $_POST['param'];
+    // $param2 = isset($_GET['param1']) == true ? $_GET['param1'] : false;
+    echo json_encode("hola");
     exit();
 }
 prueba_datos();

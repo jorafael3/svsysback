@@ -34,18 +34,18 @@ options.add_experimental_option("prefs", prefs)
 ser = Service()
 driver = webdriver.Chrome(service=ser, options=options)
 # driver = webdriver.Chrome()
-conexion = mysql.connector.connect(
-    host="localhost",
-    user="root",
-    password="",
-    database="svsys"
-    )
 # conexion = mysql.connector.connect(
-#     host="10.5.1.245",
+#     host="localhost",
 #     user="root",
-#     password="Bruno2001",
+#     password="",
 #     database="svsys"
 #     )
+conexion = mysql.connector.connect(
+    host="gator4166.hostgator.com",
+    user="salvacer_jorge",
+    password="Equilivre3*",
+    database="salvacer_svsys"
+    )
 
 # print(path+"\pdf")
 
@@ -86,83 +86,87 @@ def login():
 
 def Buscar_Documentos():
     # driver.get('file:///C:/xampp/htdocs/svsysback/scrapy/dis.html')
-    driver.get('https://www.portaldisensa.com/b2b_new/b2b/zDocumentosElectronicos.do')
-    time.sleep(1)
-    guardar_log("SESION INICIADA",1)
     try:
-        btn_b = driver.find_element(By.XPATH, '//*[@id="aceptar_Cookies"]')
+
+        driver.get('https://www.portaldisensa.com/b2b_new/b2b/zDocumentosElectronicos.do')
+        time.sleep(1)
+        guardar_log("SESION INICIADA",1)
+        try:
+            btn_b = driver.find_element(By.XPATH, '//*[@id="aceptar_Cookies"]')
+            btn_b.click()
+            time.sleep(5)
+            guardar_log("COOKIES ACEPTADAS",1)
+        except:
+            print("")
+        time.sleep(2)
+        try:
+            desde = driver.find_element(By.XPATH, '//*[@id="inputfdesde"]')
+            desde.clear()
+            fecha_actual = datetime.now()
+            # Calcula la fecha de hace 7 días
+            fecha_hace_7_dias = fecha_actual - timedelta(days=7)
+
+            # Formatea la fecha en "dd/mm/yyyy"
+            fecha_formateada = fecha_hace_7_dias.strftime("%d/%m/%Y")
+            desde.send_keys('01/10/2023')
+            guardar_log("FECHA CAMBIADA",1)
+        except:
+            pass
+        time.sleep(2)
+
+        driver.execute_script('arguments[0].value="500"', driver.find_element(By.NAME,'rowsPerPage'))
+        guardar_log("CANTIDAD DE ELEMENTOS EN TABLA CAMBIADO A 500",1)
+
+        time.sleep(2)
+        # time.sleep(1)
+        btn_b = driver.find_element(By.XPATH, '//*[@id="btn_consultar_docs_electronicos"]')
         btn_b.click()
+        guardar_log("CONSULTANDO TABLA DOCUMENTOS",1)
+        # form.submit()
         time.sleep(5)
-        guardar_log("COOKIES ACEPTADAS",1)
+        # current_page_input = form.find_element(By.NAME,'currentPage')
+        # total_pages_input = driver.find_element(By.XPATH,'//*[@id="formAux"]/input[2]').get_attribute("value")
+        # print(total_pages_input)
+        # current_page_input.send_keys('1')  # Establece el valor de "currentPage" a 1
+        # total_pages_input.send_keys('10.0')
+        # while True:
+
+
+        tabla = driver.find_element(By.XPATH,'//*[@id="divResultados"]/div/div[1]/table/tbody')
+        filas = tabla.find_elements(By.TAG_NAME,'tr') 
+        contador_elemento = 0
+        contador_archivos = 0  
+        for fila in filas:
+        # Encuentra las celdas de cada fila
+            celdas = fila.find_elements(By.TAG_NAME,'td')
+            # print(celdas) 
+        # Itera a través de las celdas de la fila
+            print("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+            
+            for celda in celdas:
+        # Realiza la acción deseada con el contenido de la celda
+                contador_elemento = contador_elemento + 1
+                if(celda.text != ""):
+                    try:
+                        link = celda.find_element(By.CLASS_NAME,"link_docs_electronicos_pedido")
+                        link.click()
+                        guardar_log("DESCARGANDO ARCHIVO "+str(celda.text),1)
+                        time.sleep(2)
+                        print("-----------------------------------")
+                        print(link)
+                        print("-----------------------------------")
+                        contador_archivos = contador_archivos + 1
+                    except:
+                        print("NO HAY ARCHIVO POR DESCARGAR",1)
+                    print(celda.text)
+        driver.quit()
+        guardar_log("ELEMENTOS EN TABLA RECORRIDOS "+ str(contador_elemento),1)
+        guardar_log("ARCHIVOS DESCARGADOS "+ str(contador_archivos),1)
+        guardar_log("SCRAPY REALIZADO",1)
+        print("SCRAPY REALIZADO")
+        Leer_pdf()
     except:
-        print("")
-    time.sleep(2)
-    try:
-        desde = driver.find_element(By.XPATH, '//*[@id="inputfdesde"]')
-        desde.clear()
-        fecha_actual = datetime.now()
-        # Calcula la fecha de hace 7 días
-        fecha_hace_7_dias = fecha_actual - timedelta(days=7)
-
-        # Formatea la fecha en "dd/mm/yyyy"
-        fecha_formateada = fecha_hace_7_dias.strftime("%d/%m/%Y")
-        desde.send_keys('01/10/2023')
-        guardar_log("FECHA CAMBIADA",1)
-    except:
-        pass
-    time.sleep(2)
-
-    driver.execute_script('arguments[0].value="500"', driver.find_element(By.NAME,'rowsPerPage'))
-    guardar_log("CANTIDAD DE ELEMENTOS EN TABLA CAMBIADO A 500",1)
-
-    time.sleep(2)
-    # time.sleep(1)
-    btn_b = driver.find_element(By.XPATH, '//*[@id="btn_consultar_docs_electronicos"]')
-    btn_b.click()
-    guardar_log("CONSULTANDO TABLA DOCUMENTOS",1)
-    # form.submit()
-    time.sleep(5)
-    # current_page_input = form.find_element(By.NAME,'currentPage')
-    # total_pages_input = driver.find_element(By.XPATH,'//*[@id="formAux"]/input[2]').get_attribute("value")
-    # print(total_pages_input)
-    # current_page_input.send_keys('1')  # Establece el valor de "currentPage" a 1
-    # total_pages_input.send_keys('10.0')
-    # while True:
-
-
-    tabla = driver.find_element(By.XPATH,'//*[@id="divResultados"]/div/div[1]/table/tbody')
-    filas = tabla.find_elements(By.TAG_NAME,'tr') 
-    contador_elemento = 0
-    contador_archivos = 0  
-    for fila in filas:
-    # Encuentra las celdas de cada fila
-        celdas = fila.find_elements(By.TAG_NAME,'td')
-        # print(celdas) 
-    # Itera a través de las celdas de la fila
-        print("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
-        
-        for celda in celdas:
-    # Realiza la acción deseada con el contenido de la celda
-            contador_elemento = contador_elemento + 1
-            if(celda.text != ""):
-                try:
-                    link = celda.find_element(By.CLASS_NAME,"link_docs_electronicos_pedido")
-                    link.click()
-                    guardar_log("DESCARGANDO ARCHIVO "+str(celda.text),1)
-                    time.sleep(2)
-                    print("-----------------------------------")
-                    print(link)
-                    print("-----------------------------------")
-                    contador_archivos = contador_archivos + 1
-                except:
-                    print("NO HAY ARCHIVO POR DESCARGAR",1)
-                print(celda.text)
-    driver.quit()
-    guardar_log("ELEMENTOS EN TABLA RECORRIDOS "+ str(contador_elemento),1)
-    guardar_log("ARCHIVOS DESCARGADOS "+ str(contador_archivos),1)
-    guardar_log("SCRAPY REALIZADO",1)
-    print("SCRAPY REALIZADO")
-    Leer_pdf()
+        login()
 
 
 #************************************

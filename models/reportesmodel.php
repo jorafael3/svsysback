@@ -242,7 +242,7 @@ class ReportesModel extends Model
                     $result[$i]["DATOS_MES_ANTERIOR"] = $res;
                 } else {
                     $err = $query->errorInfo();
-                    $result[$i]["DATOS_MES_ANTERIOR"] = [];
+                    $result[$i]["DATOS_MES_ANTERIOR"] = $err;
                 }
             }
             return $result;
@@ -267,8 +267,9 @@ class ReportesModel extends Model
                 (
                     select count(*) from  gui_guias_despachadas_dt dt
                     left join gui_guias_despachadas_estado ge 
-                    on ge.PEDIDO_INTERNO = dt .PEDIDO_INTERNO and gd .CODIGO = dt.CODIGO
+                    on ge.PEDIDO_INTERNO = dt.PEDIDO_INTERNO 
                     where dt.PARCIAL = 0
+                    and gd.CODIGO = dt.CODIGO
                     and ge.CREADO_POR = ggde.CREADO_POR 
                     and date(ge.FECHA_CREADO) between :FECHA_INI_A and :FECHA_FIN_A
                 )as CANTIDAD_DE_DESPACHOS_CODIGO_MES,
@@ -280,15 +281,17 @@ class ReportesModel extends Model
                     select sum(ggdd.CANTIDAD_TOTAL) + sum(ggdd.CANTIDAD_PARCIAL) 
                     from gui_guias_despachadas_dt ggdd
                     left join gui_guias_despachadas_estado ge 
-                    on ge.PEDIDO_INTERNO = ggdd .PEDIDO_INTERNO and ggdd .CODIGO = gd.CODIGO 
-                    where ge.CREADO_POR = ggde.CREADO_POR 
+                    on ge.PEDIDO_INTERNO = ggdd.PEDIDO_INTERNO 
+                    where ge.CREADO_POR = ggde.CREADO_POR
+                    and ggdd.CODIGO = gd.CODIGO  
                 )as DESPACHADO_CODIGO_TOTAL
                 from gui_guias_despachadas_dt ggdd
                 left join guias_detalle gd 
-                on gd.PEDIDO_INTERNO = ggdd .PEDIDO_INTERNO
+                on gd.PEDIDO_INTERNO = ggdd.PEDIDO_INTERNO
                 left join gui_guias_despachadas_estado ggde 
-                on ggde.PEDIDO_INTERNO = ggdd .PEDIDO_INTERNO and ggdd .CODIGO = gd.CODIGO 
+                on ggde.PEDIDO_INTERNO = ggdd.PEDIDO_INTERNO 
                 where ggde.CREADO_POR = :USUARIO_ID
+                and ggdd.CODIGO = gd.CODIGO 
                 and date(ggde.FECHA_CREADO) between :FECHA_INI_A and :FECHA_FIN_A
                 group by gd.CODIGO
                 ");
@@ -300,13 +303,13 @@ class ReportesModel extends Model
                     $result[$i]["DATOS_CODIGOS_DESPACHADOS"] = $res;
                 } else {
                     $err = $query->errorInfo();
-                    $result[$i]["DATOS_CODIGOS_DESPACHADOS"] = [];
+                    $result[$i]["DATOS_CODIGOS_DESPACHADOS"] = $err;
                 }
             }
             return $result;
-        } catch (PDOException $e) {
+        } catch (Exception $e) {
             $e = $e->getMessage();
-            echo json_encode($e);
+            echo json_encode($e );
             exit();
         }
     }
@@ -349,7 +352,7 @@ class ReportesModel extends Model
                     $result[$i]["DATOS_DESTINO"] = $res;
                 } else {
                     $err = $query->errorInfo();
-                    $result[$i]["DATOS_DESTINO"] = [];
+                    $result[$i]["DATOS_DESTINO"] = $err;
                 }
             }
             return $result;
@@ -482,7 +485,7 @@ class ReportesModel extends Model
                     $result[$i]["DATOS_GRAFICO"] = $res;
                 } else {
                     $err = $query->errorInfo();
-                    $result[$i]["DATOS_GRAFICO"] = [];
+                    $result[$i]["DATOS_GRAFICO"] = $err;
                 }
             }
             return $result;
@@ -519,7 +522,7 @@ class ReportesModel extends Model
                     $result[$i]["DATOS_GRAFICO_MES_ANTERIOR"] = $res;
                 } else {
                     $err = $query->errorInfo();
-                    $result[$i]["DATOS_GRAFICO_MES_ANTERIOR"] = [];
+                    $result[$i]["DATOS_GRAFICO_MES_ANTERIOR"] = $err;
                 }
             }
             return $result;
@@ -554,7 +557,7 @@ class ReportesModel extends Model
                     $result[$i]["DATOS_GRAFICO_MES"] = $res;
                 } else {
                     $err = $query->errorInfo();
-                    $result[$i]["DATOS_GRAFICO_MES"] = [];
+                    $result[$i]["DATOS_GRAFICO_MES"] = $err;
                 }
             }
             return $result;
