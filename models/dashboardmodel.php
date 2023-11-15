@@ -11,6 +11,33 @@ class dashboardmodel extends Model
         parent::__construct();
     }
 
+    function Cargar_Productos()
+    {
+        try {
+            // $inicio_mes = $param["inicio_mes"];
+            // $fin_mes = $param["fin_mes"];
+            $query = $this->db->connect_dobra()->prepare("SELECT distinct  
+            CODIGO,DESCRIPCION  from guias_detalle gd 
+            order by DESCRIPCION 
+           ");
+            // $query->bindParam(":inicio_mes", $inicio_mes, PDO::PARAM_STR);
+            // $query->bindParam(":fin_mes", $fin_mes, PDO::PARAM_STR);
+            if ($query->execute()) {
+                $result = $query->fetchAll(PDO::FETCH_ASSOC);
+                echo json_encode($result);
+                exit();
+            } else {
+                $err = $query->errorInfo();
+                echo json_encode($err);
+                exit();
+            }
+        } catch (PDOException $e) {
+            $e = $e->getMessage();
+            echo json_encode([$e, 0, 0]);
+            exit();
+        }
+    }
+
     function Cargar_Stats($param)
     {
         try {
@@ -19,12 +46,14 @@ class dashboardmodel extends Model
             $GUIAS_DESPACHADAS = array(
                 "POR_DIA" => $this->GUIAS_DESPACHADAS_POR_DIA($param),
                 "POR_DIA_MES_ANT" => $this->GUIAS_DESPACHADAS_POR_DIA_MES_ANTERIOR($param),
+                "POR_MES" => $this->GUIAS_DESPACHADAS_POR_MES($param),
+                "POR_ANIO" => $this->GUIAS_DESPACHADAS_POR_ANIO($param),
             );
             $A = array(
                 "SACOS" => $SACOS,
                 "CHOFER" => $CHOFER,
                 "GUIAS_DESPACHADAS" => $GUIAS_DESPACHADAS,
-                
+
             );
             echo json_encode($A);
             exit();
@@ -217,6 +246,7 @@ class dashboardmodel extends Model
             exit();
         }
     }
+
     function GUIAS_DESPACHADAS_POR_DIA_MES_ANTERIOR($param)
     {
         try {
@@ -241,6 +271,69 @@ class dashboardmodel extends Model
             } else {
                 $err = $query->errorInfo();
                 return array("DATOS" => $err);
+            }
+        } catch (PDOException $e) {
+            $e = $e->getMessage();
+            echo json_encode([$e, 0, 0]);
+            exit();
+        }
+    }
+
+    function GUIAS_DESPACHADAS_POR_MES($param)
+    {
+        try {
+            // $inicio_mes = $param["inicio_mes"];
+            // $fin_mes = $param["fin_mes"];
+            $query = $this->db->connect_dobra()->prepare("SELECT
+            gd.CODIGO,
+            concat(year(STR_TO_DATE(g.FECHA_DE_EMISION , '%d.%m.%Y')),'-',lpad(month(STR_TO_DATE(g.FECHA_DE_EMISION , '%d.%m.%Y')),2,'0')) as FECHA,
+            sum(gd.POR_DESPACHAR) AS cantidad
+            from guias_detalle gd 
+            join guias g 
+            on gd.PEDIDO_INTERNO = g.PEDIDO_INTERNO
+            where gd.CODIGO = '10016416'
+            group by FECHA
+           ");
+            // $query->bindParam(":inicio_mes", $inicio_mes, PDO::PARAM_STR);
+            // $query->bindParam(":fin_mes", $fin_mes, PDO::PARAM_STR);
+            if ($query->execute()) {
+                $result = $query->fetchAll(PDO::FETCH_ASSOC);
+                return array("DATOS" => $result);
+            } else {
+                $err = $query->errorInfo();
+                return $err;
+            }
+        } catch (PDOException $e) {
+            $e = $e->getMessage();
+            echo json_encode([$e, 0, 0]);
+            exit();
+        }
+    }
+
+    function GUIAS_DESPACHADAS_POR_ANIO($param)
+    {
+        try {
+            // $inicio_mes = $param["inicio_mes"];
+            // $fin_mes = $param["fin_mes"];
+            $query = $this->db->connect_dobra()->prepare("SELECT
+            gd.CODIGO,
+            gd.PEDIDO_INTERNO,
+            concat(year(STR_TO_DATE(g.FECHA_DE_EMISION , '%d.%m.%Y'))) as FECHA,
+            sum(gd.POR_DESPACHAR) as cantidad
+            from guias_detalle gd 
+            join guias g 
+            on gd.PEDIDO_INTERNO = g.PEDIDO_INTERNO
+            where gd.CODIGO = '10016416'
+            group by FECHA
+           ");
+            // $query->bindParam(":inicio_mes", $inicio_mes, PDO::PARAM_STR);
+            // $query->bindParam(":fin_mes", $fin_mes, PDO::PARAM_STR);
+            if ($query->execute()) {
+                $result = $query->fetchAll(PDO::FETCH_ASSOC);
+                return array("DATOS" => $result);
+            } else {
+                $err = $query->errorInfo();
+                return $err;
             }
         } catch (PDOException $e) {
             $e = $e->getMessage();

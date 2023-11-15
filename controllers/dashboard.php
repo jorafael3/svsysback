@@ -24,4 +24,15 @@ class Dashboard extends Controller
         }
     }
 
+    function Cargar_Productos()
+    {
+        $param = $_POST['param'];
+        if ($param["TOKEN"] == constant("TOKEN_WEB")) {
+            // echo json_encode($param);
+            $Ventas =  $this->model->Cargar_Productos($param);
+        } else {
+            die();
+        }
+    }
+
 }
