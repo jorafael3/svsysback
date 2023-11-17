@@ -510,7 +510,8 @@ def Obtener_cabecera(cabecera):
 #             Guadar_detalle(detalle,pedido)
 #     print("FINALIZADO DATOS")
 #     guardar_log("FINALIZADO DATOS "+str(cantidad_datos) ,1)
-
-login()
+def ejecutar():
+    for i in range(1):
+        login()
 # Leer_pdf()
 
