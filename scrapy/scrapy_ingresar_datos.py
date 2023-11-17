@@ -6,7 +6,8 @@ import mysql.connector
 from datetime import datetime
 from log import *
 from datetime import datetime, timedelta
-
+import sqlalchemy
+import shutil
 # conexion = mysql.connector.connect(
 #     host="localhost",
 #     user="root",
@@ -19,6 +20,16 @@ conexion = mysql.connector.connect(
     password="Equilivre3*",
     database="salvacer_svsys"
     )
+
+# server = 'gator4166.hostgator.com' 
+# database = 'salvacer_svsys' 
+# username = 'salvacer_jorge' 
+# password = 'Equilivre3*'  
+
+# DATABASE_URL = 'mysql+mysqlconnector://salvacer_jorge:Equilivre3*@gator4166.hostgator.com:3306/salvacer_svsys'
+# engine = sqlalchemy.create_engine(DATABASE_URL)
+
+
 
 def Obtener_tabla(texto):
     texto_limpio = texto.replace("PRODUCTO", "").replace("CANTIDAD", "")
@@ -160,9 +171,25 @@ def Leer_pdf():
                     guardar_log("NO SE PUDO ABRIR EL ARCHIVO "+str(nombre_archivo),1)
 
         guardar_log("PREPARANDO PARA GUARDAR DATOS",1)
+        print("PREPARANDO PARA GUARDAR DATOS")
         Guardar_Guias(array_datos)
     else:
         guardar_log("NO HAY ARCHIVOS EN EL DIRECTORIO",1)
+
+def Validar_Cabecera(numero):
+    # conn = engine.connect()
+    # consulta_sql = sqlalchemy.text('SELECT * FROM guias WHERE PEDIDO_INTERNO = :PEDIDO_INTERNO')
+    # result = conn.execute(consulta_sql,PEDIDO_INTERNO=numero )
+    # resultados = []
+    # for row in result:
+    #         resultados.append(row)
+    # print(numero)
+    cursor = conexion.cursor()
+    consulta = 'SELECT PEDIDO_INTERNO FROM guias WHERE PEDIDO_INTERNO = %s'
+    valores = (numero,)
+    cursor.execute(consulta,valores)
+    resultados = cursor.fetchall()
+    return len(resultados)
 
 def Guardar_Cabecera(datos):
     try: 
@@ -173,7 +200,7 @@ def Guardar_Cabecera(datos):
         val = Validar_Cabecera(numero)
         if val == 0:
             consulta = """
-                INSERT INTO guias (
+                INSERT INTO salvacer_svsys.guias(
                     FECHA_DE_EMISION,
                     FACTURA,
                     TELEFONO,
@@ -241,19 +268,159 @@ def Guardar_Cabecera(datos):
                 return 1
         else:
             guardar_log("YA SE ENCUENTRA EN LA BASE PEDIDO INTERNO "+str(numero),1)
+            print("YA SE ENCUENTRA EN LA BASE PEDIDO INTERNO "+str(numero))
             return 0
     except Exception as e:
         guardar_log("ERROR AL GUARDAR CABECERA "+str(e),1)
+        print("ERROR AL GUARDAR CABECERA "+str(e))
         return 0
 
-def Validar_Cabecera(numero):
-    # print(numero)
-    cursor = conexion.cursor()
-    consulta = 'SELECT PEDIDO_INTERNO FROM GUIAS WHERE PEDIDO_INTERNO = %s'
-    valores = (numero,)
-    cursor.execute(consulta,valores)
-    resultados = cursor.fetchall()
-    return len(resultados)
+
+# def Guardar_Cabecera(datos):
+#     try: 
+#         conn = engine.connect()
+#         numero = datos["PEDIDO_INTERNO"].strip()
+#         numero = numero.replace(" ","")
+
+#         val = Validar_Cabecera(numero)
+#         if val == 0:
+#             consulta = sqlalchemy.text("""
+#                 INSERT INTO guias (
+#                     FECHA_DE_EMISION,
+#                     FACTURA,
+#                     TELEFONO,
+#                     FECHA_VALIDEZ,
+#                     CLIENTE,
+#                     CLIENTE_RUC,
+#                     SOLICITANTE,
+#                     DIRECCION_1,
+#                     PTO_DE_PARTIDA,
+#                     PTO_DE_LLEGADA,
+#                     DIRECCION_2,
+#                     TIPO_DE_ENTREGA,
+#                     PEDIDO_INTERNO,
+#                     PED_COMPRA
+#                     ) VALUES (
+#                     :FECHA_DE_EMISION,
+#                     :FACTURA,
+#                     :TELEFONO,
+#                     :FECHA_VALIDEZ,
+#                     :CLIENTE,
+#                     :CLIENTE_RUC,
+#                     :SOLICITANTE,
+#                     :DIRECCION_1,
+#                     :PTO_DE_PARTIDA,
+#                     :PTO_DE_LLEGADA,
+#                     :DIRECCION_2,
+#                     :TIPO_DE_ENTREGA,
+#                     :PEDIDO_INTERNO,
+#                     :PED_COMPRA
+#                         )
+#             """)
+                     
+#             try:
+#             # Intenta ejecutar la consulta con los valores
+            
+#                 conn.execute(consulta, 
+#                             FECHA_DE_EMISION =datos["FECHA_EMISIÓN"].strip(),
+#                             FACTURA = datos["FACTURA"].strip(),
+#                             TELEFONO = datos["TELÉFONO"].strip(),
+#                             FECHA_VALIDEZ = datos["FECHA_VALIDEZ"].strip(),
+#                             CLIENTE = datos["CLIENTE"].strip(),
+#                             CLIENTE_RUC =  datos["RUC"].strip(),
+#                             SOLICITANTE = datos["SOLICITANTE"].strip(),
+#                             DIRECCION_1 =  datos["DIRECCION"].strip(),
+#                             PTO_DE_PARTIDA =  datos["PTO_DE_PARTIDA"].strip(),
+#                             PTO_DE_LLEGADA =  datos["PTO_DE_LLEGADA"].strip(),
+#                             DIRECCION_2 =datos["DIRECCIÓN"].strip(),
+#                             TIPO_DE_ENTREGA =  datos["TIPO_DE_ENTREGA"].strip(),
+#                             PEDIDO_INTERNO = numero,
+#                             PED_COMPRA = datos["PED_COMPRA"].strip()
+#                              )
+
+#                 print("Inserción exitosa"+str(numero))
+#             except Exception as e:
+#                 # Captura cualquier excepción que ocurra durante la inserción
+#                 print("Error durante la inserción:", str(e))
+#             finally:
+#                 # Cierra el cursor y la conexión
+#                 conn.close()
+#                 return 1
+#         else:
+#             guardar_log("YA SE ENCUENTRA EN LA BASE PEDIDO INTERNO "+str(numero),1)
+#             print("YA SE ENCUENTRA EN LA BASE PEDIDO INTERNO "+str(numero))
+#             return 0
+#     except Exception as e:
+#         guardar_log("ERROR AL GUARDAR CABECERA "+str(e),1)
+#         print("ERROR AL GUARDAR CABECERA "+str(e))
+#         return 0
+
+# def Guadar_detalle(datos,PEDIDO):
+#     conn = engine.connect()
+#     val = 0
+#     err = 0
+#     for dato in datos:
+#         valores = (
+#                     PEDIDO,
+#                     dato["ORD"].strip(),           
+#                     dato["CODIGO"].strip(),
+#                     dato["DESCRIPCION"].strip(),
+#                     dato["UNIDAD"].strip(),
+#                     dato["POR_DESPACHAR"].strip(),
+#                     dato["DESPACHADA"].strip(),
+#                     dato["ENTREGADA"].strip(),
+#             )
+        
+#         consulta = sqlalchemy.text("""
+#                 INSERT INTO GUIAS_DETALLE (
+#                     PEDIDO_INTERNO,
+#                     ORD,
+#                     CODIGO,
+#                     DESCRIPCION,
+#                     UNIDAD,
+#                     POR_DESPACHAR,
+#                     DESPACHADA,
+#                     ENTREGADA
+#                     ) VALUES (
+#                     :PEDIDO_INTERNO,
+#                     :ORD,
+#                     :CODIGO,
+#                     :DESCRIPCION,
+#                     :UNIDAD,
+#                     :POR_DESPACHAR,
+#                     :DESPACHADA,
+#                     :ENTREGADA
+#                         )
+#             """)
+#         try:
+                
+#                 conn.execute(consulta, 
+#                             PEDIDO_INTERNO =PEDIDO,
+#                             ORD = dato["ORD"].strip(),
+#                             CODIGO = dato["CODIGO"].strip(),
+#                             DESCRIPCION = dato["DESCRIPCION"].strip(),
+#                             UNIDAD = dato["UNIDAD"].strip(),
+#                             POR_DESPACHAR =  dato["POR_DESPACHAR"].strip(),
+#                             DESPACHADA = dato["DESPACHADA"].strip(),
+#                             ENTREGADA = dato["ENTREGADA"].strip(),
+                            
+#                              )
+#                 print("detalle guardado exitosa")
+#         except Exception as e:
+#                 # Captura cualquier excepción que ocurra durante la inserción
+#                 print("Error durante la inserción:", str(e))
+#                 # return 0
+#                 err = err + 1
+#         finally:
+#                 # Cierra el cursor y la conexión
+#                 conn.close()
+#                 val = val + 1
+#                 # return 1
+    
+#     if err == 0:
+#         return 1
+#     else:
+#         return 0
 
 def Guadar_detalle(datos,PEDIDO):
 
@@ -272,7 +439,7 @@ def Guadar_detalle(datos,PEDIDO):
             )
         
         consulta = """
-                INSERT INTO GUIAS_DETALLE (
+                INSERT INTO guias_detalle (
                     PEDIDO_INTERNO,
                     ORD,
                     CODIGO,
@@ -322,5 +489,19 @@ def Guardar_Guias(array_datos):
     print("FINALIZADO DATOS")
     guardar_log("FINALIZADO DATOS "+str(cantidad_datos) ,1)
 
+def mover_archivos():
+    directorio = 'C:/xampp/htdocs/svsysback/scrapy/pdf'
+    carpeta_destino  = 'C:/xampp/htdocs/svsysback/scrapy/pdf_old'
 
-Leer_pdf()
+    archivos = os.listdir(directorio)
+    for archivo in archivos:
+        ruta_origen = os.path.join(directorio, archivo)
+        ruta_destino = os.path.join(carpeta_destino, archivo)
+        shutil.move(ruta_origen, ruta_destino)
+
+def ejecutar():
+    for i in range(2):
+        Leer_pdf()
+    mover_archivos()
+
+ejecutar()

@@ -272,9 +272,10 @@ def guardar_log(dato):
 
 
 if __name__ == '__main__':
-    while True:
-        main()
-        time.sleep(180)
+    # while True:
+    main()
+        # time.sleep(180)
+
 
 
 # from google_auth_oauthlib.flow import InstalledAppFlow
