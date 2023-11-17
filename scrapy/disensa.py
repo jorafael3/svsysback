@@ -20,6 +20,13 @@ import mysql.connector
 from datetime import datetime
 from log import *
 from datetime import datetime, timedelta
+from email import encoders
+from email.mime.base import MIMEBase
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from email.mime.application import MIMEApplication
+import smtplib
+from datetime import datetime
 
 options = Options()
 options.add_argument("--start-maximized")
@@ -163,10 +170,41 @@ def Buscar_Documentos():
         guardar_log("ARCHIVOS DESCARGADOS "+ str(contador_archivos),1)
         guardar_log("SCRAPY REALIZADO",1)
         print("SCRAPY REALIZADO")
+        enviar_correo()
         # Leer_pdf()
     except:
         login()
 
+
+def enviar_correo():
+    port = 465  
+    smtp_server = "smtp.gmail.com"
+    gmail_user = 'jalvaradoe3@gmail.com'
+    gmail_password = 'zwgp wqdl pihr eqom'
+    sender_email = "jalvaradoe3@gmail.com"
+    message = MIMEMultipart("multipart")
+    text ="SCRAPY REALIZADO" + datetime.now()
+    try:
+        part1 = MIMEText(text, "plain")
+        message.attach(part1)
+        correo = 'jalvaradoe3@gmail.com'
+        message["Subject"] = "svsys correos aut"
+        message["From"] = sender_email
+        message["To"] = correo
+        try:
+            with smtplib.SMTP_SSL(smtp_server, port) as server:
+                server.ehlo()
+                # server.starttls() # Secure the connection
+                server.login(gmail_user, gmail_password)
+                server.sendmail(sender_email, correo, message.as_string())
+                server.close()
+        except Exception as e:
+            print(e)
+        else:
+            print("")
+
+    except Exception as e:
+            print(e)
 
 #************************************
 #********* LEER DOCUMENTOS **********
