@@ -500,7 +500,7 @@ def mover_archivos():
         shutil.move(ruta_origen, ruta_destino)
 
 def ejecutar():
-    for i in range(2):
+    for i in range(3):
         Leer_pdf()
     mover_archivos()
 
