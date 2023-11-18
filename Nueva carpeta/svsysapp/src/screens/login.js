@@ -20,7 +20,7 @@ export default function LoginScreen({ navigation }) {
         // let url = "prueba.php"
 
         // 
-        // navigation.navigate('Menu_opciones', { Usuario: 'jorge', Usuario_ID: 1, Acceso: 1, PLACA: "GBO-7782" });
+        // navigation.navigate('Menu_opciones', { Usuario: 'chofer2', Usuario_ID: 8, Acceso: 1, PLACA: "GBO-7782" });
 
         // Alert.alert(
         //     'Dummy Title For Alert',

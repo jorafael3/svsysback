@@ -478,7 +478,8 @@ class DespachoModel extends Model
             ser.nombre as SERVICIO, 
             gd.nombre as DESTINO,
             ggde.despacho_ID,
-            ggde.PARCIAL
+            ggde.PARCIAL,
+            ggde.imagen
             from 
                 gui_guias_despachadas ggde
             left join cli_clientes cl
@@ -486,7 +487,7 @@ class DespachoModel extends Model
             left join gui_servicios ser
             on ser.ID = ggde.SERVICIO_ID
             left join gui_destinos gd 
-            on gd.ID = ggde .DESTINO_ID 
+            on gd.ID = ggde.DESTINO_ID 
             WHERE ggde.PEDIDO_INTERNO = :PEDIDO_INTERNO
             AND ggde.CREADO_POR = :USUARIO
             ');
@@ -560,7 +561,7 @@ class DespachoModel extends Model
             g.CLIENTE,
             g.PEDIDO_INTERNO,
             ggde.ESTADO_DESPACHO,
-            ggde.ESTADO_DESPACHO_TEXTO  
+            ggde.ESTADO_DESPACHO_TEXTO 
             from guias g 
             left join gui_guias_despachadas_estado ggde 
             on g.PEDIDO_INTERNO  = ggde.PEDIDO_INTERNO
@@ -579,6 +580,54 @@ class DespachoModel extends Model
                 echo json_encode($err);
                 exit();
             }
+        } catch (PDOException $e) {
+            $e = $e->getMessage();
+            echo json_encode([$e, 0, 0]);
+            exit();
+        }
+    }
+
+    function Guardar_Imagen_guia_despachada($param)
+    {
+        try {
+            $PEDIDO_INTERNO = trim($param["PEDIDO_INTERNO"]);
+            $imagen = $param["IMAGEN"];
+            $DESPACHO_ID = $param["DESPACHO_ID"];
+            if ($imagen != null) {
+                $imageData = base64_decode($imagen["image"]);
+                $fileName = $PEDIDO_INTERNO . "_" . $DESPACHO_ID . ".jpg";
+            } else {
+                $fileName = "";
+            }
+            if ($imagen != null) {
+                $targetDirectory = "C:/xampp/htdocs/svsysback/recursos/guias_subidas/";
+                $targetFile = $targetDirectory . $fileName;
+                if (file_put_contents($targetFile, $imageData)) {
+
+                    $query = $this->db->connect_dobra()->prepare('UPDATE gui_guias_despachadas
+                        set imagen = :imagen
+                        WHERE PEDIDO_INTERNO = :PEDIDO_INTERNO');
+                    // $query->bindParam(":DESPACHO_ID", $DESPACHO_ID, PDO::PARAM_STR);
+                    $query->bindParam(":imagen", $fileName, PDO::PARAM_STR);
+                    $query->bindParam(":PEDIDO_INTERNO", $PEDIDO_INTERNO, PDO::PARAM_STR);
+                    if ($query->execute()) {
+                        // $result = $query->fetchAll(PDO::FETCH_ASSOC);
+                        echo json_encode([1, "IMAGEN GUARDADA"]);
+                        exit();
+                    } else {
+                        $err = $query->errorInfo();
+                        echo json_encode([0, $err]);
+                        exit();
+                    }
+                } else {
+                    echo json_encode([0, "ERROR AL SUBIR LA IMAGEN"]);
+                    exit();
+                }
+            }
+
+
+            // $DESPACHO_ID = $param["DESPACHO_ID"];
+
         } catch (PDOException $e) {
             $e = $e->getMessage();
             echo json_encode([$e, 0, 0]);
@@ -1143,8 +1192,7 @@ class DespachoModel extends Model
              left join us_usuarios uu 
            on uu.Usuario_ID = uc.usuario_id
            WHERE
-                STR_TO_DATE(FECHA_DE_EMISION , '%d.%m.%Y') >= :FECHA_INI 
-                and STR_TO_DATE(FECHA_DE_EMISION , '%d.%m.%Y') <= :FECHA_FIN;");
+                DATE(ggde2.FECHA_COMPLETADO) BETWEEN :FECHA_INI AND :FECHA_FIN;");
             $query->bindParam(":FECHA_INI", $FECHA_INI, PDO::PARAM_STR);
             $query->bindParam(":FECHA_FIN", $FECHA_FIN, PDO::PARAM_STR);
             if ($query->execute()) {
@@ -1304,6 +1352,64 @@ class DespachoModel extends Model
         }
     }
 
+    //**** GUIAS EN PROCESO DESP */
+
+
+    function Guias_En_Proceso_Despacho($param)
+    {
+        try {
+            $FECHA_INI = $param["FECHA_INI"];
+            $FECHA_FIN = $param["FECHA_FIN"];
+
+            $query = $this->db->connect_dobra()->prepare("SELECT 
+            g.PEDIDO_INTERNO,
+            ggp.FECHA_CREADO,
+            ggp.FECHA_SALE_PLANTA,
+            ggp.placa,
+            uu.Nombre,
+            gd.POR_DESPACHAR
+            from guias g 
+            left join gui_guias_placa ggp 
+            on g.PEDIDO_INTERNO = ggp.PEDIDO_INTERNO
+            left join guias_detalle gd 
+            on gd.PEDIDO_INTERNO = g.PEDIDO_INTERNO
+            left join us_choferes uc 
+            on uc.placa = ggp.placa 
+            left join us_usuarios uu 
+            on uu.Usuario_ID = uc.usuario_id 
+            where g.PEDIDO_INTERNO not in 
+                        (
+                            select PEDIDO_INTERNO  from gui_guias_despachadas_estado ggde 
+                        )
+            and ggp.pedido_interno is not null
+            and date(ggp.FECHA_SALE_PLANTA) BETWEEN :FECHA_INI  AND :FECHA_FIN
+            and gd.CODIGO = '10016416'
+            group by
+            g.PEDIDO_INTERNO,
+            ggp.FECHA_CREADO,
+            ggp.FECHA_SALE_PLANTA,
+            ggp.placa,
+            uu.Nombre 
+            ");
+
+            $query->bindParam(":FECHA_INI", $FECHA_INI, PDO::PARAM_STR);
+            $query->bindParam(":FECHA_FIN", $FECHA_FIN, PDO::PARAM_STR);
+            // $query->bindParam(":ESTADO", $ESTADO, PDO::PARAM_STR);
+            if ($query->execute()) {
+                $result = $query->fetchAll(PDO::FETCH_ASSOC);
+                echo json_encode($result);
+                exit();
+            } else {
+                $err = $query->errorInfo();
+                echo json_encode($err);
+                exit();
+            }
+        } catch (PDOException $e) {
+            $e = $e->getMessage();
+            echo json_encode([$e, 0, 0]);
+            exit();
+        }
+    }
 
     //************* FACTURAS */
 

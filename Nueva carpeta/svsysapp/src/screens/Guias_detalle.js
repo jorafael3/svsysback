@@ -3,7 +3,9 @@ import { View, TouchableOpacity, StyleSheet, Text, ScrollView } from 'react-nati
 import ModalSelector from 'react-native-modal-selector';
 import fetchData from "../config/config"
 import Icon from 'react-native-vector-icons/FontAwesome'; // Puedes cambiar 'FontAwesome' por el conjunto de íconos que estés usando
+import { Image, Alert } from 'react-native';
 import { useIsFocused } from '@react-navigation/native'
+import * as ImagePicker from 'expo-image-picker';
 
 export default function Guias_detalle({ route, navigation }) {
     const isFocused = useIsFocused()
@@ -11,6 +13,7 @@ export default function Guias_detalle({ route, navigation }) {
     const [usuarioid, setusuarioid] = useState('');
     const [placa, setplaca] = useState('');
     const [pedido_interno, setpedido_interno] = useState('');
+    const [despachoid, setdespachoid] = useState('');
 
     //***** DATOS CABECERA ******/
     const [fecha_emision, setfecha_emision] = useState('');
@@ -26,10 +29,13 @@ export default function Guias_detalle({ route, navigation }) {
 
     const datos_sesion = route.params;
 
+    const [image, setImage] = useState(null);
+
+
     useEffect(() => {
-        
-        
-        
+
+
+
         setusuario(datos_sesion["Usuario"]);
         setusuarioid(datos_sesion["Usuario_ID"]);
         setplaca(datos_sesion["PLACA"]);
@@ -44,13 +50,14 @@ export default function Guias_detalle({ route, navigation }) {
             PEDIDO_INTERNO: pedido,
             // USUARIO: usuario,
         }
-        
+
         let url = 'despacho/Consultar_guia_despachadas_cabecera'
         fetchData(url, param, function (x) {
-            
+
             setfecha_emision(x[0]["FECHA_DE_EMISION"]);
             setestado_guia_text(x[0]["ESTADO_DESPACHO_TEXTO"]);
             setestado_guia(x[0]["ESTADO_DESPACHO"]);
+            setdespachoid(x[0]["despacho_ID"]);
             setdata_cabecera(x);
         });
     }
@@ -60,25 +67,26 @@ export default function Guias_detalle({ route, navigation }) {
             PEDIDO_INTERNO: pedido,
             USUARIO: usuario,
         }
-        
+
         let url = 'despacho/Consultar_guia_despachadas'
         fetchData(url, param, function (x) {
-            
+            console.log('x: ', x);
+
             setdata_detalle(x);
         });
     }
 
     function Consultar_Detalle(text, index, item) {
-        
+
 
         let param = {
             PEDIDO_INTERNO: pedido_interno,
             DESPACHO_ID: item.despacho_ID
         }
-        
+
         let url = 'despacho/Consultar_guia_despachadas_dt'
         fetchData(url, param, function (x) {
-            
+
             setdata_detalle_dt(x);
         });
 
@@ -90,9 +98,51 @@ export default function Guias_detalle({ route, navigation }) {
         navigation.navigate('Guias_parcial', datos_sesion);
     }
 
-    const handleLogout = () => {
-        // Agrega la lógica para cerrar sesión aquí y navegar de regreso a la pantalla de inicio de sesión.
+    const Subir_imagen = async () => {
+        let picker = await ImagePicker.launchImageLibraryAsync({ base64: true });
+
+        if (picker.assets != null) {
+            let tipo = picker["assets"][0]["uri"];
+            tipo = tipo.split(".")[1];
+
+            let a = {
+                image: picker["assets"][0]["base64"],
+            }
+
+            setImage(a);
+        }
     };
+
+    function Guardar_imagen(text, index, item) {
+        console.log('item: ', item);
+
+        if (image == null) {
+            Alert.alert("No ha seleccionado una imagen para subir", "Seleccione una imagen");
+        } else {
+
+            let param = {
+                IMAGEN: image,
+                PEDIDO_INTERNO: pedido_interno,
+                DESPACHO_ID: item.despacho_ID
+            }
+            let url = 'despacho/Guardar_Imagen_guia_despachada';
+            // console.log('param: ', param);
+
+            fetchData(url, param, function (x) {
+                console.log('x: ', x);
+                if (x[0] == 1) {
+                    Alert.alert(x[1], "");
+                    Consultar_guia_despachadas(usuarioid, pedido_interno)
+                } else {
+                    Alert.alert("ERROR AL SUBIR IMAGEN", x[1].toString());
+                }
+            });
+
+        }
+
+    }
+
+    
 
     return (
         <ScrollView style={{ flex: 1 }}>
@@ -162,6 +212,10 @@ export default function Guias_detalle({ route, navigation }) {
                                     <Text style={[styles.columnHeader, { width: 100 }]}>SERVICIO</Text>
                                     <Text style={[styles.columnHeader, { width: 100 }]}>DESTINO</Text>
                                     <Text style={[styles.columnHeader, { width: 100 }]}>ENTREGA</Text>
+                                    <Text style={[styles.columnHeader, { width: 100 }]}>IMAGEN</Text>
+                                    <Text style={[styles.columnHeader, { width: 100 }]}>FOTO</Text>
+                                    <Text style={[styles.columnHeader, { width: 60 }]}></Text>
+                                    <Text style={[styles.columnHeader, { width: 60, display: "none" }]}></Text>
                                 </View>
 
                                 {data_detalle.map((item, index) => (
@@ -179,6 +233,43 @@ export default function Guias_detalle({ route, navigation }) {
                                         <Text style={[styles.cell, { width: 100, fontWeight: "bold", fontSize: 15 }]}>{item.SERVICIO}</Text>
                                         <Text style={[styles.cell, { width: 100, fontWeight: "bold", fontSize: 15, backgroundColor: "#FEF9E7" }]}>{item.DESTINO}</Text>
                                         <Text style={[styles.cell, { width: 100, fontWeight: "bold", fontSize: 15, color: item.PARCIAL == 0 ? '#27AE60' : '#E74C3C' }]}>{item.PARCIAL == 0 ? 'COMPLETA' : 'PARCIAL'}</Text>
+                                        <Text style={[styles.cell, { width: 100, fontWeight: "bold" }]}>{item.imagen == null || item.imagen == "" ? "NO" : "SI"}</Text>
+
+                                        <TouchableOpacity onPress={Subir_imagen} style={styles.subirButton}>
+                                            <View style={styles.buttonContent}>
+                                                <Icon name="camera" size={25} color="white" />
+                                                <Text style={styles.guardarButtonText}></Text>
+                                                {image != null && (
+                                                    <Icon name="check" size={20} color="yellow" />
+                                                )}
+                                            </View>
+                                        </TouchableOpacity>
+                                        <TouchableOpacity
+                                            style={[styles.cell, { width: 60, margin: 2, backgroundColor: '#E74C3C', borderRadius: 5, justifyContent: 'center', alignItems: 'center' }]}
+                                            onPress={(text) => {
+                                                Alert.alert(
+                                                    'Se guardaran los datos seleccionados',
+                                                    'Por favor asegurese que sean los correctos',
+                                                    [
+                                                        {
+                                                            text: 'Cancelar',
+                                                            // onPress: () => Guardar_datos_guia(),
+                                                            style: 'cancel',
+                                                        },
+                                                        {
+                                                            text: 'Si, continuar!',
+                                                            onPress: () => Guardar_imagen(text, index, item),
+                                                        },
+                                                    ],
+                                                    { cancelable: false },
+                                                );
+                                            }}
+                                        >
+                                            <Text style={{ color: 'red', fontWeight: 'bold' }}>
+                                                <Icon name="save" size={30} color="#ffffff" />
+                                            </Text>
+                                        </TouchableOpacity>
+                                        <Text style={[styles.cell, { width: 100, fontWeight: "bold", display: "none" }]}>{item.despacho_ID}</Text>
 
                                     </View>
                                 ))}

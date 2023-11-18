@@ -94,6 +94,19 @@ class Despacho extends Controller
         }
     }
 
+    //*** GUIAS EN PROCESO DESP */
+
+    
+    function Guias_En_Proceso_Despacho()
+    {
+        $param = $_POST['param'];
+        if ($param["TOKEN"] == constant("TOKEN_WEB")) {
+            $Ventas =  $this->model->Guias_En_Proceso_Despacho($param);
+        } else {
+            die();
+        }
+    }
+
     ///***** FACTURA */
 
     function Obtener_Parametros()
@@ -303,6 +316,28 @@ class Despacho extends Controller
                 if ($data["TOKEN"] == constant("TOKEN_MOVIL")) {
                     // $param1 = $data['param1'];
                     $funcion =  $this->model->Consultar_guia_despachadas_cabecera($data);
+                } else {
+                    die();
+                }
+            } else {
+                die();
+            }
+        } catch (Exception $e) {
+            die();
+        }
+    }
+
+    function Guardar_Imagen_guia_despachada()
+    {
+        try {
+            $json_data = file_get_contents('php://input');
+            $data = json_decode($json_data, true);
+
+            if (isset($json_data)) {
+
+                if ($data["TOKEN"] == constant("TOKEN_MOVIL")) {
+                    // $param1 = $data['param1'];
+                    $funcion =  $this->model->Guardar_Imagen_guia_despachada($data);
                 } else {
                     die();
                 }

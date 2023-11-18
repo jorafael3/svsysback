@@ -30,8 +30,8 @@ define('USER', 'root');
 define('PASSWORD', '');
 define('CHARSET', 'utf8mb4');
 
-// define('HOST', 'localhost');
-// define('DB', 'lcaimpor_svsys');
-// define('USER', 'lcaimpor_svsys');
+// define('HOST', 'gator4166.hostgator.com');
+// define('DB', 'salvacer_svsys');
+// define('USER', 'salvacer_jorge');
 // define('PASSWORD', 'Equilivre3*');
 // define('CHARSET', 'utf8mb4');

@@ -750,8 +750,8 @@ export default function Guias({ route, navigation }) {
                             <View style={styles.footer}>
                                 <TouchableOpacity onPress={() => {
                                     Alert.alert(
-                                        'Se guardarn los datos seleccionados',
-                                        'Porfavor asegurese que sean los correctos',
+                                        'Se guardaran los datos seleccionados',
+                                        'Por favor asegurese que sean los correctos',
                                         [
                                             {
                                                 text: 'Cancelar',
