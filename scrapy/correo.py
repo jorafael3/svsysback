@@ -25,18 +25,18 @@ credential = 'C:\\xampp\\htdocs\\svsysback\\scrapy\\client_secret.json'
 
 datos_correo=[]
 
-# conexion = mysql.connector.connect(
-#     host="localhost",
-#     user="root",
-#     password="",
-#     database="svsys"
-#     )
 conexion = mysql.connector.connect(
-    host="gator4166.hostgator.com",
-    user="salvacer_jorge",
-    password="Equilivre3*",
-    database="salvacer_svsys"
+    host="localhost",
+    user="root",
+    password="",
+    database="svsys"
     )
+# conexion = mysql.connector.connect(
+#     host="gator4166.hostgator.com",
+#     user="salvacer_jorge",
+#     password="Equilivre3*",
+#     database="salvacer_svsys"
+#     )
 
 def main():
     try:
@@ -73,33 +73,37 @@ def main():
             end_date_str = end_date.strftime('%Y-%m-%dT%H:%M:%SZ')
         
             service = build('gmail', 'v1', credentials=creds)
-            results = service.users().messages().list(
-                userId='me', 
-                labelIds=['INBOX'],
-                # q=f'after:{start_date_str} before:{end_date_str}'
-            ).execute()
-            messages = results.get('messages', [])
-            if not messages:
-                print('No messages found in the inbox.')
-                return
+            nextPageToken = None
+            while True:
+                results = service.users().messages().list(
+                    userId='me', 
+                    labelIds=['INBOX'],
+                    pageToken=nextPageToken
+                    # q=f'after:{start_date_str} before:{end_date_str}'
+                ).execute()
+                messages = results.get('messages', [])
+                if not messages:
+                    print('No messages found in the inbox.')
+                    return
 
-            print('Messages in the inbox:')
-            for message in messages:
-                # print(message)
-                msg = service.users().messages().get(userId='me', id=message['id']).execute()
-                from_header = [header['value'] for header in msg['payload']['headers'] if header['name'] == 'From']
-                if from_header:
-                        sender_email = from_header[0]
-                # print(f'Sender: {sender_email}')
-                print("++++++++++++++++++++++++++++++")
-                # print(msg)
-                if(sender_email == "ecu-noreply-apps@holcim.com"):
-                    Obtener_Datos(msg["snippet"])
-                # print(f'Subject: {msg["subject"]}')
-                # print(f'From: {msg["from"]}')
-                # print(f'Date: {msg["internalDate"]}')
-            # print(datos_correo)
-            Guardar_Datos()
+                print('Messages in the inbox:')
+                for message in messages:
+                    # print(message)
+                    msg = service.users().messages().get(userId='me', id=message['id']).execute()
+                    from_header = [header['value'] for header in msg['payload']['headers'] if header['name'] == 'From']
+                    if from_header:
+                            sender_email = from_header[0]
+                    # print(f'Sender: {sender_email}')
+                    print("++++++++++++++++++++++++++++++")
+                    # print(msg)
+                    if(sender_email == "ecu-noreply-apps@holcim.com"):
+                        Obtener_Datos(msg["snippet"])
+                    # print(f'Subject: {msg["subject"]}')
+                    # print(f'From: {msg["from"]}')
+                    # print(f'Date: {msg["internalDate"]}')
+                # print(datos_correo)
+                Guardar_Datos()
+                nextPageToken = results.get('nextPageToken')
 
         except HttpError as error:
             # TODO(developer) - Handle errors from gmail API.
