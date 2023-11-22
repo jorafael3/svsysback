@@ -49,6 +49,8 @@ FROM (SELECT FLOOR(RAND() * 5 + 15) AS numero) AS numeros;
 
 
 
+
+
 -- POR RETIRO DE PLANTA
 
 -- POR CANTIDAD DE GUIAS
@@ -56,21 +58,21 @@ FROM (SELECT FLOOR(RAND() * 5 + 15) AS numero) AS numeros;
 -- POR DIA
 select 
 date(ggp.FECHA_SALE_PLANTA) as FECHA_RETIRO_PLANTA,
-count(*)
-from gui_guias_placa ggp
-left join guias g 
+count(*) as cantidad
+from guias g
+left join gui_guias_placa ggp
 on ggp.pedido_interno  = g.PEDIDO_INTERNO 
-where DATE(ggp.FECHA_SALE_PLANTA) BETWEEN '20231101' AND '20231130' 
+where DATE(ggp.FECHA_SALE_PLANTA) BETWEEN '20231101' AND '20231130'
 group  by FECHA_RETIRO_PLANTA
 
 -- POR MES
 select 
 concat(year(ggp.FECHA_SALE_PLANTA),'-',lpad(month(ggp.FECHA_SALE_PLANTA),2,'0')) as FECHA_RETIRO_PLANTA,
 count(*)
-from gui_guias_placa ggp
-left join guias g 
+from guias g
+left join gui_guias_placa ggp
 on ggp.pedido_interno  = g.PEDIDO_INTERNO 
-where DATE(ggp.FECHA_SALE_PLANTA) BETWEEN '20231101' AND '20231130' 
+where DATE(ggp.FECHA_SALE_PLANTA) BETWEEN '20231001' AND '20231031' 
 group  by FECHA_RETIRO_PLANTA
 
 -- POR PRODUCTO
@@ -109,13 +111,55 @@ select
 count(*) as GUIAS
 from guias g
 where
-STR_TO_DATE(FECHA_DE_EMISION , '%d.%m.%Y') between '20231101' and '20231130'
+STR_TO_DATE(FECHA_DE_EMISION , '%d.%m.%Y') between :fecha_ini and :fecha_fin
 
 -- GUIAS RETIRADAS EN EL MES
 select 
-count(*) as GUIAS
-from gui_guias_placa ggp
-left join guias g 
+count(g.FECHA_DE_EMISION) as cantidad,
+'RETIRADAS_DE_ESTE_MES' as mes
+from guias g
+left join gui_guias_placa ggp 
 on ggp.pedido_interno  = g.PEDIDO_INTERNO 
 where
-STR_TO_DATE(FECHA_DE_EMISION , '%d.%m.%Y') between '20231101' and '20231130'
+date(ggp.FECHA_SALE_PLANTA) between :fecha_ini and :fecha_fin
+and STR_TO_DATE(FECHA_DE_EMISION , '%d.%m.%Y') >= :fecha_ini
+union all
+select 
+count(g.FECHA_DE_EMISION) as cantidad_mes_pasado,
+'corresponde_mes_pasado' as mes
+from guias g
+left join gui_guias_placa ggp 
+on ggp.pedido_interno  = g.PEDIDO_INTERNO 
+where
+date(ggp.FECHA_SALE_PLANTA) between :fecha_ini and :fecha_fin
+and STR_TO_DATE(FECHA_DE_EMISION , '%d.%m.%Y') < :fecha_ini
+union all
+select 
+count(g.FECHA_DE_EMISION) as cantidad_mes_siguiente,
+'fue_retirada_mes_sgte_no_suma' as mes
+from guias g
+left join gui_guias_placa ggp 
+on ggp.pedido_interno  = g.PEDIDO_INTERNO 
+where
+date(ggp.FECHA_SALE_PLANTA) between :fecha_ini_s and :fecha_fin_s
+and STR_TO_DATE(FECHA_DE_EMISION , '%d.%m.%Y') < :fecha_ini_s
+union all
+select 
+count(*)  as cantidad,
+'GUIAS_EMITIDAS_MES_TOTAL'
+from guias g 
+where STR_TO_DATE(FECHA_DE_EMISION , '%d.%m.%Y') between :fecha_ini and :fecha_fin
+union all
+select 
+count(*) as cantidad,
+'RESTANTE_DE_RETIRAR'
+from guias g2 
+where 
+pedido_interno not in (select pedido_interno from gui_guias_placa ggp2)
+and STR_TO_DATE(FECHA_DE_EMISION , '%d.%m.%Y') between :fecha_ini and :fecha_fin
+
+
+
+
+
+
