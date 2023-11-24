@@ -41,22 +41,32 @@ class dashboardmodel extends Model
     function Cargar_Stats($param)
     {
         try {
+
+            $CARD_GUIAS_TOTALES = $this->CARD_GUIAS_TOTALES($param);
+            $CARD_CHOFER_MAS_RETIROS = $this->CARD_CHOFER_MAS_RETIROS($param);
+            $CARD_DIA_RECORD = $this->CARD_DIA_RECORD($param);
+            $GUIAS_RETIRADAS_POR_DIA = $this->GRAFICO_POR_DIA($param);
+            
             $SACOS = $this->Cantidad_Sacos_Mes($param);
             $CHOFER = $this->Chofer_Mas_Despachos($param);
-            $GUIAS_DESPACHADAS = array(
-                "POR_DIA" => $this->GUIAS_DESPACHADAS_POR_DIA($param),
-                "POR_DIA_MES_ANT" => $this->GUIAS_DESPACHADAS_POR_DIA_MES_ANTERIOR($param),
-                "POR_MES" => $this->GUIAS_DESPACHADAS_POR_MES($param),
-                "POR_ANIO" => $this->GUIAS_DESPACHADAS_POR_ANIO($param),
-            );
+            // $GUIAS_DESPACHADAS = array(
+            //     "POR_DIA" => $this->GUIAS_DESPACHADAS_POR_DIA($param),
+            //     "POR_DIA_MES_ANT" => $this->GUIAS_DESPACHADAS_POR_DIA_MES_ANTERIOR($param),
+            //     "POR_MES" => $this->GUIAS_DESPACHADAS_POR_MES($param),
+            //     "POR_ANIO" => $this->GUIAS_DESPACHADAS_POR_ANIO($param),
+            // );
             $GUIAS_VIGENTES = $this->GUIAS_VIGENTES($param);
             $GUIAS_EN_PROCESO_DESPACHO = $this->GUIAS_EN_PROCESO_DESPACHO($param);
             $A = array(
-                "SACOS" => $SACOS,
-                "CHOFER" => $CHOFER,
-                "GUIAS_DESPACHADAS" => $GUIAS_DESPACHADAS,
-                "GUIAS_VIGENTES" => $GUIAS_VIGENTES,
-                "GUIAS_EN_PROCESO_DESPACHO" => $GUIAS_EN_PROCESO_DESPACHO,
+                "CARD_GUIAS_TOTALES" => $CARD_GUIAS_TOTALES,
+                "CARD_CHOFER_MAS_RETIROS" => $CARD_CHOFER_MAS_RETIROS,
+                "CARD_DIA_RECORD" => $CARD_DIA_RECORD,
+                "GUIAS_RETIRADAS_POR_DIA" => $GUIAS_RETIRADAS_POR_DIA,
+                // "SACOS" => $SACOS,
+                // "CHOFER" => $CHOFER,
+                // "GUIAS_DESPACHADAS" => $GUIAS_DESPACHADAS,
+                // "GUIAS_VIGENTES" => $GUIAS_VIGENTES,
+                // "GUIAS_EN_PROCESO_DESPACHO" => $GUIAS_EN_PROCESO_DESPACHO,
             );
             echo json_encode($A);
             exit();
@@ -322,31 +332,58 @@ class dashboardmodel extends Model
             $fin_mes = $param["fin_mes"];
             $producto = $param["producto"];
             $tipo = $param["tipo"];
-            if ($tipo == "p") {
-                $sql = "SELECT 
-                date(ggde.FECHA_COMPLETADO) as FECHA,
-                ggdd.CODIGO,
-                '1' as TIPO,
-                SUM(ggdd.CANTIDAD_PARCIAL) + SUM(ggdd.CANTIDAD_TOTAL) as cantidad
-                from gui_guias_despachadas_estado ggde
-                left join gui_guias_despachadas_dt ggdd 
-                on ggde.PEDIDO_INTERNO = ggdd.PEDIDO_INTERNO
-                where date(ggde.FECHA_COMPLETADO) between :inicio_mes and :fin_mes
-                and CODIGO = :producto
-                group by FECHA ";
-            } else if ($tipo == "g") {
-                $sql = "SELECT 
-                date(ggde.FECHA_COMPLETADO) as FECHA,
-                ggdd.CODIGO,
-                '1' as TIPO,
-                count(ggdd.CANTIDAD_PARCIAL) as cantidad
-                from gui_guias_despachadas_estado ggde
-                left join gui_guias_despachadas_dt ggdd 
-                on ggde.PEDIDO_INTERNO = ggdd.PEDIDO_INTERNO
-                where date(ggde.FECHA_COMPLETADO) between :inicio_mes and :fin_mes
-                and CODIGO = :producto
-                group by FECHA ";
+            if ($producto == "TODO") {
+                if ($tipo == "p") {
+                    $sql = "SELECT 
+                    date(ggp.FECHA_SALE_PLANTA) as FECHA_RETIRO_PLANTA,
+                    count(*) as cantidad
+                    from guias g
+                    left join gui_guias_placa ggp
+                    on ggp.pedido_interno  = g.PEDIDO_INTERNO 
+                    where DATE(ggp.FECHA_SALE_PLANTA) BETWEEN '20231101' AND '20231130'
+                    group  by FECHA_RETIRO_PLANTA";
+                } else if ($tipo == "g") {
+                    $sql = "SELECT 
+                    date(ggde.FECHA_COMPLETADO) as FECHA,
+                    ggdd.CODIGO,
+                    '1' as TIPO,
+                    count(ggdd.CANTIDAD_PARCIAL) as cantidad
+                    from gui_guias_despachadas_estado ggde
+                    left join gui_guias_despachadas_dt ggdd 
+                    on ggde.PEDIDO_INTERNO = ggdd.PEDIDO_INTERNO
+                    where date(ggde.FECHA_COMPLETADO) between :inicio_mes and :fin_mes
+                    and CODIGO = :producto
+                    group by FECHA ";
+                }
+            } else {
+                if ($tipo == "p") {
+                    $sql = "SELECT 
+                    date(ggde.FECHA_COMPLETADO) as FECHA,
+                    ggdd.CODIGO,
+                    '1' as TIPO,
+                    SUM(ggdd.CANTIDAD_PARCIAL) + SUM(ggdd.CANTIDAD_TOTAL) as cantidad
+                    from gui_guias_despachadas_estado ggde
+                    left join gui_guias_despachadas_dt ggdd 
+                    on ggde.PEDIDO_INTERNO = ggdd.PEDIDO_INTERNO
+                    where date(ggde.FECHA_COMPLETADO) between :inicio_mes and :fin_mes
+                    and CODIGO = :producto
+                    group by FECHA ";
+                } else if ($tipo == "g") {
+                    $sql = "SELECT 
+                    date(ggde.FECHA_COMPLETADO) as FECHA,
+                    ggdd.CODIGO,
+                    '1' as TIPO,
+                    count(ggdd.CANTIDAD_PARCIAL) as cantidad
+                    from gui_guias_despachadas_estado ggde
+                    left join gui_guias_despachadas_dt ggdd 
+                    on ggde.PEDIDO_INTERNO = ggdd.PEDIDO_INTERNO
+                    where date(ggde.FECHA_COMPLETADO) between :inicio_mes and :fin_mes
+                    and CODIGO = :producto
+                    group by FECHA ";
+                }
             }
+
+
             $query = $this->db->connect_dobra()->prepare($sql);
             $query->bindParam(":inicio_mes", $inicio_mes, PDO::PARAM_STR);
             $query->bindParam(":fin_mes", $fin_mes, PDO::PARAM_STR);
@@ -598,6 +635,257 @@ class dashboardmodel extends Model
             $query->bindParam(":producto", $producto, PDO::PARAM_STR);
             // $query->bindParam(":inicio_mes", $inicio_mes, PDO::PARAM_STR);
             // $query->bindParam(":fin_mes", $fin_mes, PDO::PARAM_STR);
+            if ($query->execute()) {
+                $result = $query->fetchAll(PDO::FETCH_ASSOC);
+                return array("DATOS" => $result);
+            } else {
+                $err = $query->errorInfo();
+                return $err;
+            }
+        } catch (PDOException $e) {
+            $e = $e->getMessage();
+            echo json_encode([$e, 0, 0]);
+            exit();
+        }
+    }
+
+
+    //******************* */
+
+    function CARD_GUIAS_TOTALES($param)
+    {
+        try {
+            $inicio_mes = $param["inicio_mes"];
+            $fin_mes = $param["fin_mes"];
+            $inicio_mes_s = $param["inicio_mes_s"];
+            $fin_mes_s = $param["fin_mes_s"];
+            $sql = "SELECT 
+            count(g.FECHA_DE_EMISION) as cantidad,
+            'RETIRADAS_DE_ESTE_MES' as mes
+            from guias g
+            left join gui_guias_placa ggp 
+            on ggp.pedido_interno  = g.PEDIDO_INTERNO 
+            where
+            date(ggp.FECHA_SALE_PLANTA) between :inicio_mes and :fin_mes
+            and STR_TO_DATE(FECHA_DE_EMISION , '%d.%m.%Y') >= :inicio_mes
+            union all
+            select 
+            count(g.FECHA_DE_EMISION) as cantidad_mes_pasado,
+            'CORRESPONDEN_AL_MES_PASADO' as mes
+            from guias g
+            left join gui_guias_placa ggp 
+            on ggp.pedido_interno  = g.PEDIDO_INTERNO 
+            where
+            date(ggp.FECHA_SALE_PLANTA) between :inicio_mes and :fin_mes
+            and STR_TO_DATE(FECHA_DE_EMISION , '%d.%m.%Y') < :inicio_mes
+            union all
+            select 
+            count(g.FECHA_DE_EMISION) as cantidad_mes_siguiente,
+            'FUE_RETIRADA_MES_SGT' as mes
+            from guias g
+            left join gui_guias_placa ggp 
+            on ggp.pedido_interno  = g.PEDIDO_INTERNO 
+            where
+            date(ggp.FECHA_SALE_PLANTA) between :inicio_mes_s and :fin_mes_s
+            and STR_TO_DATE(FECHA_DE_EMISION , '%d.%m.%Y') < :inicio_mes_s
+            union all
+            select 
+            count(*)  as cantidad,
+            'GUIAS_EMITIDAS_MES_TOTAL'
+            from guias g 
+            where STR_TO_DATE(FECHA_DE_EMISION , '%d.%m.%Y') between :inicio_mes and :fin_mes
+            union all
+            select 
+            count(*) as cantidad,
+            'RESTANTE_DE_RETIRAR'
+            from guias g2 
+            where 
+            pedido_interno not in (select pedido_interno from gui_guias_placa ggp2)
+            and STR_TO_DATE(FECHA_DE_EMISION , '%d.%m.%Y') between :inicio_mes and :fin_mes";
+
+            $query = $this->db->connect_dobra()->prepare($sql);
+            // $query->bindParam(":producto", $producto, PDO::PARAM_STR);
+            $query->bindParam(":inicio_mes", $inicio_mes, PDO::PARAM_STR);
+            $query->bindParam(":fin_mes", $fin_mes, PDO::PARAM_STR);
+            $query->bindParam(":inicio_mes_s", $inicio_mes_s, PDO::PARAM_STR);
+            $query->bindParam(":fin_mes_s", $fin_mes_s, PDO::PARAM_STR);
+            if ($query->execute()) {
+                $result = $query->fetchAll(PDO::FETCH_ASSOC);
+                return array("DATOS" => $result);
+            } else {
+                $err = $query->errorInfo();
+                return $err;
+            }
+        } catch (PDOException $e) {
+            $e = $e->getMessage();
+            echo json_encode([$e, 0, 0]);
+            exit();
+        }
+    }
+
+    function CARD_CHOFER_MAS_RETIROS($param)
+    {
+        try {
+            $inicio_mes = $param["inicio_mes"];
+            $fin_mes = $param["fin_mes"];
+            $inicio_mes_s = $param["inicio_mes_s"];
+            $fin_mes_s = $param["fin_mes_s"];
+            $sql = "SELECT  
+            ggp.placa,
+            uu.Nombre,
+            count(*) as cantidad_total,
+            (
+                select sum(gd.POR_DESPACHAR)
+                from guias_detalle gd 
+                left join gui_guias_placa ggp2 
+                on ggp2.pedido_interno = gd.PEDIDO_INTERNO  
+                where gd.CODIGO = '10016416'
+                and ggp2.placa = ggp.placa
+                and DATE(ggp2.FECHA_SALE_PLANTA) between :inicio_mes and :fin_mes
+                
+            ) as SACOS_CEMENTO
+            from 
+            gui_guias_placa ggp 
+            left join us_choferes uc 
+            on uc.PLACA = ggp.placa 
+            left join us_usuarios uu 
+            on uu.Usuario_ID = uc.usuario_id
+            where 
+            DATE(ggp.FECHA_SALE_PLANTA) BETWEEN :inicio_mes and :fin_mes
+            group by 
+            ggp.placa,
+            uu.Nombre
+            order by cantidad_total desc
+            limit 1";
+
+            $query = $this->db->connect_dobra()->prepare($sql);
+            // $query->bindParam(":producto", $producto, PDO::PARAM_STR);
+            $query->bindParam(":inicio_mes", $inicio_mes, PDO::PARAM_STR);
+            $query->bindParam(":fin_mes", $fin_mes, PDO::PARAM_STR);
+            // $query->bindParam(":inicio_mes_s", $inicio_mes_s, PDO::PARAM_STR);
+            // $query->bindParam(":fin_mes_s", $fin_mes_s, PDO::PARAM_STR);
+            if ($query->execute()) {
+                $result = $query->fetchAll(PDO::FETCH_ASSOC);
+                return array("DATOS" => $result);
+            } else {
+                $err = $query->errorInfo();
+                return $err;
+            }
+        } catch (PDOException $e) {
+            $e = $e->getMessage();
+            echo json_encode([$e, 0, 0]);
+            exit();
+        }
+    }
+
+    function CARD_DIA_RECORD($param)
+    {
+        try {
+            $inicio_mes = $param["inicio_mes"];
+            $fin_mes = $param["fin_mes"];
+            $inicio_mes_s = $param["inicio_mes_s"];
+            $fin_mes_s = $param["fin_mes_s"];
+            $sql = "(SELECT 
+            DATE(FECHA_SALE_PLANTA) AS fecha,
+            COUNT(FECHA_SALE_PLANTA) AS cantidad,
+            'TOTAL' AS fecha_tipo
+            FROM gui_guias_placa ggp 
+            GROUP BY DATE(FECHA_SALE_PLANTA)
+            ORDER BY cantidad DESC
+            LIMIT 1)
+            
+            UNION ALL
+            
+            (SELECT 
+                DATE(FECHA_SALE_PLANTA) AS fecha,
+                COUNT(FECHA_SALE_PLANTA) AS cantidad,
+                'DEL_MES' AS fecha_tipo
+            FROM gui_guias_placa ggp 
+            WHERE DATE(ggp.FECHA_SALE_PLANTA) BETWEEN :inicio_mes AND :fin_mes
+            GROUP BY DATE(FECHA_SALE_PLANTA)
+            ORDER BY cantidad DESC
+            LIMIT 1);";
+
+            $query = $this->db->connect_dobra()->prepare($sql);
+            // $query->bindParam(":producto", $producto, PDO::PARAM_STR);
+            $query->bindParam(":inicio_mes", $inicio_mes, PDO::PARAM_STR);
+            $query->bindParam(":fin_mes", $fin_mes, PDO::PARAM_STR);
+            // $query->bindParam(":inicio_mes_s", $inicio_mes_s, PDO::PARAM_STR);
+            // $query->bindParam(":fin_mes_s", $fin_mes_s, PDO::PARAM_STR);
+            if ($query->execute()) {
+                $result = $query->fetchAll(PDO::FETCH_ASSOC);
+                return array("DATOS" => $result);
+            } else {
+                $err = $query->errorInfo();
+                return $err;
+            }
+        } catch (PDOException $e) {
+            $e = $e->getMessage();
+            echo json_encode([$e, 0, 0]);
+            exit();
+        }
+    }
+
+    function GRAFICO_POR_DIA($param)
+    {
+        try {
+            $inicio_mes = $param["inicio_mes"];
+            $fin_mes = $param["fin_mes"];
+            $inicio_mes_a = $param["inicio_mes_a"];
+            $fin_mes_a = $param["fin_mes_a"];
+            $producto = $param["producto"];
+            if ($producto == "TODO") {
+                $sql = "(SELECT 
+                date(ggp.FECHA_SALE_PLANTA) as FECHA,
+                count(*) as cantidad,
+                'MES_ACT' as MES
+                from gui_guias_placa ggp
+                where DATE(ggp.FECHA_SALE_PLANTA) BETWEEN :inicio_mes AND :fin_mes
+                group by FECHA_RETIRO_PLANTA)
+                union ALL
+                (SELECT 
+                date(ggp.FECHA_SALE_PLANTA) as FECHA,
+                count(*) as cantidad,
+                'MES_ANT' as MES
+                from gui_guias_placa ggp
+                where DATE(ggp.FECHA_SALE_PLANTA) BETWEEN :inicio_mes_a AND :fin_mes_a
+                group by FECHA_RETIRO_PLANTA)";
+            }else{
+                $sql = "(SELECT 
+                date(FECHA_SALE_PLANTA) as FECHA,
+                count(distinct  gd.PEDIDO_INTERNO) as cantidad,
+                'MES_ACT' as MES
+                from gui_guias_placa ggp
+                left join guias_detalle gd 
+                on gd.PEDIDO_INTERNO = ggp.pedido_interno 
+                WHERE DATE(ggp.FECHA_SALE_PLANTA) BETWEEN :inicio_mes AND :fin_mes
+                and gd.CODIGO = :producto
+                group by date(ggp.FECHA_SALE_PLANTA)
+                order by date(ggp.FECHA_SALE_PLANTA) asc
+                )
+                union all
+                (SELECT 
+                date(FECHA_SALE_PLANTA) as FECHA_ANT,
+                count(distinct  gd.PEDIDO_INTERNO) as cantidad,
+                'MES_ANT' as MES
+                from gui_guias_placa ggp
+                left join guias_detalle gd 
+                on gd.PEDIDO_INTERNO = ggp.pedido_interno 
+                WHERE DATE(ggp.FECHA_SALE_PLANTA) BETWEEN :inicio_mes_a AND :fin_mes_a
+                and gd.CODIGO = :producto
+                group by date(ggp.FECHA_SALE_PLANTA)
+                order by date(ggp.FECHA_SALE_PLANTA) asc
+                )";
+            }
+
+            $query = $this->db->connect_dobra()->prepare($sql);
+            $query->bindParam(":producto", $producto, PDO::PARAM_STR);
+            $query->bindParam(":inicio_mes", $inicio_mes, PDO::PARAM_STR);
+            $query->bindParam(":fin_mes", $fin_mes, PDO::PARAM_STR);
+            $query->bindParam(":inicio_mes_a", $inicio_mes_a, PDO::PARAM_STR);
+            $query->bindParam(":fin_mes_a", $fin_mes_a, PDO::PARAM_STR);
+            // $query->bindParam(":inicio_mes_s", $inicio_mes_s, PDO::PARAM_STR);
+            // $query->bindParam(":fin_mes_s", $fin_mes_s, PDO::PARAM_STR);
             if ($query->execute()) {
                 $result = $query->fetchAll(PDO::FETCH_ASSOC);
                 return array("DATOS" => $result);
