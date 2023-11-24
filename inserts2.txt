@@ -1,0 +1,189 @@
+
+
+-- POR RETIRO DE PLANTA
+
+-- POR CANTIDAD DE GUIAS
+-- GRAFICO
+-- POR DIA
+
+select 
+date(ggp.FECHA_SALE_PLANTA) as FECHA_RETIRO_PLANTA,
+count(*) as cantidad
+from gui_guias_placa ggp
+where DATE(ggp.FECHA_SALE_PLANTA) BETWEEN '20231101' AND '20231130'
+group by FECHA_RETIRO_PLANTA
+
+
+-- POR MES
+select 
+concat(year(ggp.FECHA_SALE_PLANTA),'-',lpad(month(ggp.FECHA_SALE_PLANTA),2,'0')) as FECHA_RETIRO_PLANTA,
+count(*)
+from guias g
+left join gui_guias_placa ggp
+on ggp.pedido_interno  = g.PEDIDO_INTERNO 
+where DATE(ggp.FECHA_SALE_PLANTA) BETWEEN '20231001' AND '20231031' 
+group  by FECHA_RETIRO_PLANTA
+
+-- POR PRODUCTO
+
+select 
+date(ggp.FECHA_SALE_PLANTA) as FECHA_RETIRO_PLANTA,
+sum(gd.POR_DESPACHAR)
+from guias g
+left join gui_guias_placa ggp 
+on ggp.pedido_interno  = g.PEDIDO_INTERNO
+left join guias_detalle gd 
+on gd.PEDIDO_INTERNO = g.PEDIDO_INTERNO 
+where DATE(ggp.FECHA_SALE_PLANTA) BETWEEN '20231101' AND '20231130'
+and gd.CODIGO = '10016416'
+and ggp.FECHA_SALE_PLANTA is not null
+group  by FECHA_RETIRO_PLANTA
+
+-- POR MES 
+select 
+concat(year(ggp.FECHA_SALE_PLANTA),'-',lpad(month(ggp.FECHA_SALE_PLANTA),2,'0')) as FECHA_RETIRO_PLANTA,
+sum(gd.POR_DESPACHAR)
+from guias g
+left join gui_guias_placa ggp 
+on ggp.pedido_interno  = g.PEDIDO_INTERNO
+left join guias_detalle gd 
+on gd.PEDIDO_INTERNO = g.PEDIDO_INTERNO 
+where DATE(ggp.FECHA_SALE_PLANTA) BETWEEN '20231101' AND '20231130'
+and gd.CODIGO = '10016416'
+and ggp.FECHA_SALE_PLANTA is not null
+group  by FECHA_RETIRO_PLANTA 
+
+-- CUANTO SE COMPRO Y SACO PARA VER PENDIENTE
+
+-- GUIAS COMPRADAS EN EL MES CANTIDAD
+select 
+count(*) as GUIAS
+from guias g
+where
+STR_TO_DATE(FECHA_DE_EMISION , '%d.%m.%Y') between :fecha_ini and :fecha_fin
+
+-- GUIAS RETIRADAS EN EL MES
+select 
+count(g.FECHA_DE_EMISION) as cantidad,
+'RETIRADAS_DE_ESTE_MES' as mes
+from guias g
+left join gui_guias_placa ggp 
+on ggp.pedido_interno  = g.PEDIDO_INTERNO 
+where
+date(ggp.FECHA_SALE_PLANTA) between :fecha_ini and :fecha_fin
+and STR_TO_DATE(FECHA_DE_EMISION , '%d.%m.%Y') >= :fecha_ini
+union all
+select 
+count(g.FECHA_DE_EMISION) as cantidad_mes_pasado,
+'corresponde_mes_pasado' as mes
+from guias g
+left join gui_guias_placa ggp 
+on ggp.pedido_interno  = g.PEDIDO_INTERNO 
+where
+date(ggp.FECHA_SALE_PLANTA) between :fecha_ini and :fecha_fin
+and STR_TO_DATE(FECHA_DE_EMISION , '%d.%m.%Y') < :fecha_ini
+union all
+select 
+count(g.FECHA_DE_EMISION) as cantidad_mes_siguiente,
+'fue_retirada_mes_sgte_no_suma' as mes
+from guias g
+left join gui_guias_placa ggp 
+on ggp.pedido_interno  = g.PEDIDO_INTERNO 
+where
+date(ggp.FECHA_SALE_PLANTA) between :fecha_ini_s and :fecha_fin_s
+and STR_TO_DATE(FECHA_DE_EMISION , '%d.%m.%Y') < :fecha_ini_s
+union all
+select 
+count(*)  as cantidad,
+'GUIAS_EMITIDAS_MES_TOTAL'
+from guias g 
+where STR_TO_DATE(FECHA_DE_EMISION , '%d.%m.%Y') between :fecha_ini and :fecha_fin
+union all
+select 
+count(*) as cantidad,
+'RESTANTE_DE_RETIRAR'
+from guias g2 
+where 
+pedido_interno not in (select pedido_interno from gui_guias_placa ggp2)
+and STR_TO_DATE(FECHA_DE_EMISION , '%d.%m.%Y') between :fecha_ini and :fecha_fin
+
+
+
+-- CARD  CHOFER MAS RETIROS
+
+select  
+ggp.placa,
+uu.Nombre,
+count(*) as cantidad_total,
+(
+	select sum(gd.POR_DESPACHAR)
+	from guias_detalle gd 
+	left join gui_guias_placa ggp2 
+	on ggp2.pedido_interno = gd.PEDIDO_INTERNO  
+	where gd.CODIGO = '10016416'
+	and ggp2.placa = ggp.placa
+	and DATE(ggp2.FECHA_SALE_PLANTA) BETWEEN '20231101' AND '20231130'
+	
+)as SACOS_CEMENTO
+from 
+gui_guias_placa ggp 
+left join us_choferes uc 
+on uc.PLACA = ggp.placa 
+left join us_usuarios uu 
+on uu.Usuario_ID = uc.usuario_id
+where 
+DATE(ggp.FECHA_SALE_PLANTA) BETWEEN '20231101' AND '20231130'
+group by 
+ggp.placa,
+uu.Nombre
+order by cantidad_total desc
+limit 1
+
+select
+gd.CODIGO
+from guias g
+left join guias_detalle gd 
+on gd.PEDIDO_INTERNO  = g.PEDIDO_INTERNO 
+left join gui_guias_placa ggp2 
+on g.PEDIDO_INTERNO  = ggp2.PEDIDO_INTERNO  
+where 
+DATE(ggp2.FECHA_SALE_PLANTA) BETWEEN '20231101' AND '20231130'
+and ggp2.placa = 'GBO-7758'
+and gd.CODIGO = '10016416'
+group by gd.CODIGO 
+limit 1
+
+-- RECORD DIARIO
+-- TOTAL
+(SELECT 
+    DATE(FECHA_SALE_PLANTA) AS fecha,
+    COUNT(FECHA_SALE_PLANTA) AS cantidad,
+    'TOTAL' AS fecha_tipo
+ FROM gui_guias_placa ggp 
+ GROUP BY DATE(FECHA_SALE_PLANTA)
+ ORDER BY cantidad DESC
+ LIMIT 1)
+
+UNION ALL
+
+(SELECT 
+    DATE(FECHA_SALE_PLANTA) AS fecha,
+    COUNT(FECHA_SALE_PLANTA) AS cantidad,
+    'DEL_MES' AS fecha_tipo
+ FROM gui_guias_placa ggp 
+ WHERE DATE(ggp.FECHA_SALE_PLANTA) BETWEEN '2023-11-01' AND '2023-11-30'
+ GROUP BY DATE(FECHA_SALE_PLANTA)
+ ORDER BY cantidad DESC
+ LIMIT 1);
+
+
+select 
+count(distinct  gd.PEDIDO_INTERNO),
+date(FECHA_SALE_PLANTA)
+from gui_guias_placa ggp
+left join guias_detalle gd 
+on gd.PEDIDO_INTERNO = ggp.pedido_interno 
+WHERE DATE(ggp.FECHA_SALE_PLANTA) BETWEEN '20231001' AND '20231130'
+and gd.CODIGO = '10016416'
+group by date(FECHA_SALE_PLANTA)
+order by date(FECHA_SALE_PLANTA) asc
