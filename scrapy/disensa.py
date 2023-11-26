@@ -114,21 +114,21 @@ def Buscar_Documentos():
 
             # Formatea la fecha en "dd/mm/yyyy"
             fecha_formateada = fecha_hace_7_dias.strftime("%d/%m/%Y")
-            desde.send_keys("01/06/2023")
+            desde.send_keys(fecha_formateada)
             guardar_log("FECHA CAMBIADA",1)
         except:
             pass
         time.sleep(2)
 
-        try:
-            hasta = driver.find_element(By.XPATH, '//*[@id="inputfhasta"]')
-            hasta.clear()
+        # try:
+        #     hasta = driver.find_element(By.XPATH, '//*[@id="inputfhasta"]')
+        #     hasta.clear()
 
-            hasta.send_keys("31/06/2023")
-            guardar_log("FECHA CAMBIADA",1)
-        except:
-            pass
-        time.sleep(2)
+        #     hasta.send_keys("31/06/2023")
+        #     guardar_log("FECHA CAMBIADA",1)
+        # except:
+        #     pass
+        # time.sleep(2)
 
         driver.execute_script('arguments[0].value="500"', driver.find_element(By.NAME,'rowsPerPage'))
         guardar_log("CANTIDAD DE ELEMENTOS EN TABLA CAMBIADO A 500",1)
