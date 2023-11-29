@@ -1533,4 +1533,118 @@ class DespachoModel extends Model
             exit();
         }
     }
+
+    //******************************************************************* */
+    //******************************************************************* */
+    //******************************************************************* */
+    // GUIAS RETIRADAS 
+
+    function Cargar_Guias_retiradas_Vigentes($param)
+    {
+        try {
+            $inicio_mes = $param["inicio_mes"];
+            $fin_mes = $param["fin_mes"];
+            $query = $this->db->connect_dobra()->prepare("SELECT 
+            STR_TO_DATE(g.FECHA_DE_EMISION , '%d.%m.%Y') as FECHA_DE_EMISION,
+            g.PEDIDO_INTERNO,
+            STR_TO_DATE(g.FECHA_VALIDEZ , '%d.%m.%Y') as FECHA_VALIDEZ,
+            case 	
+                when STR_TO_DATE(g.FECHA_VALIDEZ  , '%d.%m.%Y') <= curdate() then 0 else 1 
+            end as VENCIDO
+            from guias g 
+            where STR_TO_DATE(g.FECHA_DE_EMISION , '%d.%m.%Y') BETWEEN :inicio_mes AND :fin_mes
+            and g.PEDIDO_INTERNO not in (select PEDIDO_INTERNO from gui_guias_placa ggp)
+            order by STR_TO_DATE(g.FECHA_DE_EMISION , '%d.%m.%Y') desc ");
+            $query->bindParam(":inicio_mes", $inicio_mes, PDO::PARAM_STR);
+            $query->bindParam(":fin_mes", $fin_mes, PDO::PARAM_STR);
+
+            if ($query->execute()) {
+                $result = $query->fetchAll(PDO::FETCH_ASSOC);
+                echo json_encode($result);
+                exit();
+            } else {
+                $err = $query->errorInfo();
+                echo json_encode($err);
+                exit();
+            }
+        } catch (PDOException $e) {
+            $e = $e->getMessage();
+            echo json_encode([$e, 0, 0]);
+            exit();
+        }
+    }
+
+    function Cargar_Guias_retiradas_Entregas($param)
+    {
+        try {
+            $inicio_mes = $param["inicio_mes"];
+            $fin_mes = $param["fin_mes"];
+            $query = $this->db->connect_dobra()->prepare("SELECT 
+            distinct gd.PEDIDO_INTERNO,
+            ggp.FECHA_SALE_PLANTA,
+            STR_TO_DATE(g.FECHA_DE_EMISION , '%d.%m.%Y') as FECHA_DE_EMISION,
+            uu.Nombre,
+            ggp.placa
+            from gui_guias_placa ggp 
+            left join guias g 
+            on g.PEDIDO_INTERNO = ggp.pedido_interno
+            left join guias_detalle gd 
+            on gd.PEDIDO_INTERNO = g.PEDIDO_INTERNO
+            left join us_choferes uc 
+            on uc.PLACA = ggp.placa 
+            left join us_usuarios uu 
+            on uu.Usuario_ID = uc.usuario_id 
+            where date(ggp.FECHA_SALE_PLANTA) BETWEEN :inicio_mes AND :fin_mes
+            and g.PEDIDO_INTERNO is not null
+            order by date(ggp.FECHA_SALE_PLANTA) desc");
+            $query->bindParam(":inicio_mes", $inicio_mes, PDO::PARAM_STR);
+            $query->bindParam(":fin_mes", $fin_mes, PDO::PARAM_STR);
+
+            if ($query->execute()) {
+                $result = $query->fetchAll(PDO::FETCH_ASSOC);
+                echo json_encode($result);
+                exit();
+            } else {
+                $err = $query->errorInfo();
+                echo json_encode($err);
+                exit();
+            }
+        } catch (PDOException $e) {
+            $e = $e->getMessage();
+            echo json_encode([$e, 0, 0]);
+            exit();
+        }
+    }
+
+    function Cargar_Guias_retiradas_No_Ingresadas($param)
+    {
+        try {
+            $inicio_mes = $param["inicio_mes"];
+            $fin_mes = $param["fin_mes"];
+            $query = $this->db->connect_dobra()->prepare("SELECT 
+            ggp.*,
+            uu.Nombre
+            from gui_guias_placa ggp
+            left join us_choferes uc 
+            on uc.PLACA = ggp.placa 
+            left join us_usuarios uu 
+            on uu.Usuario_ID = uc.usuario_id 
+            where pedido_interno not in (select pedido_interno from guias g)");
+            // $query->bindParam(":inicio_mes", $inicio_mes, PDO::PARAM_STR);
+            // $query->bindParam(":fin_mes", $fin_mes, PDO::PARAM_STR);
+            if ($query->execute()) {
+                $result = $query->fetchAll(PDO::FETCH_ASSOC);
+                echo json_encode($result);
+                exit();
+            } else {
+                $err = $query->errorInfo();
+                echo json_encode($err);
+                exit();
+            }
+        } catch (PDOException $e) {
+            $e = $e->getMessage();
+            echo json_encode([$e, 0, 0]);
+            exit();
+        }
+    }
 }

@@ -110,3 +110,6 @@
 2023-11-26 23:58:DATOS INSERTADOS 0 DATOS YA GUARDADOS - ERRORES 0
 2023-11-26 23:58:DATOS INSERTADOS 0 DATOS YA GUARDADOS - ERRORES 0
 2023-11-26 23:58:DATOS INSERTADOS 0 DATOS YA GUARDADOS - ERRORES 0
+2023-11-28 19:35:An error occurred: <HttpError 400 when requesting https://gmail.googleapis.com/gmail/v1/users/me/messages/18c182f038af5bf5?alt=json returned "Precondition check failed.". Details: "[{'message': 'Precondition check failed.', 'domain': 'global', 'reason': 'failedPrecondition'}]">
+2023-11-28 19:36:DATOS INSERTADOS 22 DATOS YA GUARDADOS - ERRORES 0
+2023-11-28 19:36:DATOS INSERTADOS 0 DATOS YA GUARDADOS - ERRORES 0

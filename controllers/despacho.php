@@ -139,7 +139,43 @@ class Despacho extends Controller
         }
     }
 
+    //****************************************************
+    //**** GUIAS RETIRADAS
 
+    function Cargar_Guias_retiradas_Vigentes()
+    {
+        $param = $_POST['param'];
+        if ($param["TOKEN"] == constant("TOKEN_WEB")) {
+            $Ventas =  $this->model->Cargar_Guias_retiradas_Vigentes($param);
+        } else {
+            die();
+        }
+    }
+
+    function Cargar_Guias_retiradas_Entregas()
+    {
+        $param = $_POST['param'];
+        if ($param["TOKEN"] == constant("TOKEN_WEB")) {
+            $Ventas =  $this->model->Cargar_Guias_retiradas_Entregas($param);
+        } else {
+            die();
+        }
+    }
+    
+    function Cargar_Guias_retiradas_No_Ingresadas()
+    {
+        $param = $_POST['param'];
+        if ($param["TOKEN"] == constant("TOKEN_WEB")) {
+            $Ventas =  $this->model->Cargar_Guias_retiradas_No_Ingresadas($param);
+        } else {
+            die();
+        }
+    }
+    
+
+    //*********************************************** */
+    //*********************************************** */
+    //*********************************************** */
     //*********************************************** */
     //***************** MOVIL */
 
