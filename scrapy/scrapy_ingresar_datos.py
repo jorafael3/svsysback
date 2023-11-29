@@ -8,18 +8,18 @@ from log import *
 from datetime import datetime, timedelta
 import sqlalchemy
 import shutil
-conexion = mysql.connector.connect(
-    host="localhost",
-    user="root",
-    password="",
-    database="svsys"
-    )
 # conexion = mysql.connector.connect(
-#     host="gator4166.hostgator.com",
-#     user="salvacer_jorge",
-#     password="Equilivre3*",
-#     database="salvacer_svsys"
+#     host="localhost",
+#     user="root",
+#     password="",
+#     database="svsys"
 #     )
+conexion = mysql.connector.connect(
+    host="gator4166.hostgator.com",
+    user="salvacer_jorge",
+    password="Equilivre3*",
+    database="salvacer_svsys"
+    )
 
 # server = 'gator4166.hostgator.com' 
 # database = 'salvacer_svsys' 
