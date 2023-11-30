@@ -1134,9 +1134,12 @@ class dashboardmodel extends Model
                 'GUIAS' as UNIDAD,
                 'ESTE_ME_TOTAL_RETIRADAS' as mes
                 from guias_detalle gd 
+                left join guias g 
+                on g.PEDIDO_INTERNO  = gd.pedido_interno 
                 left join gui_guias_placa ggp 
                 on ggp.pedido_interno = gd.PEDIDO_INTERNO 
                 where DATE(ggp.FECHA_SALE_PLANTA) BETWEEN :inicio_mes AND :fin_mes
+                and STR_TO_DATE(FECHA_DE_EMISION , '%d.%m.%Y') >= :inicio_mes
                 and gd.CODIGO = :producto             
                 union all
                 select 
@@ -1195,16 +1198,30 @@ class dashboardmodel extends Model
                 where
                 date(ggp.FECHA_SALE_PLANTA) between :inicio_mes_a and :fin_mes_a
                 and STR_TO_DATE(FECHA_DE_EMISION , '%d.%m.%Y') < :inicio_mes_a
-                and gd.CODIGO = :producto";
+                and gd.CODIGO = :producto
+                union all
+                select 
+                ifnull(count(distinct gd.PEDIDO_INTERNO),0) as cantidad,
+                'GUIAS' as UNIDAD,
+                'POR_DESPACHAR_EN_EL_MES' as mes
+                from guias g 
+                left join guias_detalle gd 
+                on g.PEDIDO_INTERNO = gd.PEDIDO_INTERNO 
+                where gd.CODIGO = :producto
+                and STR_TO_DATE(g.FECHA_DE_EMISION, '%d.%m.%Y') between :inicio_mes AND :fin_mes
+                and g.PEDIDO_INTERNO not in (select PEDIDO_INTERNO from gui_guias_placa ggp)";
             } else {
                 $sql = "SELECT 
                     ifnull(sum(gd.POR_DESPACHAR),0) as cantidad,
                     gd.UNIDAD,
                     'ESTE_ME_TOTAL_RETIRADAS' as mes
                     from guias_detalle gd 
+                    left join guias g 
+                    on g.PEDIDO_INTERNO  = gd.pedido_interno 
                     left join gui_guias_placa ggp 
                     on ggp.pedido_interno = gd.PEDIDO_INTERNO 
                     where DATE(ggp.FECHA_SALE_PLANTA) BETWEEN :inicio_mes AND :fin_mes
+                    and STR_TO_DATE(FECHA_DE_EMISION , '%d.%m.%Y') >= :inicio_mes
                     and gd.CODIGO = :producto
                     union all
                     select 
@@ -1264,6 +1281,17 @@ class dashboardmodel extends Model
                     date(ggp.FECHA_SALE_PLANTA) between :inicio_mes_a and :fin_mes_a
                     and STR_TO_DATE(FECHA_DE_EMISION , '%d.%m.%Y') < :inicio_mes_a
                     and gd.CODIGO = :producto
+                    union all
+                    select 
+                    ifnull(sum(gd.POR_DESPACHAR),0) as cantidad,
+                    gd.UNIDAD,
+                    'POR_RETIRAR_EN_EL_MES' as mes
+                    from guias g 
+                    left join guias_detalle gd 
+                    on g.PEDIDO_INTERNO = gd.PEDIDO_INTERNO 
+                    where STR_TO_DATE(g.FECHA_DE_EMISION , '%d.%m.%Y') BETWEEN :inicio_mes AND :fin_mes
+                    and gd.CODIGO = '10016416'
+                    and g.PEDIDO_INTERNO not in (select PEDIDO_INTERNO from gui_guias_placa ggp)
                     ";
             }
 

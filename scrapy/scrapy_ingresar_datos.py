@@ -8,18 +8,19 @@ from log import *
 from datetime import datetime, timedelta
 import sqlalchemy
 import shutil
-# conexion = mysql.connector.connect(
-#     host="localhost",
-#     user="root",
-#     password="",
-#     database="svsys"
-#     )
+import time
 conexion = mysql.connector.connect(
-    host="gator4166.hostgator.com",
-    user="salvacer_jorge",
-    password="Equilivre3*",
-    database="salvacer_svsys"
+    host="localhost",
+    user="root",
+    password="",
+    database="svsys"
     )
+# conexion = mysql.connector.connect(
+#     host="gator4166.hostgator.com",
+#     user="salvacer_jorge",
+#     password="Equilivre3*",
+#     database="salvacer_svsys"
+#     )
 
 # server = 'gator4166.hostgator.com' 
 # database = 'salvacer_svsys' 
@@ -33,7 +34,7 @@ conexion = mysql.connector.connect(
 
 def Obtener_tabla(texto):
     texto_limpio = texto.replace("PRODUCTO", "").replace("CANTIDAD", "")
-
+    print(texto_limpio)
         # Dividir el texto en líneas
     lineas = texto_limpio.strip().split('\n')
     arra_pro = []
@@ -54,7 +55,8 @@ def Obtener_tabla(texto):
                 'POR_DESPACHAR': cantidad_por_despachar,
                 'DESPACHADA': "",
                 'ENTREGADA': ""
-            } 
+            }
+        print(informacion_producto)
         arra_pro.append(informacion_producto)
     guardar_log("DATOS TABLA EXTRAIDO",1)
     return arra_pro
@@ -185,11 +187,13 @@ def Validar_Cabecera(numero):
     #         resultados.append(row)
     # print(numero)
     cursor = conexion.cursor()
-    consulta = 'SELECT PEDIDO_INTERNO FROM guias WHERE PEDIDO_INTERNO = %s'
+    consulta = 'SELECT count(PEDIDO_INTERNO) as PEDIDO_INTERNO  FROM guias WHERE PEDIDO_INTERNO = %s'
     valores = (numero,)
     cursor.execute(consulta,valores)
-    resultados = cursor.fetchall()
-    return len(resultados)
+    resultados = cursor.fetchone()
+    count = resultados[0]
+    print(count)
+    return count
 
 def Guardar_Cabecera(datos):
     try: 
@@ -275,155 +279,9 @@ def Guardar_Cabecera(datos):
         print("ERROR AL GUARDAR CABECERA "+str(e))
         return 0
 
-
-# def Guardar_Cabecera(datos):
-#     try: 
-#         conn = engine.connect()
-#         numero = datos["PEDIDO_INTERNO"].strip()
-#         numero = numero.replace(" ","")
-
-#         val = Validar_Cabecera(numero)
-#         if val == 0:
-#             consulta = sqlalchemy.text("""
-#                 INSERT INTO guias (
-#                     FECHA_DE_EMISION,
-#                     FACTURA,
-#                     TELEFONO,
-#                     FECHA_VALIDEZ,
-#                     CLIENTE,
-#                     CLIENTE_RUC,
-#                     SOLICITANTE,
-#                     DIRECCION_1,
-#                     PTO_DE_PARTIDA,
-#                     PTO_DE_LLEGADA,
-#                     DIRECCION_2,
-#                     TIPO_DE_ENTREGA,
-#                     PEDIDO_INTERNO,
-#                     PED_COMPRA
-#                     ) VALUES (
-#                     :FECHA_DE_EMISION,
-#                     :FACTURA,
-#                     :TELEFONO,
-#                     :FECHA_VALIDEZ,
-#                     :CLIENTE,
-#                     :CLIENTE_RUC,
-#                     :SOLICITANTE,
-#                     :DIRECCION_1,
-#                     :PTO_DE_PARTIDA,
-#                     :PTO_DE_LLEGADA,
-#                     :DIRECCION_2,
-#                     :TIPO_DE_ENTREGA,
-#                     :PEDIDO_INTERNO,
-#                     :PED_COMPRA
-#                         )
-#             """)
-                     
-#             try:
-#             # Intenta ejecutar la consulta con los valores
-            
-#                 conn.execute(consulta, 
-#                             FECHA_DE_EMISION =datos["FECHA_EMISIÓN"].strip(),
-#                             FACTURA = datos["FACTURA"].strip(),
-#                             TELEFONO = datos["TELÉFONO"].strip(),
-#                             FECHA_VALIDEZ = datos["FECHA_VALIDEZ"].strip(),
-#                             CLIENTE = datos["CLIENTE"].strip(),
-#                             CLIENTE_RUC =  datos["RUC"].strip(),
-#                             SOLICITANTE = datos["SOLICITANTE"].strip(),
-#                             DIRECCION_1 =  datos["DIRECCION"].strip(),
-#                             PTO_DE_PARTIDA =  datos["PTO_DE_PARTIDA"].strip(),
-#                             PTO_DE_LLEGADA =  datos["PTO_DE_LLEGADA"].strip(),
-#                             DIRECCION_2 =datos["DIRECCIÓN"].strip(),
-#                             TIPO_DE_ENTREGA =  datos["TIPO_DE_ENTREGA"].strip(),
-#                             PEDIDO_INTERNO = numero,
-#                             PED_COMPRA = datos["PED_COMPRA"].strip()
-#                              )
-
-#                 print("Inserción exitosa"+str(numero))
-#             except Exception as e:
-#                 # Captura cualquier excepción que ocurra durante la inserción
-#                 print("Error durante la inserción:", str(e))
-#             finally:
-#                 # Cierra el cursor y la conexión
-#                 conn.close()
-#                 return 1
-#         else:
-#             guardar_log("YA SE ENCUENTRA EN LA BASE PEDIDO INTERNO "+str(numero),1)
-#             print("YA SE ENCUENTRA EN LA BASE PEDIDO INTERNO "+str(numero))
-#             return 0
-#     except Exception as e:
-#         guardar_log("ERROR AL GUARDAR CABECERA "+str(e),1)
-#         print("ERROR AL GUARDAR CABECERA "+str(e))
-#         return 0
-
-# def Guadar_detalle(datos,PEDIDO):
-#     conn = engine.connect()
-#     val = 0
-#     err = 0
-#     for dato in datos:
-#         valores = (
-#                     PEDIDO,
-#                     dato["ORD"].strip(),           
-#                     dato["CODIGO"].strip(),
-#                     dato["DESCRIPCION"].strip(),
-#                     dato["UNIDAD"].strip(),
-#                     dato["POR_DESPACHAR"].strip(),
-#                     dato["DESPACHADA"].strip(),
-#                     dato["ENTREGADA"].strip(),
-#             )
-        
-#         consulta = sqlalchemy.text("""
-#                 INSERT INTO GUIAS_DETALLE (
-#                     PEDIDO_INTERNO,
-#                     ORD,
-#                     CODIGO,
-#                     DESCRIPCION,
-#                     UNIDAD,
-#                     POR_DESPACHAR,
-#                     DESPACHADA,
-#                     ENTREGADA
-#                     ) VALUES (
-#                     :PEDIDO_INTERNO,
-#                     :ORD,
-#                     :CODIGO,
-#                     :DESCRIPCION,
-#                     :UNIDAD,
-#                     :POR_DESPACHAR,
-#                     :DESPACHADA,
-#                     :ENTREGADA
-#                         )
-#             """)
-#         try:
-                
-#                 conn.execute(consulta, 
-#                             PEDIDO_INTERNO =PEDIDO,
-#                             ORD = dato["ORD"].strip(),
-#                             CODIGO = dato["CODIGO"].strip(),
-#                             DESCRIPCION = dato["DESCRIPCION"].strip(),
-#                             UNIDAD = dato["UNIDAD"].strip(),
-#                             POR_DESPACHAR =  dato["POR_DESPACHAR"].strip(),
-#                             DESPACHADA = dato["DESPACHADA"].strip(),
-#                             ENTREGADA = dato["ENTREGADA"].strip(),
-                            
-#                              )
-#                 print("detalle guardado exitosa")
-#         except Exception as e:
-#                 # Captura cualquier excepción que ocurra durante la inserción
-#                 print("Error durante la inserción:", str(e))
-#                 # return 0
-#                 err = err + 1
-#         finally:
-#                 # Cierra el cursor y la conexión
-#                 conn.close()
-#                 val = val + 1
-#                 # return 1
-    
-#     if err == 0:
-#         return 1
-#     else:
-#         return 0
-
 def Guadar_detalle(datos,PEDIDO):
-
+    print("*******************************")
+    print(datos)
     val = 0
     err = 0
     for dato in datos:
@@ -501,7 +359,9 @@ def mover_archivos():
 
 def ejecutar():
     # for i in range(3):
-        Leer_pdf()
-    # mover_archivos()
+    Leer_pdf()
+    time.sleep(5)
+    print("MOVIENDO ARCHIVOS")
+    mover_archivos()
 
 ejecutar()
