@@ -665,89 +665,191 @@ class dashboardmodel extends Model
             $fin_mes_s = $param["fin_mes_s"];
             $inicio_mes_a = $param["inicio_mes_a"];
             $fin_mes_a = $param["fin_mes_a"];
-            $sql = "SELECT 
-            count(g.FECHA_DE_EMISION) as cantidad,
-            'RETIRADAS_DE_ESTE_MES' as mes
-            from guias g
-            left join gui_guias_placa ggp 
-            on ggp.pedido_interno  = g.PEDIDO_INTERNO 
-            where
-            date(ggp.FECHA_SALE_PLANTA) between :inicio_mes and :fin_mes
-            and STR_TO_DATE(FECHA_DE_EMISION , '%d.%m.%Y') >= :inicio_mes
-            union all
-            select 
-            count(g.FECHA_DE_EMISION) as cantidad_mes_pasado,
-            'CORRESPONDEN_AL_MES_PASADO' as mes
-            from guias g
-            left join gui_guias_placa ggp 
-            on ggp.pedido_interno  = g.PEDIDO_INTERNO 
-            where
-            date(ggp.FECHA_SALE_PLANTA) between :inicio_mes and :fin_mes
-            and STR_TO_DATE(FECHA_DE_EMISION , '%d.%m.%Y') < :inicio_mes
-            union all
-            select 
-            count(g.FECHA_DE_EMISION) as cantidad_mes_siguiente,
-            'FUE_RETIRADA_MES_SGT' as mes
-            from guias g
-            left join gui_guias_placa ggp 
-            on ggp.pedido_interno  = g.PEDIDO_INTERNO 
-            where
-            date(ggp.FECHA_SALE_PLANTA) between :inicio_mes_s and :fin_mes_s
-            and STR_TO_DATE(FECHA_DE_EMISION , '%d.%m.%Y') < :inicio_mes_s
-            union all
-            select 
-            count(*)  as cantidad,
-            'GUIAS_EMITIDAS_MES_TOTAL'
-            from guias g 
-            where STR_TO_DATE(FECHA_DE_EMISION , '%d.%m.%Y') between :inicio_mes and :fin_mes
-            union all
-            select 
-            count(*) as cantidad,
-            'RESTANTE_DE_RETIRAR'
-            from guias g2 
-            where 
-            pedido_interno not in (select pedido_interno from gui_guias_placa ggp2)
-            and STR_TO_DATE(FECHA_DE_EMISION , '%d.%m.%Y') between :inicio_mes and :fin_mes
-            union all
-            select
-            count(g.FECHA_DE_EMISION) as cantidad,
-            'RETIRADAS_DE_MES_PASADO' as mes
-            from guias g
-            left join gui_guias_placa ggp 
-            on ggp.pedido_interno  = g.PEDIDO_INTERNO 
-            where
-            date(ggp.FECHA_SALE_PLANTA) between :inicio_mes_a and :fin_mes_a
-            and STR_TO_DATE(FECHA_DE_EMISION , '%d.%m.%Y') >= :inicio_mes_a
-            union all
-            select 
-            count(ggp.pedido_interno) as cantidad,
-            'GUIAS_RETIRADAS_NO_INGRESADAS' as mes
-            from gui_guias_placa ggp
-            left join guias  g 
-            on g.PEDIDO_INTERNO  = ggp.pedido_interno
-            where g.PEDIDO_INTERNO is null
-            and DATE(ggp.FECHA_SALE_PLANTA) BETWEEN :inicio_mes AND :fin_mes
-            union all 
-            select 
-            count(distinct gd.PEDIDO_INTERNO) as cantidad,
-            'POR_RETIRAR_CEMENTO' as mes
-            from guias g 
-            left join guias_detalle gd 
-            on g.PEDIDO_INTERNO = gd.PEDIDO_INTERNO 
-            where STR_TO_DATE(g.FECHA_DE_EMISION , '%d.%m.%Y') BETWEEN :inicio_mes AND :fin_mes
-            and gd.CODIGO = '10016416'
-            and g.PEDIDO_INTERNO not in (select PEDIDO_INTERNO from gui_guias_placa ggp)
-            union all
-            select 
-            count(distinct gd.PEDIDO_INTERNO) as cantidad,
-            'POR_RETIRAR_OTROS' as MES
-            from guias g 
-            left join guias_detalle gd 
-            on g.PEDIDO_INTERNO = gd.PEDIDO_INTERNO 
-            where STR_TO_DATE(g.FECHA_DE_EMISION , '%d.%m.%Y') BETWEEN :inicio_mes AND :fin_mes
-            and gd.CODIGO != '10016416'
-            and g.PEDIDO_INTERNO not in (select PEDIDO_INTERNO from gui_guias_placa ggp)
-            ";
+            $tipo = $param["tipo"];
+            if ($tipo == "g") {
+                $sql = "SELECT 
+                count(g.FECHA_DE_EMISION) as cantidad,
+                'RETIRADAS_DE_ESTE_MES' as mes
+                from guias g
+                left join gui_guias_placa ggp 
+                on ggp.pedido_interno  = g.PEDIDO_INTERNO 
+                where
+                date(ggp.FECHA_SALE_PLANTA) between :inicio_mes and :fin_mes
+                and STR_TO_DATE(FECHA_DE_EMISION , '%d.%m.%Y') >= :inicio_mes
+                union all
+                select 
+                count(g.FECHA_DE_EMISION) as cantidad_mes_pasado,
+                'CORRESPONDEN_AL_MES_PASADO' as mes
+                from guias g
+                left join gui_guias_placa ggp 
+                on ggp.pedido_interno  = g.PEDIDO_INTERNO 
+                where
+                date(ggp.FECHA_SALE_PLANTA) between :inicio_mes and :fin_mes
+                and STR_TO_DATE(FECHA_DE_EMISION , '%d.%m.%Y') < :inicio_mes
+                union all
+                select 
+                count(g.FECHA_DE_EMISION) as cantidad_mes_siguiente,
+                'FUE_RETIRADA_MES_SGT' as mes
+                from guias g
+                left join gui_guias_placa ggp 
+                on ggp.pedido_interno  = g.PEDIDO_INTERNO 
+                where
+                date(ggp.FECHA_SALE_PLANTA) between :inicio_mes_s and :fin_mes_s
+                and STR_TO_DATE(FECHA_DE_EMISION , '%d.%m.%Y') < :inicio_mes_s
+                union all
+                select 
+                count(*)  as cantidad,
+                'GUIAS_EMITIDAS_MES_TOTAL'
+                from guias g 
+                where STR_TO_DATE(FECHA_DE_EMISION , '%d.%m.%Y') between :inicio_mes and :fin_mes
+                union all
+                select 
+                count(*) as cantidad,
+                'RESTANTE_DE_RETIRAR'
+                from guias g2 
+                where 
+                pedido_interno not in (select pedido_interno from gui_guias_placa ggp2)
+                and STR_TO_DATE(FECHA_DE_EMISION , '%d.%m.%Y') between :inicio_mes and :fin_mes
+                union all
+                select
+                count(g.FECHA_DE_EMISION) as cantidad,
+                'RETIRADAS_DE_MES_PASADO' as mes
+                from guias g
+                left join gui_guias_placa ggp 
+                on ggp.pedido_interno  = g.PEDIDO_INTERNO 
+                where
+                date(ggp.FECHA_SALE_PLANTA) between :inicio_mes_a and :fin_mes_a
+                and STR_TO_DATE(FECHA_DE_EMISION , '%d.%m.%Y') >= :inicio_mes_a
+                union all
+                select 
+                count(ggp.pedido_interno) as cantidad,
+                'GUIAS_RETIRADAS_NO_INGRESADAS' as mes
+                from gui_guias_placa ggp
+                left join guias  g 
+                on g.PEDIDO_INTERNO  = ggp.pedido_interno
+                where g.PEDIDO_INTERNO is null
+                and DATE(ggp.FECHA_SALE_PLANTA) BETWEEN :inicio_mes AND :fin_mes
+                union all 
+                select 
+                count(distinct gd.PEDIDO_INTERNO) as cantidad,
+                'POR_RETIRAR_CEMENTO' as mes
+                from guias g 
+                left join guias_detalle gd 
+                on g.PEDIDO_INTERNO = gd.PEDIDO_INTERNO 
+                where STR_TO_DATE(g.FECHA_DE_EMISION , '%d.%m.%Y') BETWEEN :inicio_mes AND :fin_mes
+                and gd.CODIGO = '10016416'
+                and g.PEDIDO_INTERNO not in (select PEDIDO_INTERNO from gui_guias_placa ggp)
+                union all
+                select 
+                count(distinct gd.PEDIDO_INTERNO) as cantidad,
+                'POR_RETIRAR_OTROS' as MES
+                from guias g 
+                left join guias_detalle gd 
+                on g.PEDIDO_INTERNO = gd.PEDIDO_INTERNO 
+                where STR_TO_DATE(g.FECHA_DE_EMISION , '%d.%m.%Y') BETWEEN :inicio_mes AND :fin_mes
+                and gd.CODIGO != '10016416'
+                and g.PEDIDO_INTERNO not in (select PEDIDO_INTERNO from gui_guias_placa ggp)
+                union all
+                select
+                'GUIAS' as unidad,
+                'UNIDAD' as MES
+                ";
+            } else {
+                $sql = "SELECT 
+                ifnull(sum(gd.POR_DESPACHAR),0) as cantidad,
+                'RETIRADAS_DE_ESTE_MES' as mes
+                from guias_detalle gd 
+                left join guias g 
+                on g.PEDIDO_INTERNO  = gd.pedido_interno 
+                left join gui_guias_placa ggp 
+                on ggp.pedido_interno = gd.PEDIDO_INTERNO 
+                where DATE(ggp.FECHA_SALE_PLANTA) BETWEEN :inicio_mes AND :fin_mes
+                and STR_TO_DATE(FECHA_DE_EMISION , '%d.%m.%Y') >= :inicio_mes
+                and gd.CODIGO = '10016416'
+                union all
+                select 
+                ifnull(sum(gd.POR_DESPACHAR),0) as cantidad,
+                'CORRESPONDEN_AL_MES_PASADO' as mes
+                from guias g
+                left join gui_guias_placa ggp 
+                on ggp.pedido_interno  = g.PEDIDO_INTERNO
+                left join guias_detalle gd 
+                on gd.PEDIDO_INTERNO = g.PEDIDO_INTERNO 
+                where
+                date(ggp.FECHA_SALE_PLANTA) between :inicio_mes and :fin_mes
+                and STR_TO_DATE(FECHA_DE_EMISION , '%d.%m.%Y') < :inicio_mes
+                and gd.CODIGO = '10016416'
+                union all
+                select 
+                count(g.FECHA_DE_EMISION) as cantidad_mes_siguiente,
+                'FUE_RETIRADA_MES_SGT' as mes
+                from guias g
+                left join gui_guias_placa ggp 
+                on ggp.pedido_interno  = g.PEDIDO_INTERNO 
+                where
+                date(ggp.FECHA_SALE_PLANTA) between :inicio_mes_s and :fin_mes_s
+                and STR_TO_DATE(FECHA_DE_EMISION , '%d.%m.%Y') < :inicio_mes_s
+                union all
+                select ifnull(sum(gd.POR_DESPACHAR),0) as cantidad,
+                'ESTE_MES_COMPRADAS' as mes
+                from guias_detalle gd
+                left join guias g 
+                on g.PEDIDO_INTERNO = gd.PEDIDO_INTERNO 
+                where STR_TO_DATE(g.FECHA_DE_EMISION , '%d.%m.%Y') BETWEEN :inicio_mes AND :fin_mes
+                and gd.CODIGO = '10016416'
+                union all
+                select 
+                count(*) as cantidad,
+                'RESTANTE_DE_RETIRAR'
+                from guias g2 
+                where 
+                pedido_interno not in (select pedido_interno from gui_guias_placa ggp2)
+                and STR_TO_DATE(FECHA_DE_EMISION , '%d.%m.%Y') between :inicio_mes and :fin_mes
+                union all
+                select
+                ifnull(sum(gd.POR_DESPACHAR),0) as cantidad,
+                'MES_PASADO_TOTAL_RETIRADAS' as mes
+                from guias_detalle gd 
+                left join gui_guias_placa ggp 
+                on ggp.pedido_interno = gd.PEDIDO_INTERNO 
+                where DATE(ggp.FECHA_SALE_PLANTA) BETWEEN :inicio_mes_a AND :fin_mes_a
+                and gd.CODIGO = '10016416'
+                union all
+                select 
+                count(ggp.pedido_interno) as cantidad,
+                'GUIAS_RETIRADAS_NO_INGRESADAS' as mes
+                from gui_guias_placa ggp
+                left join guias  g 
+                on g.PEDIDO_INTERNO  = ggp.pedido_interno
+                where g.PEDIDO_INTERNO is null
+                and DATE(ggp.FECHA_SALE_PLANTA) BETWEEN :inicio_mes AND :fin_mes
+                union all 
+                select 
+                ifnull(sum(gd.POR_DESPACHAR),0) as cantidad,
+                'POR_RETIRAR_EN_EL_MES' as mes
+                from guias g 
+                left join guias_detalle gd 
+                on g.PEDIDO_INTERNO = gd.PEDIDO_INTERNO 
+                where STR_TO_DATE(g.FECHA_DE_EMISION , '%d.%m.%Y') BETWEEN :inicio_mes AND :fin_mes
+                and gd.CODIGO = '10016416'
+                and g.PEDIDO_INTERNO not in (select PEDIDO_INTERNO from gui_guias_placa ggp)
+                union all
+                select 
+                count(distinct gd.PEDIDO_INTERNO) as cantidad,
+                'POR_RETIRAR_OTROS' as MES
+                from guias g 
+                left join guias_detalle gd 
+                on g.PEDIDO_INTERNO = gd.PEDIDO_INTERNO 
+                where STR_TO_DATE(g.FECHA_DE_EMISION , '%d.%m.%Y') BETWEEN :inicio_mes AND :fin_mes
+                and gd.CODIGO != '10016416'
+                and g.PEDIDO_INTERNO not in (select PEDIDO_INTERNO from gui_guias_placa ggp)
+                union all
+                select
+                'SAC' as unidad,
+                'UNIDAD' as MES
+                ";
+            }
+
 
             $query = $this->db->connect_dobra()->prepare($sql);
             // $query->bindParam(":producto", $producto, PDO::PARAM_STR);
@@ -778,52 +880,105 @@ class dashboardmodel extends Model
             $fin_mes = $param["fin_mes"];
             $inicio_mes_s = $param["inicio_mes_s"];
             $fin_mes_s = $param["fin_mes_s"];
-            $sql = "SELECT  
-            ggp.placa,
-            uu.Nombre,
-            count(*) as cantidad_total,
-            (
-                select sum(gd.POR_DESPACHAR)
-                from guias_detalle gd 
-                left join gui_guias_placa ggp2 
-                on ggp2.pedido_interno = gd.PEDIDO_INTERNO  
-                where gd.CODIGO = '10016416'
-                and ggp2.placa = ggp.placa
-                and DATE(ggp2.FECHA_SALE_PLANTA) between :inicio_mes and :fin_mes
-                
-            ) as SACOS_CEMENTO,
-            (
-            SELECT SUM(subquery.distinct_count) AS total_distinct_count
-                FROM (
-                    SELECT 
-                        COUNT(DISTINCT gd.PEDIDO_INTERNO) AS distinct_count,
-                        ggp2.placa 
-                    FROM 
-                        gui_guias_placa ggp2
-                    LEFT JOIN 
-                        guias_detalle gd ON gd.PEDIDO_INTERNO = ggp2.pedido_interno 
-                    WHERE 
-                        DATE(ggp2.FECHA_SALE_PLANTA) BETWEEN '20231101' AND '20231130'
-                        AND gd.CODIGO = '10016416'
-                    GROUP BY 
-                        ggp2.placa
-                    order by distinct_count desc
-                    limit 1
-                ) AS subquery
-            ) AS SACOS_CEMENTO_GUIAS
-            from 
-            gui_guias_placa ggp 
-            left join us_choferes uc 
-            on uc.PLACA = ggp.placa 
-            left join us_usuarios uu 
-            on uu.Usuario_ID = uc.usuario_id
-            where 
-            DATE(ggp.FECHA_SALE_PLANTA) BETWEEN :inicio_mes and :fin_mes
-            group by 
-            ggp.placa,
-            uu.Nombre
-            order by cantidad_total desc
-            limit 1";
+            $tipo = $param["tipo"];
+            if ($tipo == "g") {
+                $sql = "SELECT  
+                ggp.placa,
+                uu.Nombre,
+                'GUIAS' as unidad,
+                count(*) as cantidad_total,
+                (
+                    select sum(gd.POR_DESPACHAR)
+                    from guias_detalle gd 
+                    left join gui_guias_placa ggp2 
+                    on ggp2.pedido_interno = gd.PEDIDO_INTERNO  
+                    where gd.CODIGO = '10016416'
+                    and ggp2.placa = ggp.placa
+                    and DATE(ggp2.FECHA_SALE_PLANTA) between :inicio_mes and :fin_mes
+                    
+                ) as SACOS_CEMENTO,
+                (
+                SELECT SUM(subquery.distinct_count) AS total_distinct_count
+                    FROM (
+                        SELECT 
+                            COUNT(DISTINCT gd.PEDIDO_INTERNO) AS distinct_count,
+                            ggp2.placa 
+                        FROM 
+                            gui_guias_placa ggp2
+                        LEFT JOIN 
+                            guias_detalle gd ON gd.PEDIDO_INTERNO = ggp2.pedido_interno 
+                        WHERE 
+                            DATE(ggp2.FECHA_SALE_PLANTA) BETWEEN '20231101' AND '20231130'
+                            AND gd.CODIGO = '10016416'
+                        GROUP BY 
+                            ggp2.placa
+                        order by distinct_count desc
+                        limit 1
+                    ) AS subquery
+                ) AS SACOS_CEMENTO_GUIAS
+                from 
+                gui_guias_placa ggp 
+                left join us_choferes uc 
+                on uc.PLACA = ggp.placa 
+                left join us_usuarios uu 
+                on uu.Usuario_ID = uc.usuario_id
+                where 
+                DATE(ggp.FECHA_SALE_PLANTA) BETWEEN :inicio_mes and :fin_mes
+                group by 
+                ggp.placa,
+                uu.Nombre
+                order by cantidad_total desc
+                limit 1";
+            } else {
+                $sql = "SELECT  
+                ggp.placa,
+                uu.Nombre,
+                'SAC' as unidad,
+                count(*) as cantidad_total,
+                (
+                    select sum(gd.POR_DESPACHAR)
+                    from guias_detalle gd 
+                    left join gui_guias_placa ggp2 
+                    on ggp2.pedido_interno = gd.PEDIDO_INTERNO  
+                    where gd.CODIGO = '10016416'
+                    and ggp2.placa = ggp.placa
+                    and DATE(ggp2.FECHA_SALE_PLANTA) between :inicio_mes and :fin_mes
+                    
+                ) as SACOS_CEMENTO,
+                (
+                SELECT SUM(subquery.distinct_count) AS total_distinct_count
+                    FROM (
+                        SELECT 
+                            COUNT(DISTINCT gd.PEDIDO_INTERNO) AS distinct_count,
+                            ggp2.placa 
+                        FROM 
+                            gui_guias_placa ggp2
+                        LEFT JOIN 
+                            guias_detalle gd ON gd.PEDIDO_INTERNO = ggp2.pedido_interno 
+                        WHERE 
+                            DATE(ggp2.FECHA_SALE_PLANTA) BETWEEN '20231101' AND '20231130'
+                            AND gd.CODIGO = '10016416'
+                        GROUP BY 
+                            ggp2.placa
+                        order by distinct_count desc
+                        limit 1
+                    ) AS subquery
+                ) AS SACOS_CEMENTO_GUIAS
+                from 
+                gui_guias_placa ggp 
+                left join us_choferes uc 
+                on uc.PLACA = ggp.placa 
+                left join us_usuarios uu 
+                on uu.Usuario_ID = uc.usuario_id
+                where 
+                DATE(ggp.FECHA_SALE_PLANTA) BETWEEN :inicio_mes and :fin_mes
+                group by 
+                ggp.placa,
+                uu.Nombre
+                order by cantidad_total desc
+                limit 1";
+            }
+
 
             $query = $this->db->connect_dobra()->prepare($sql);
             // $query->bindParam(":producto", $producto, PDO::PARAM_STR);
@@ -852,67 +1007,103 @@ class dashboardmodel extends Model
             $fin_mes = $param["fin_mes"];
             $inicio_mes_s = $param["inicio_mes_s"];
             $fin_mes_s = $param["fin_mes_s"];
-            $sql = "(SELECT 
+            $tipo = $param["tipo"];
+            // if ($tipo == "g") {
+            //     $sql = "
+            //     (SELECT 
+            //     DATE(FECHA_SALE_PLANTA) AS fecha,
+            //     count(g.pedido_interno) AS cantidad,
+            //     'TOTAL' AS fecha_tipo
+            //     FROM gui_guias_placa ggp
+            //     left join guias g 
+            //     on g.PEDIDO_INTERNO = ggp.pedido_interno 
+            //     GROUP BY DATE(FECHA_SALE_PLANTA)
+            //     ORDER BY cantidad DESC
+            //     LIMIT 1)
+                
+            //     UNION ALL
+                
+            //     (SELECT 
+            //         DATE(FECHA_SALE_PLANTA) AS fecha,
+            //         COUNT(g.pedido_interno) AS cantidad,
+            //         'DEL_MES' AS fecha_tipo
+            //     FROM gui_guias_placa ggp 
+            //     left join guias g 
+            //     on g.PEDIDO_INTERNO = ggp.pedido_interno 
+            //     WHERE DATE(ggp.FECHA_SALE_PLANTA) BETWEEN :inicio_mes AND :fin_mes
+            //     GROUP BY DATE(FECHA_SALE_PLANTA)
+            //     ORDER BY cantidad DESC
+            //     LIMIT 1)
+                
+            //     UNION ALL
+            //     (
+            //         SELECT 
+            //         DATE(FECHA_SALE_PLANTA) AS fecha,
+            //         sum(gd.POR_DESPACHAR) AS cantidad,
+            //         'CEMENTO_GENERAL' AS fecha_tipo
+            //     FROM gui_guias_placa ggp 
+            //     left join guias g 
+            //     on g.PEDIDO_INTERNO = ggp.pedido_interno
+            //     left join guias_detalle gd 
+            //     on gd.PEDIDO_INTERNO = g.PEDIDO_INTERNO
+            //     where
+            //          gd.CODIGO = '10016416'
+            //     GROUP BY DATE(FECHA_SALE_PLANTA)
+            //     ORDER BY cantidad DESC
+            //      limit 1
+            //     )
+            //     UNION ALL
+    
+            //     (
+            //         SELECT 
+            //         DATE(FECHA_SALE_PLANTA) AS fecha,
+            //         sum(gd.POR_DESPACHAR) AS cantidad,
+            //         'CEMENTO_DEL_MES' AS fecha_tipo
+            //     FROM gui_guias_placa ggp 
+            //     left join guias g 
+            //     on g.PEDIDO_INTERNO = ggp.pedido_interno
+            //     left join guias_detalle gd 
+            //     on gd.PEDIDO_INTERNO = g.PEDIDO_INTERNO
+            //     where
+            //          gd.CODIGO = '10016416'
+            //          and DATE(ggp.FECHA_SALE_PLANTA) BETWEEN :inicio_mes AND :fin_mes
+            //     GROUP BY DATE(FECHA_SALE_PLANTA)
+            //     ORDER BY cantidad DESC
+            //      limit 1
+            //     )
+            //     ";
+            // } else {
+               
+            // }
+          
+            $sql = "  (SELECT 
             DATE(FECHA_SALE_PLANTA) AS fecha,
             count(g.pedido_interno) AS cantidad,
-            'TOTAL' AS fecha_tipo
+            'TOTAL' AS fecha_tipo,
+            'GUIAS'as unidad
             FROM gui_guias_placa ggp
             left join guias g 
             on g.PEDIDO_INTERNO = ggp.pedido_interno 
             GROUP BY DATE(FECHA_SALE_PLANTA)
             ORDER BY cantidad DESC
             LIMIT 1)
-            
             UNION ALL
-            
-            (SELECT 
-                DATE(FECHA_SALE_PLANTA) AS fecha,
-                COUNT(g.pedido_interno) AS cantidad,
-                'DEL_MES' AS fecha_tipo
-            FROM gui_guias_placa ggp 
-            left join guias g 
-            on g.PEDIDO_INTERNO = ggp.pedido_interno 
-            WHERE DATE(ggp.FECHA_SALE_PLANTA) BETWEEN :inicio_mes AND :fin_mes
-            GROUP BY DATE(FECHA_SALE_PLANTA)
-            ORDER BY cantidad DESC
-            LIMIT 1)
-            
-            UNION ALL
-
             (
                 SELECT 
                 DATE(FECHA_SALE_PLANTA) AS fecha,
                 sum(gd.POR_DESPACHAR) AS cantidad,
-                'CEMENTO_GENERAL' AS fecha_tipo
+                'CEMENTO_GENERAL' AS fecha_tipo,
+                'SAC'as unidad
             FROM gui_guias_placa ggp 
             left join guias g 
             on g.PEDIDO_INTERNO = ggp.pedido_interno
             left join guias_detalle gd 
             on gd.PEDIDO_INTERNO = g.PEDIDO_INTERNO
             where
-            	 gd.CODIGO = '10016416'
+                 gd.CODIGO = '10016416'
             GROUP BY DATE(FECHA_SALE_PLANTA)
             ORDER BY cantidad DESC
-         	limit 1
-            )
-            UNION ALL
-
-            (
-                SELECT 
-                DATE(FECHA_SALE_PLANTA) AS fecha,
-                sum(gd.POR_DESPACHAR) AS cantidad,
-                'CEMENTO_DEL_MES' AS fecha_tipo
-            FROM gui_guias_placa ggp 
-            left join guias g 
-            on g.PEDIDO_INTERNO = ggp.pedido_interno
-            left join guias_detalle gd 
-            on gd.PEDIDO_INTERNO = g.PEDIDO_INTERNO
-            where
-            	 gd.CODIGO = '10016416'
-                 and DATE(ggp.FECHA_SALE_PLANTA) BETWEEN :inicio_mes AND :fin_mes
-            GROUP BY DATE(FECHA_SALE_PLANTA)
-            ORDER BY cantidad DESC
-         	limit 1
+             limit 1
             )
             ";
 
