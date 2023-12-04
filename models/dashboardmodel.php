@@ -48,7 +48,7 @@ class dashboardmodel extends Model
             $GUIAS_RETIRADAS_POR_DIA = $this->GRAFICO_POR_DIA($param);
             $GUIAS_RETIRADAS_POR_MES = $this->GRAFICO_POR_MES($param);
             $GR_CARD_1 = $this->GR_CARD_1($param);
-
+            $ULTIMA_ACTUALIZACION = $this->Ultima_Actualizacion($param);
             // $SACOS = $this->Cantidad_Sacos_Mes($param);
             // $CHOFER = $this->Chofer_Mas_Despachos($param);
             // $GUIAS_DESPACHADAS = array(
@@ -66,6 +66,7 @@ class dashboardmodel extends Model
                 "GUIAS_RETIRADAS_POR_DIA" => $GUIAS_RETIRADAS_POR_DIA,
                 "GUIAS_RETIRADAS_POR_MES" => $GUIAS_RETIRADAS_POR_MES,
                 "GR_CARD_1" => $GR_CARD_1,
+                "ULTIMA_ACTUALIZACION" => $ULTIMA_ACTUALIZACION,
                 // "SACOS" => $SACOS,
                 // "CHOFER" => $CHOFER,
                 // "GUIAS_DESPACHADAS" => $GUIAS_DESPACHADAS,
@@ -1020,9 +1021,9 @@ class dashboardmodel extends Model
             //     GROUP BY DATE(FECHA_SALE_PLANTA)
             //     ORDER BY cantidad DESC
             //     LIMIT 1)
-                
+
             //     UNION ALL
-                
+
             //     (SELECT 
             //         DATE(FECHA_SALE_PLANTA) AS fecha,
             //         COUNT(g.pedido_interno) AS cantidad,
@@ -1034,7 +1035,7 @@ class dashboardmodel extends Model
             //     GROUP BY DATE(FECHA_SALE_PLANTA)
             //     ORDER BY cantidad DESC
             //     LIMIT 1)
-                
+
             //     UNION ALL
             //     (
             //         SELECT 
@@ -1053,7 +1054,7 @@ class dashboardmodel extends Model
             //      limit 1
             //     )
             //     UNION ALL
-    
+
             //     (
             //         SELECT 
             //         DATE(FECHA_SALE_PLANTA) AS fecha,
@@ -1073,9 +1074,9 @@ class dashboardmodel extends Model
             //     )
             //     ";
             // } else {
-               
+
             // }
-          
+
             $sql = "  (SELECT 
             DATE(FECHA_SALE_PLANTA) AS fecha,
             count(g.pedido_interno) AS cantidad,
@@ -1109,8 +1110,8 @@ class dashboardmodel extends Model
 
             $query = $this->db->connect_dobra()->prepare($sql);
             // $query->bindParam(":producto", $producto, PDO::PARAM_STR);
-            $query->bindParam(":inicio_mes", $inicio_mes, PDO::PARAM_STR);
-            $query->bindParam(":fin_mes", $fin_mes, PDO::PARAM_STR);
+            // $query->bindParam(":inicio_mes", $inicio_mes, PDO::PARAM_STR);
+            // $query->bindParam(":fin_mes", $fin_mes, PDO::PARAM_STR);
             // $query->bindParam(":inicio_mes_s", $inicio_mes_s, PDO::PARAM_STR);
             // $query->bindParam(":fin_mes_s", $fin_mes_s, PDO::PARAM_STR);
             if ($query->execute()) {
@@ -1492,6 +1493,27 @@ class dashboardmodel extends Model
             $query->bindParam(":fin_mes", $fin_mes, PDO::PARAM_STR);
             $query->bindParam(":inicio_mes_a", $inicio_mes_a, PDO::PARAM_STR);
             $query->bindParam(":fin_mes_a", $fin_mes_a, PDO::PARAM_STR);
+            if ($query->execute()) {
+                $result = $query->fetchAll(PDO::FETCH_ASSOC);
+                return array("DATOS" => $result);
+            } else {
+                $err = $query->errorInfo();
+                return $err;
+            }
+        } catch (PDOException $e) {
+            $e = $e->getMessage();
+            echo json_encode([$e, 0, 0]);
+            exit();
+        }
+    }
+
+    function Ultima_Actualizacion($param)
+    {
+        try {
+            $sql = "SELECT max(ggp.FECHA_SALE_PLANTA) as ultima_actualizacion
+            from gui_guias_placa ggp
+            limit 1";
+            $query = $this->db->connect_dobra()->prepare($sql);
             if ($query->execute()) {
                 $result = $query->fetchAll(PDO::FETCH_ASSOC);
                 return array("DATOS" => $result);
