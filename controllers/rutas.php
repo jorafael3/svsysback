@@ -9,6 +9,7 @@ header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers
 class Reportes extends Controller
 {
 
+
     function __construct()
     {
         parent::__construct();
@@ -16,21 +17,22 @@ class Reportes extends Controller
         //echo "nuevo controlaodr";
     }
 
-    function Reporte_Clientes_General()
+    function Cargar_Rutas()
     {
         $param = $_POST['param'];
         if ($param["TOKEN"] == constant("TOKEN_WEB")) {
-            $Ventas =  $this->model->Reporte_Clientes_General($param);
+            $Ventas =  $this->model->Cargar_Rutas($param);
         } else {
             die();
         }
     }
 
-    function Reporte_Chofer_General()
+    
+    function Cargar_Rutas_dia()
     {
         $param = $_POST['param'];
         if ($param["TOKEN"] == constant("TOKEN_WEB")) {
-            $Ventas =  $this->model->Reporte_Chofer_General($param);
+            $Ventas =  $this->model->Cargar_Rutas_dia($param);
         } else {
             die();
         }
