@@ -6,7 +6,7 @@ header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
 // Permitir ciertos encabezados personalizados, si es necesario
 header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
 
-class Reportes extends Controller
+class Rutas extends Controller
 {
 
 
@@ -15,6 +15,26 @@ class Reportes extends Controller
         parent::__construct();
         //$this->view->render('principal/index');
         //echo "nuevo controlaodr";
+    }
+
+    function Cargar_Clientes()
+    {
+        $param = $_POST['param'];
+        if ($param["TOKEN"] == constant("TOKEN_WEB")) {
+            $Ventas =  $this->model->Cargar_Clientes($param);
+        } else {
+            die();
+        }
+    }
+
+    function Cargar_Productos()
+    {
+        $param = $_POST['param'];
+        if ($param["TOKEN"] == constant("TOKEN_WEB")) {
+            $Ventas =  $this->model->Cargar_Productos($param);
+        } else {
+            die();
+        }
     }
 
     function Cargar_Rutas()
@@ -33,6 +53,16 @@ class Reportes extends Controller
         $param = $_POST['param'];
         if ($param["TOKEN"] == constant("TOKEN_WEB")) {
             $Ventas =  $this->model->Cargar_Rutas_dia($param);
+        } else {
+            die();
+        }
+    }
+
+    function Nueva_Ruta()
+    {
+        $param = $_POST['param'];
+        if ($param["TOKEN"] == constant("TOKEN_WEB")) {
+            $Ventas =  $this->model->Nueva_Ruta($param);
         } else {
             die();
         }
