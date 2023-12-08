@@ -187,3 +187,47 @@ WHERE DATE(ggp.FECHA_SALE_PLANTA) BETWEEN '20231001' AND '20231130'
 and gd.CODIGO = '10016416'
 group by date(FECHA_SALE_PLANTA)
 order by date(FECHA_SALE_PLANTA) asc
+
+
+
+
+
+
+
+
+create table gui_rutas(
+ID int auto_increment primary key,
+fecha_ruta datetime NOT NULL DEFAULT current_timestamp(),
+creado_por varchar(20)
+)
+
+create table gui_ruta_dia(
+ID int auto_increment primary key,
+ruta_id int,
+chofer_id int
+)
+
+create table gui_ruta_dia_detalle(
+ID int auto_increment primary key,
+ruta_dia_id int,
+cliente_destino_id int,
+producto_id int,
+destino_id int,
+pedido_interno int
+)
+
+create table inv_productos(
+ID int auto_increment primary key,
+Nombre varchar(100),
+codigo varchar(100),
+precio float,
+categoria varchar(10)
+)
+
+
+select distinct  DESCRIPCION,CODIGO  from guias_detalle gd 
+insert into inv_productos (Nombre,codigo)
+select distinct  
+DESCRIPCION as Nombre,
+CODIGO as codigo 
+from guias_detalle gd 
