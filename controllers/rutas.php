@@ -17,11 +17,31 @@ class Rutas extends Controller
         //echo "nuevo controlaodr";
     }
 
+    function Cargar_Chofer()
+    {
+        $param = $_POST['param'];
+        if ($param["TOKEN"] == constant("TOKEN_WEB")) {
+            $Ventas =  $this->model->Cargar_Chofer($param);
+        } else {
+            die();
+        }
+    }
+
     function Cargar_Clientes()
     {
         $param = $_POST['param'];
         if ($param["TOKEN"] == constant("TOKEN_WEB")) {
             $Ventas =  $this->model->Cargar_Clientes($param);
+        } else {
+            die();
+        }
+    }
+
+    function Cargar_Clientes_Sucursales()
+    {
+        $param = $_POST['param'];
+        if ($param["TOKEN"] == constant("TOKEN_WEB")) {
+            $Ventas =  $this->model->Cargar_Clientes_Sucursales($param);
         } else {
             die();
         }
@@ -47,7 +67,7 @@ class Rutas extends Controller
         }
     }
 
-    
+
     function Cargar_Rutas_dia()
     {
         $param = $_POST['param'];
@@ -63,6 +83,35 @@ class Rutas extends Controller
         $param = $_POST['param'];
         if ($param["TOKEN"] == constant("TOKEN_WEB")) {
             $Ventas =  $this->model->Nueva_Ruta($param);
+        } else {
+            die();
+        }
+    }
+
+    function Nueva_Ruta_Dia()
+    {
+        $param = $_POST['param'];
+        if ($param["TOKEN"] == constant("TOKEN_WEB")) {
+            $Ventas =  $this->model->Nueva_Ruta_Dia($param);
+        } else {
+            die();
+        }
+    }
+
+    function Nueva_Ruta_Dia_detalle()
+    {
+        $param = $_POST['param'];
+        if ($param["TOKEN"] == constant("TOKEN_WEB")) {
+            $Ventas =  $this->model->Nueva_Ruta_Dia_detalle($param);
+        } else {
+            die();
+        }
+    }
+    function Actualizar_Ruta_Dia_detalle()
+    {
+        $param = $_POST['param'];
+        if ($param["TOKEN"] == constant("TOKEN_WEB")) {
+            $Ventas =  $this->model->Actualizar_Ruta_Dia_detalle($param);
         } else {
             die();
         }

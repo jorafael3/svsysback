@@ -3,6 +3,34 @@
 
 class RutasModel extends Model
 {
+    function Cargar_Chofer()
+    {
+        try {
+            $query = $this->db->connect_dobra()->prepare("SELECT
+            uc.usuario_id AS value,
+            CONCAT(uc.PLACA, '-', uu.Nombre) AS label
+            FROM
+                us_choferes uc
+            LEFT JOIN
+                us_usuarios uu ON uu.Usuario_ID = uc.usuario_id
+            where uc.ESTADO = 1
+                ");
+            if ($query->execute()) {
+                $result = $query->fetchAll(PDO::FETCH_ASSOC);
+                echo json_encode($result);
+                exit();
+            } else {
+                $err = $query->errorInfo();
+                echo json_encode($err);
+                exit();
+            }
+        } catch (PDOException $e) {
+            $e = $e->getMessage();
+            echo json_encode($e);
+            exit();
+        }
+    }
+
     function Cargar_Clientes()
     {
         try {
@@ -10,6 +38,30 @@ class RutasModel extends Model
             ID as value,CLIENTE_NOMBRE as label from cli_clientes
             where estado = 1
             ');
+            if ($query->execute()) {
+                $result = $query->fetchAll(PDO::FETCH_ASSOC);
+                echo json_encode($result);
+                exit();
+            } else {
+                $err = $query->errorInfo();
+                echo json_encode($err);
+                exit();
+            }
+        } catch (PDOException $e) {
+            $e = $e->getMessage();
+            echo json_encode($e);
+            exit();
+        }
+    }
+    function Cargar_Clientes_Sucursales($param)
+    {
+        try {
+            $cliente_id = $param["CLIENTE"];
+            $query = $this->db->connect_dobra()->prepare('SELECT 
+            ID as value,sucursal_nombre as label from cli_clientes_sucursales
+            where estado = 1 and cliente_id = :cliente_id
+            ');
+            $query->bindParam(":cliente_id", $cliente_id, PDO::PARAM_STR);
             if ($query->execute()) {
                 $result = $query->fetchAll(PDO::FETCH_ASSOC);
                 echo json_encode($result);
@@ -61,7 +113,7 @@ class RutasModel extends Model
             left join gui_ruta_dia grd
             on gr.ID  = grd.ruta_id
             left join gui_ruta_dia_detalle grdd 
-            on grdd.ruta_dia_id = gr.ID 
+            on grdd.ruta_dia_id = grd.ID
             group by fecha
             order by fecha desc
             ');
@@ -85,20 +137,26 @@ class RutasModel extends Model
     {
         try {
             $ID = $param["ID"];
-            $query = $this->db->connect_dobra()->prepare("SELECT 
+            $query = $this->db->connect_dobra()->prepare("SELECT
+            grdd.ID as RUTA_DET_ID,
             grd.chofer_id,
             uu.Nombre as Chofer_nombre,
             uc.PLACA,
-            concat(uc.PLACA,' ',uu.Nombre) as CHOFER,
+            concat(uc.PLACA,' ',uu.Nombre,'/',grd.ID) as CHOFER,
             cc.CLIENTE_NOMBRE,
             grdd.cliente_id,
             grdd.producto_id,
-            grdd.producto_id as producto_nombre,
+            ip.Nombre  as producto_nombre,
             grdd.pedido_interno,
-            grdd.destino_id,
-            grdd.destino_id as destino_nombre,
-            g.FACTURA,
-            ggp.FECHA_SALE_PLANTA 
+            grdd.cliente_destino_id,
+            ccs.sucursal_nombre  as destino_nombre,
+            ggp.FECHA_SALE_PLANTA,
+            grdd.factura,
+            grdd.holcim,
+            grdd.bodega,
+            grdd.flete_cant,
+            grdd.flete_producto,
+            ip2.Nombre as flete_producto_nombre
             from gui_ruta_dia grd 
             left join us_choferes uc 
             on uc.usuario_id = grd.chofer_id 
@@ -114,7 +172,14 @@ class RutasModel extends Model
             on ggp.pedido_interno = grdd.pedido_interno 
             left join gui_rutas gr 
             on gr.ID = grd.ruta_id
+            left join inv_productos ip 
+            on ip.ID  = grdd.producto_id
+            left join inv_productos ip2 
+            on ip2.ID  = grdd.flete_producto
+            left join cli_clientes_sucursales ccs 
+            on ccs.cliente_id = cc.ID and grdd.cliente_destino_id = ccs.ID 
             where gr.ID = :ID
+            order by grd.fecha_creado desc
             ");
             $query->bindParam(":ID", $ID, PDO::PARAM_STR);
 
@@ -173,4 +238,172 @@ class RutasModel extends Model
             exit();
         }
     }
+
+    function Nueva_Ruta_Dia($param)
+    {
+        try {
+            date_default_timezone_set('America/Guayaquil');
+            $Fecha_Hoy = date("Y-m-d");
+            $CHOFER = $param["CHOFER"];
+            $RUTA_ID = $param["RUTA_ID"];
+            $query = $this->db->connect_dobra()->prepare('SELECT chofer_id
+            FROM gui_ruta_dia
+            where ruta_id = :ruta_id and chofer_id = :chofer_id');
+            $query->bindParam(":ruta_id", $RUTA_ID, PDO::PARAM_STR);
+            $query->bindParam(":chofer_id", $CHOFER, PDO::PARAM_STR);
+
+            if ($query->execute()) {
+                $result = $query->fetchAll(PDO::FETCH_ASSOC);
+                if (count($result) > 0) {
+                    echo json_encode([0, "Chofer ya tiene ruta creada"]);
+                    exit();
+                } else {
+                    $query2 = $this->db->connect_dobra()->prepare('INSERT into
+                        gui_ruta_dia (ruta_id,chofer_id)values(:ruta_id,:chofer_id)');
+                    $query2->bindParam(":ruta_id", $RUTA_ID, PDO::PARAM_STR);
+                    $query2->bindParam(":chofer_id", $CHOFER, PDO::PARAM_STR);
+                    if ($query2->execute()) {
+                        echo json_encode([1, "Chofer Agregado"]);
+                        exit();
+                    } else {
+                        echo json_encode([0, "Error al Guardar"]);
+                        exit();
+                    }
+                }
+            } else {
+                $err = $query->errorInfo();
+                echo json_encode($err);
+                exit();
+            }
+        } catch (PDOException $e) {
+            $e = $e->getMessage();
+            echo json_encode($e);
+            exit();
+        }
+    }
+    function Nueva_Ruta_Dia_detalle($param)
+    {
+        try {
+            date_default_timezone_set('America/Guayaquil');
+            $Fecha_Hoy = date("Y-m-d");
+            $ruta_dia_id = $param["RUTA_DIA_ID"];
+            $cliente_id = $param["CLIENTE"];
+            $cliente_destino_id = $param["CLIENTE_DESTINO"];
+            $producto_id = $param["PRODUCTO"];
+            $factura = $param["FACTURA"];
+            $holcim = $param["HOLCIM"];
+            $bodega = $param["BODEGA"];
+            $flete_cant = $param["FLETE_CANT"];
+            $flete_producto = $param["FLETE_PROD"];
+            $pedido_interno = $param["GUIA"];
+            $query = $this->db->connect_dobra()->prepare('INSERT INTO gui_ruta_dia_detalle 
+            (
+                ruta_dia_id, 
+                cliente_id, 
+                cliente_destino_id, 
+                producto_id, 
+                factura, 
+                holcim, 
+                bodega, 
+                flete_cant, 
+                flete_producto,
+                pedido_interno
+
+            )VALUES(
+                :ruta_dia_id, 
+                :cliente_id, 
+                :cliente_destino_id, 
+                :producto_id, 
+                :factura, 
+                :holcim, 
+                :bodega, 
+                :flete_cant, 
+                :flete_producto,
+                :pedido_interno
+            );
+            ');
+            $query->bindParam(":ruta_dia_id", $ruta_dia_id, PDO::PARAM_STR);
+            $query->bindParam(":cliente_id", $cliente_id, PDO::PARAM_STR);
+            $query->bindParam(":cliente_destino_id", $cliente_destino_id, PDO::PARAM_STR);
+            $query->bindParam(":producto_id", $producto_id, PDO::PARAM_STR);
+            $query->bindParam(":factura", $factura, PDO::PARAM_STR);
+            $query->bindParam(":holcim", $holcim, PDO::PARAM_STR);
+            $query->bindParam(":bodega", $bodega, PDO::PARAM_STR);
+            $query->bindParam(":flete_cant", $flete_cant, PDO::PARAM_STR);
+            $query->bindParam(":flete_producto", $flete_producto, PDO::PARAM_STR);
+            $query->bindParam(":pedido_interno", $pedido_interno, PDO::PARAM_STR);
+
+            if ($query->execute()) {
+                $result = $query->fetchAll(PDO::FETCH_ASSOC);
+                echo json_encode([1, "Datos Agregados"]);
+                exit();
+            } else {
+                $err = $query->errorInfo();
+                echo json_encode($err);
+                exit();
+            }
+        } catch (PDOException $e) {
+            $e = $e->getMessage();
+            echo json_encode($e);
+            exit();
+        }
+    }
+
+    function Actualizar_Ruta_Dia_detalle($param)
+    {
+        try {
+            date_default_timezone_set('America/Guayaquil');
+            $Fecha_Hoy = date("Y-m-d");
+            $RUTA_DIA_ID = $param["RUTA_DIA_ID"];
+            $cliente_id = $param["CLIENTE"];
+            $cliente_destino_id = $param["CLIENTE_DESTINO"];
+            $producto_id = $param["PRODUCTO"];
+            $factura = $param["FACTURA"];
+            $holcim = $param["HOLCIM"];
+            $bodega = $param["BODEGA"];
+            $flete_cant = $param["FLETE_CANT"];
+            $flete_producto = $param["FLETE_PROD"];
+            $pedido_interno = $param["GUIA"];
+            $query = $this->db->connect_dobra()->prepare('UPDATE gui_ruta_dia_detalle 
+            SET 
+                cliente_id=:cliente_id, 
+                cliente_destino_id=:cliente_destino_id, 
+                producto_id=:producto_id, 
+                factura=:factura, 
+                holcim=:holcim, 
+                bodega=:bodega, 
+                flete_cant=:flete_cant, 
+                flete_producto=:flete_producto ,
+                pedido_interno=:pedido_interno
+            WHERE ID=:ID
+            ');
+            $query->bindParam(":cliente_id", $cliente_id, PDO::PARAM_STR);
+            $query->bindParam(":cliente_destino_id", $cliente_destino_id, PDO::PARAM_STR);
+            $query->bindParam(":producto_id", $producto_id, PDO::PARAM_STR);
+            $query->bindParam(":factura", $factura, PDO::PARAM_STR);
+            $query->bindParam(":holcim", $holcim, PDO::PARAM_STR);
+            $query->bindParam(":bodega", $bodega, PDO::PARAM_STR);
+            $query->bindParam(":flete_cant", $flete_cant, PDO::PARAM_STR);
+            $query->bindParam(":flete_producto", $flete_producto, PDO::PARAM_STR);
+            $query->bindParam(":pedido_interno", $pedido_interno, PDO::PARAM_STR);
+            $query->bindParam(":ID", $RUTA_DIA_ID, PDO::PARAM_STR);
+
+            if ($query->execute()) {
+                $result = $query->fetchAll(PDO::FETCH_ASSOC);
+                echo json_encode([1, "Datos Actualizados"]);
+                exit();
+            } else {
+                $err = $query->errorInfo();
+                echo json_encode($err);
+                exit();
+            }
+        } catch (PDOException $e) {
+            $e = $e->getMessage();
+            echo json_encode($e);
+            exit();
+        }
+    }
+
+
+
 }
