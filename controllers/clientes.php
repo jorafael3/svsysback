@@ -60,4 +60,46 @@ class Clientes extends Controller
 
         }
     }
+
+    function Cargar_Sucursales()
+    {
+        $param = $_POST['param'];
+
+        if ($param["TOKEN"] == constant("TOKEN_WEB")) {
+           
+            $Ventas =  $this->model->Cargar_Sucursales($param);
+        } else {
+            //die();
+            // echo json_encode($param);
+
+        }
+    }
+
+    function Nueva_Sucursales()
+    {
+        $param = $_POST['param'];
+
+        if ($param["TOKEN"] == constant("TOKEN_WEB")) {
+           
+            $Ventas =  $this->model->Nueva_Sucursales($param);
+        } else {
+            //die();
+            // echo json_encode($param);
+
+        }
+    }
+
+    function Eliminar_Sucursal()
+    {
+        $param = $_POST['param'];
+
+        if ($param["TOKEN"] == constant("TOKEN_WEB")) {
+           
+            $Ventas =  $this->model->Eliminar_Sucursal($param);
+        } else {
+            //die();
+            // echo json_encode($param);
+
+        }
+    }
 }

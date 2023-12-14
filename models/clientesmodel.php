@@ -262,4 +262,102 @@ class ClientesModel extends Model
             exit();
         }
     }
+
+    function Cargar_Sucursales($param)
+    {
+        try {
+            $cliente = $param["ID"];
+            $query = $this->db->connect_dobra()->prepare('SELECT * FROM
+            cli_clientes_sucursales
+            where cliente_id = :cliente
+           and estado = 1
+            ');
+            $query->bindParam(":cliente", $cliente, PDO::PARAM_STR);
+            if ($query->execute()) {
+                $result = $query->fetchAll(PDO::FETCH_ASSOC);
+                echo json_encode($result);
+                exit();
+            } else {
+                $err = $query->errorInfo();
+                echo json_encode($err);
+                exit();
+            }
+        } catch (PDOException $e) {
+            $e = $e->getMessage();
+            echo json_encode($e);
+            exit();
+        }
+    }
+
+    function Nueva_Sucursales($param)
+    {
+        try {
+            $cliente = $param["cliente_id"];
+            $sucursal_nombre = $param["sucursal_nombre"];
+            $direccion = $param["direccion"];
+            $telefono = $param["telefono"];
+            $responsable = $param["responsable"];
+            $query = $this->db->connect_dobra()->prepare('INSERT INTO 
+            cli_clientes_sucursales 
+            (
+                cliente_id, 
+                sucursal_nombre, 
+                direccion, 
+                telefono, 
+                responsable
+            ) VALUES(
+                :cliente_id, 
+                :sucursal_nombre, 
+                :direccion, 
+                :telefono, 
+                :responsable
+            );
+
+            ');
+            $query->bindParam(":cliente_id", $cliente, PDO::PARAM_STR);
+            $query->bindParam(":sucursal_nombre", $sucursal_nombre, PDO::PARAM_STR);
+            $query->bindParam(":direccion", $direccion, PDO::PARAM_STR);
+            $query->bindParam(":telefono", $telefono, PDO::PARAM_STR);
+            $query->bindParam(":responsable", $responsable, PDO::PARAM_STR);
+            if ($query->execute()) {
+                $result = $query->fetchAll(PDO::FETCH_ASSOC);
+                echo json_encode([1, "Datos Guardado"]);
+                exit();
+            } else {
+                $err = $query->errorInfo();
+                echo json_encode([0, 'ERROR AL GUARDAR', $err]);
+                exit();
+            }
+        } catch (PDOException $e) {
+            $e = $e->getMessage();
+            echo json_encode($e);
+            exit();
+        }
+    }
+
+    function Eliminar_Sucursal($param)
+    {
+        try {
+            $cliente = $param["ID"];
+
+            $query = $this->db->connect_dobra()->prepare('UPDATE cli_clientes_sucursales
+            set estado = 0
+            where ID = :ID
+            ');
+            $query->bindParam(":ID", $cliente, PDO::PARAM_STR);
+            if ($query->execute()) {
+                $result = $query->fetchAll(PDO::FETCH_ASSOC);
+                echo json_encode([1, "Datos Eliminados"]);
+                exit();
+            } else {
+                $err = $query->errorInfo();
+                echo json_encode([0, 'ERROR AL GUARDAR', $err]);
+                exit();
+            }
+        } catch (PDOException $e) {
+            $e = $e->getMessage();
+            echo json_encode($e);
+            exit();
+        }
+    }
 }
