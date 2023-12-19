@@ -15,9 +15,10 @@ conexion = mysql.connector.connect(
 def quitar_x00(array):
     return [elemento.replace('\x00', '') if isinstance(elemento, str) else elemento for elemento in array]
 
+
 def mora():
 # Read the data from the TXT file
-    with open('C:/xampp/htdocs/svsysback/scrapy/SALVACERO_DOS.txt', 'r') as file:
+    with open('C:/xampp/htdocs/svsysback/scrapy/cartera1/SALVACERO_DOS.txt', 'r') as file:
         lines = file.readlines()
 
     # Process the remaining lines and create a list of dictionaries
@@ -96,7 +97,7 @@ def mora():
 
     # print(ARRAY_TOTAL)
 
-    
+
 def Guardar_Datos(datos):
     cursor = conexion.cursor()
     sql = """
