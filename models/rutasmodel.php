@@ -101,6 +101,48 @@ class RutasModel extends Model
         }
     }
 
+    function Cargar_Guias($param)
+    {
+        try {
+            $FECHA_INI = $param["FECHA_INI"];
+            $FECHA_FIN = $param["FECHA_FIN"];
+
+            $query = $this->db->connect_dobra()->prepare('SELECT 
+            g.FECHA_DE_EMISION,
+            g.PEDIDO_INTERNO,
+            gd.DESCRIPCION,
+            gd.POR_DESPACHAR,
+            gd.CODIGO,
+            ip.ID 
+            from guias g
+            left join guias_detalle gd 
+            on gd.PEDIDO_INTERNO  = g.PEDIDO_INTERNO
+            left join inv_productos ip 
+            on ip.codigo = gd.CODIGO 
+            where STR_TO_DATE(g.FECHA_DE_EMISION, "%d.%m.%Y") between :fecha_ini and :fecha_fin
+            and gd.CODIGO = "10016416"
+            group by gd.PEDIDO_INTERNO
+            order by  STR_TO_DATE(g.FECHA_DE_EMISION, "%d.%m.%Y") desc
+            ');
+            $query->bindParam(":fecha_ini", $FECHA_INI, PDO::PARAM_STR);
+            $query->bindParam(":fecha_fin", $FECHA_FIN, PDO::PARAM_STR);
+
+            if ($query->execute()) {
+                $result = $query->fetchAll(PDO::FETCH_ASSOC);
+                echo json_encode($result);
+                exit();
+            } else {
+                $err = $query->errorInfo();
+                echo json_encode($err);
+                exit();
+            }
+        } catch (PDOException $e) {
+            $e = $e->getMessage();
+            echo json_encode($e);
+            exit();
+        }
+    }
+
     function Cargar_Rutas()
     {
         try {
@@ -142,7 +184,7 @@ class RutasModel extends Model
             grd.chofer_id,
             uu.Nombre as Chofer_nombre,
             uc.PLACA,
-            concat(uc.PLACA,' ',uu.Nombre,'/',grd.ID) as CHOFER,
+            concat(uc.PLACA,' ',UPPER(uu.Nombre),'/',grd.ID) as CHOFER,
             cc.CLIENTE_NOMBRE,
             grdd.cliente_id,
             grdd.producto_id,
@@ -151,6 +193,7 @@ class RutasModel extends Model
             grdd.cliente_destino_id,
             ccs.sucursal_nombre  as destino_nombre,
             ggp.FECHA_SALE_PLANTA,
+            ggp.placa as PLACA_RETIRO,
             grdd.factura,
             grdd.holcim,
             grdd.bodega,
@@ -281,6 +324,7 @@ class RutasModel extends Model
             exit();
         }
     }
+
     function Nueva_Ruta_Dia_detalle($param)
     {
         try {
@@ -404,6 +448,30 @@ class RutasModel extends Model
         }
     }
 
+    function Eliminar_Ruta_Dia_detalle($param)
+    {
+        try {
+            $RUTA_DIA_ID = $param["RUTA_DIA_ID"];
+            $query = $this->db->connect_dobra()->prepare('DELETE FROM gui_ruta_dia_detalle 
+            WHERE ID=:ID
+            ');
+            $query->bindParam(":ID", $RUTA_DIA_ID, PDO::PARAM_STR);
+
+            if ($query->execute()) {
+                $result = $query->fetchAll(PDO::FETCH_ASSOC);
+                echo json_encode([1, "Datos Eliminados"]);
+                exit();
+            } else {
+                $err = $query->errorInfo();
+                echo json_encode($err);
+                exit();
+            }
+        } catch (PDOException $e) {
+            $e = $e->getMessage();
+            echo json_encode($e);
+            exit();
+        }
+    }
 
 
 }

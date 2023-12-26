@@ -57,6 +57,16 @@ class Rutas extends Controller
         }
     }
 
+    function Cargar_Guias()
+    {
+        $param = $_POST['param'];
+        if ($param["TOKEN"] == constant("TOKEN_WEB")) {
+            $Ventas =  $this->model->Cargar_Guias($param);
+        } else {
+            die();
+        }
+    }
+
     function Cargar_Rutas()
     {
         $param = $_POST['param'];
@@ -112,6 +122,16 @@ class Rutas extends Controller
         $param = $_POST['param'];
         if ($param["TOKEN"] == constant("TOKEN_WEB")) {
             $Ventas =  $this->model->Actualizar_Ruta_Dia_detalle($param);
+        } else {
+            die();
+        }
+    }
+
+    function Eliminar_Ruta_Dia_detalle()
+    {
+        $param = $_POST['param'];
+        if ($param["TOKEN"] == constant("TOKEN_WEB")) {
+            $Ventas =  $this->model->Eliminar_Ruta_Dia_detalle($param);
         } else {
             die();
         }
