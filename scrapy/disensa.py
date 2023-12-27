@@ -77,7 +77,7 @@ def login():
     time.sleep(1)
     guardar_log("USUARIO INGRESADO",1)
     passw = driver.find_element(By.XPATH, '//*[@id="nolog_password"]')
-    passw.send_keys("Jgarcia28@")
+    passw.send_keys("Salvacero2024**@")
     time.sleep(1)
     guardar_log("CONTRASEÑA INGRESADA",1)
     token = driver.find_element(By.XPATH, '//*[@id="token"]')
