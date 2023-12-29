@@ -236,7 +236,7 @@ class MisRutasModel extends Model
     function Actualizar_Despacho($param)
     {
         try {
-
+            $timezone = new DateTimeZone('America/Guayaquil');
             $ID = $param["ID"];
             $despachado_fecha = date('Y-m-d H:i:s');
             $despachado_por = $param["CREADO"];

@@ -180,6 +180,9 @@ class RutasModel extends Model
         try {
             $ID = $param["ID"];
             $query = $this->db->connect_dobra()->prepare("SELECT
+            grdd.despachado,
+            grdd.despachado_fecha,
+            grdd.despachado_por,
             grdd.ID as RUTA_DET_ID,
             grd.chofer_id,
             uu.Nombre as Chofer_nombre,
