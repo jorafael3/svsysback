@@ -558,14 +558,12 @@ export default function Guias({ route, navigation }) {
             let tipo = picker["assets"][0]["uri"];
             tipo = tipo.split(".")[1];
             console.log('tipo: ', tipo);
-
             let a = {
                 image: picker["assets"][0]["base64"],
                 // type: tipo
             }
             setImage(a);
         }
-
     };
 
     return (

@@ -36,4 +36,44 @@ class MisRutas extends Controller
             die();
         }
     }
+
+    function Guardar_Documento()
+    {
+        $param = $_POST['param'];
+        if ($param["TOKEN"] == constant("TOKEN_WEB")) {
+            $Ventas =  $this->model->Guardar_Documento($param);
+        } else {
+            die();
+        }
+    }
+
+    function Cargar_Documento()
+    {
+        $param = $_POST['param'];
+        if ($param["TOKEN"] == constant("TOKEN_WEB")) {
+            $Ventas =  $this->model->Cargar_Documento($param);
+        } else {
+            die();
+        }
+    }
+
+    function Eliminar_Documento()
+    {
+        $param = $_POST['param'];
+        if ($param["TOKEN"] == constant("TOKEN_WEB")) {
+            $Ventas =  $this->model->Eliminar_Documento($param);
+        } else {
+            die();
+        }
+    }
+
+    function Actualizar_Despacho()
+    {
+        $param = $_POST['param'];
+        if ($param["TOKEN"] == constant("TOKEN_WEB")) {
+            $Ventas =  $this->model->Actualizar_Despacho($param);
+        } else {
+            die();
+        }
+    }
 }
