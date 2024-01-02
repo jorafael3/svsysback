@@ -118,7 +118,7 @@ class MisRutasModel extends Model
             $SO = PHP_OS;
             // echo $SO;
             if ($SO  == "Linux") {
-                $targetDirectory = "/var/www/html/svsysback/recursos/guias_subidas/";
+                $targetDirectory = "recursos/guias_subidas/";
             } else {
                 $targetDirectory = "C:/xampp/htdocs/svsysback/recursos/guias_subidas/";
             }
@@ -159,10 +159,11 @@ class MisRutasModel extends Model
                     exit();
                 }
             } else {
+                echo json_encode("ERROR AL SUBIR");
+                exit();
             }
 
-            // echo json_encode($param);
-            // exit();
+
 
             // // $USUARIO = $param["USUARIO"];]
             // $USUARIO = 7;

@@ -18,7 +18,7 @@ def quitar_x00(array):
 
 def mora():
 # Read the data from the TXT file
-    with open('C:/xampp/htdocs/svsysback/scrapy/cartera1/SALVACERO_DOS.txt', 'r') as file:
+    with open('C:/xampp/htdocs/svsysback/scrapy/cartera1/SALVACERO DOS (9).txt', 'r') as file:
         lines = file.readlines()
 
     # Process the remaining lines and create a list of dictionaries
