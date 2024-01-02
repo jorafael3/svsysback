@@ -43,4 +43,89 @@ class MoraModel extends Model
             exit();
         }
     }
+
+
+
+
+    // WITH RankedData AS (
+    //     SELECT
+    //         *,
+    //         ROW_NUMBER() OVER (PARTITION BY Identificacion ORDER BY FechaCorte DESC) AS RowNum
+    //     FROM
+    //         cli_creditos_mora
+    //     WHERE
+    //         date(FechaCorte) BETWEEN '20231201' AND '20231231'
+    //         and MontoOriginal  < 1000
+    //         and Identificacion ='0951821214'
+    // )
+    // SELECT
+    //     *
+    // FROM
+    //     RankedData r1
+    // WHERE
+    //     RowNum = 1;
+    //    AND NOT EXISTS (
+    //         SELECT 1
+    //         FROM RankedData r2
+    //         WHERE r1.Identificacion = r2.Identificacion
+    //           AND r2.RowNum > r1.RowNum
+    //           AND r2.EstadoCredito = 'CANCELADO'
+    //     )
+    //     AND r1.EstadoCredito = 'VIGENTE';
+       
+       
+    //  WITH RankedData AS (
+    //     SELECT
+    //         *,
+    //         ROW_NUMBER() OVER (PARTITION BY Identificacion ORDER BY FechaCorte DESC) AS RowNum
+    //     FROM
+    //         cli_creditos_mora
+    //     WHERE
+    //         date(FechaCorte) BETWEEN '20231201' AND '20231231'
+    //         and MontoOriginal  >= 1000 and MontoOriginal < 1200
+    // )
+    // SELECT
+    //     *
+    // FROM
+    //     RankedData r1
+    // WHERE
+    //     RowNum = 1
+    //     AND NOT EXISTS (
+    //         SELECT 1
+    //         FROM RankedData r2
+    //         WHERE r1.Identificacion = r2.Identificacion
+    //           AND r2.RowNum > r1.RowNum
+    //           AND r2.EstadoCredito = 'CANCELADO'
+    //     )
+    //     AND r1.EstadoCredito = 'VIGENTE';
+       
+    //  WITH RankedData AS (
+    //     SELECT
+    //         *,
+    //         ROW_NUMBER() OVER (PARTITION BY Identificacion ORDER BY FechaCorte DESC) AS RowNum
+    //     FROM
+    //         cli_creditos_mora
+    //     WHERE
+    //         date(FechaCorte) BETWEEN '20231201' AND '20231231'
+    //         and MontoOriginal  >= 1200 and MontoOriginal < 1500
+    // )
+    // SELECT
+    //     *
+    // FROM
+    //     RankedData r1
+    // WHERE
+    //     RowNum = 1
+    //     AND NOT EXISTS (
+    //         SELECT 1
+    //         FROM RankedData r2
+    //         WHERE r1.Identificacion = r2.Identificacion
+    //           AND r2.RowNum > r1.RowNum
+    //           AND r2.EstadoCredito = 'CANCELADO'
+    //     )
+    //     AND r1.EstadoCredito = 'VIGENTE';   
+
+
+
+
+
 }
