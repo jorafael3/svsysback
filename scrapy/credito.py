@@ -18,7 +18,7 @@ def quitar_x00(array):
 
 def mora():
 # Read the data from the TXT file
-    with open('C:/xampp/htdocs/svsysback/scrapy/cartera1/SALVACERO DOS (9).txt', 'r') as file:
+    with open('C:/xampp/htdocs/svsysback/scrapy/cartera1/SALVACERO DOS.txt', 'r') as file:
         lines = file.readlines()
 
     # Process the remaining lines and create a list of dictionaries
@@ -93,9 +93,30 @@ def mora():
             "TelefonoLaboral_03":d[38],
         }
         ARRAY_TOTAL.append(b)
-        Guardar_Datos(b)
+        val = Validar_Datos(d[0],d[1])
+        if val == 0:
+            Guardar_Datos(b)
 
     # print(ARRAY_TOTAL)
+
+def Validar_Datos(fecha,ruc):
+    cursor = conexion.cursor()
+    sql = """
+        select * from cli_creditos_mora
+        where FechaCorte =  '"""+fecha+"""' and Identificacion =  '"""+ruc+"""'
+    """
+    valores = (fecha,ruc,)
+    cursor.execute(sql)
+    resultados = cursor.fetchall()
+    lista = []
+    for res in resultados:
+        # print(res)
+        lista.append(res)
+    return len(lista)
+    # print(resultados)
+
+    # count = resultados[0]
+    # print(count)
 
 
 def Guardar_Datos(datos):

@@ -11,7 +11,8 @@ from datetime import datetime, timedelta
 import mysql.connector
 from datetime import datetime
 import base64
-
+from apiclient import errors
+from credito import mora
 # If modifying these scopes, delete the file token.json.
 SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
 credential = 'C:\\xampp\\htdocs\\svsysback\\scrapy\\client_secret.json'
@@ -68,7 +69,6 @@ def main():
                 if not messages:
                     print('No messages found in the inbox.')
                     return
-
                 print('Messages in the inbox:')
                 for message in messages:
                     # print(message)
@@ -79,33 +79,50 @@ def main():
                     subject_header = [header['value'] for header in msg['payload']['headers'] if header['name'] == 'Subject']
                     if subject_header:
                         email_subject = subject_header[0]
-
                     if(sender_email == "sig@solidario.fin.ec"):
                         # print(msg["snippet"])
                         # print(f'Sender: {sender_email}')
                         print("++++++++++++++++++++++++++++++")
                         if(email_subject == "Reporte SALVACERO DOS"):
                             print(f'Subject: {email_subject}')
-                            if 'parts' in msg['payload']:
-                                for part in msg['payload']['parts']:
+                            try:
+                                attachment_name = 'SALVACERO DOS.txt'
+                                message = service.users().messages().get(userId='me', id=message['id']).execute()
+                                for part in message['payload']['parts']:
                                     if 'filename' in part:
-                                        filename = part['filename']
-                                        data = part['body']['data']
-                                        file_data = base64.urlsafe_b64decode(data)
+                                        if part['filename'] == attachment_name:
+                                            if 'data' in part['body']:
+                                                data=part['body']['data']
+                                            else:
+                                                att_id=part['body']['attachmentId']
+                                                att=service.users().messages().attachments().get(userId="me", messageId=message['id'],id=att_id).execute()
+                                                data=att['data']
+                                            # data = part['body']['data']
+                                            file_data = base64.urlsafe_b64decode(data.encode('UTF-8'))
+                                            decoded_content = file_data
+                                            # print(f'Contenido del archivo adjunto:\n{decoded_content}')
+                                            # Guarda el archivo adjunto en el directorio actual
+                                            with open("scrapy/cartera1/"+attachment_name, 'wb') as f:
+                                                f.write(decoded_content)
+                                            mora()
 
-                                        # Specify the directory where you want to save the attachments
-                                        save_path = "C:cartera1/"
-
-                                        # Ensure the directory exists
-                                        os.makedirs(save_path, exist_ok=True)
-
-                                        # Save the attachment
-                                        with open(os.path.join(save_path, filename), 'wb') as f:
-                                            f.write(file_data)
-                                            print(f'Attachment saved: {filename}')
-
-                        
-                       
+                            except errors.HttpError as error:
+                                    print('An error occurred: %s' % error)
+                            # if 'parts' in msg['payload']:
+                            #     for part in msg['payload']['parts']:
+                            #         if 'filename' in part:
+                            #             filename = part['filename']
+                            #             print(filename)
+                            #             data = part['body']['data']
+                            #             file_data = base64.urlsafe_b64decode(data)
+                            #             # Specify the directory where you want to save the attachments
+                            #             save_path = "cartera2/"
+                            #             # Ensure the directory exists
+                            #             os.makedirs(save_path, exist_ok=True)
+                            #             # Save the attachment
+                            #             with open(os.path.join(save_path, filename), 'r') as f:
+                            #                 f.write(file_data)
+                            #                 print(f'Attachment saved: {filename}')
                 nextPageToken = results.get('nextPageToken')
 
         except HttpError as error:
