@@ -24,4 +24,20 @@ class Mora extends Controller
             die();
         }
     }
+
+
+    //************************************************* */
+    //************************************************* */
+    //************************************************* */
+    //************ POR CLIENTE */
+
+    function Cargar_Datos_Cliente()
+    {
+        $param = $_POST['param'];
+        if ($param["TOKEN"] == constant("TOKEN_WEB")) {
+            $Ventas =  $this->model->Cargar_Datos_Cliente($param);
+        } else {
+            die();
+        }
+    }
 }

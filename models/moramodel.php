@@ -72,8 +72,8 @@ class MoraModel extends Model
     //           AND r2.EstadoCredito = 'CANCELADO'
     //     )
     //     AND r1.EstadoCredito = 'VIGENTE';
-       
-       
+
+
     //  WITH RankedData AS (
     //     SELECT
     //         *,
@@ -98,7 +98,7 @@ class MoraModel extends Model
     //           AND r2.EstadoCredito = 'CANCELADO'
     //     )
     //     AND r1.EstadoCredito = 'VIGENTE';
-       
+
     //  WITH RankedData AS (
     //     SELECT
     //         *,
@@ -126,6 +126,41 @@ class MoraModel extends Model
 
 
 
+    function Cargar_Datos_Cliente($param)
+    {
+        try {
+            $RUC = $param["RUC"];
+            $RUC2 = "%" . $param["RUC"] . "%";
+            $FECHA_INI = $param["FECHA_INI"];
+            $FECHA_FIN = $param["FECHA_FIN"];
 
+            $query = $this->db->connect_dobra()->prepare("SELECT  * 
+            from cli_creditos_mora ccm 
+            where Identificacion = :RUC
+            or Cliente like :RUC2
+            and date(FechaCorte) between :fecha_ini and :fecha_fin
+            order by Cliente,FechaCorte desc
 
+            ");
+
+            $query->bindParam(":RUC", $RUC, PDO::PARAM_STR);
+            $query->bindParam(":RUC2", $RUC2, PDO::PARAM_STR);
+            $query->bindParam(":fecha_ini", $FECHA_INI, PDO::PARAM_STR);
+            $query->bindParam(":fecha_fin", $FECHA_FIN, PDO::PARAM_STR);
+
+            if ($query->execute()) {
+                $result = $query->fetchAll(PDO::FETCH_ASSOC);
+                echo json_encode($result);
+                exit();
+            } else {
+                $err = $query->errorInfo();
+                echo json_encode($err);
+                exit();
+            }
+        } catch (PDOException $e) {
+            $e = $e->getMessage();
+            echo json_encode($e);
+            exit();
+        }
+    }
 }
