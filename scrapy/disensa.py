@@ -77,7 +77,7 @@ def login():
     time.sleep(1)
     guardar_log("USUARIO INGRESADO",1)
     passw = driver.find_element(By.XPATH, '//*[@id="nolog_password"]')
-    passw.send_keys("Salvacero2024**@")
+    passw.send_keys("Salvacero/+**2024")
     time.sleep(1)
     guardar_log("CONTRASEÑA INGRESADA",1)
     token = driver.find_element(By.XPATH, '//*[@id="token"]')
@@ -110,7 +110,7 @@ def Buscar_Documentos():
             desde.clear()
             fecha_actual = datetime.now()
             # Calcula la fecha de hace 7 días
-            fecha_hace_7_dias = fecha_actual - timedelta(days=2)
+            fecha_hace_7_dias = fecha_actual - timedelta(days=10)
 
             # Formatea la fecha en "dd/mm/yyyy"
             fecha_formateada = fecha_hace_7_dias.strftime("%d/%m/%Y")
