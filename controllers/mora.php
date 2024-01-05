@@ -25,6 +25,16 @@ class Mora extends Controller
         }
     }
 
+    function Descripcion_Colocacion()
+    {
+        $param = $_POST['param'];
+        if ($param["TOKEN"] == constant("TOKEN_WEB")) {
+            $Ventas =  $this->model->Descripcion_Colocacion($param);
+        } else {
+            die();
+        }
+    }
+
 
     //************************************************* */
     //************************************************* */

@@ -4,12 +4,18 @@ import pandas as pd
 import re
 import mysql.connector
 
+# conexion = mysql.connector.connect(
+#     host="localhost",
+#     user="root",
+#     password="",
+#     database="svsys"
+#     )
 conexion = mysql.connector.connect(
-    host="localhost",
-    user="root",
-    password="",
-    database="svsys"
-    )
+    host="gator4166.hostgator.com",
+    user="salvacer_jorge",
+    password="Equilivre3*",
+    database="salvacer_svsys"
+)
 
 
 def quitar_x00(array):
