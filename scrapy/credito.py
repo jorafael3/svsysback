@@ -101,7 +101,11 @@ def mora():
         ARRAY_TOTAL.append(b)
         val = Validar_Datos(d[0],d[1])
         if val == 0:
+            print("GUARDANDO")
             Guardar_Datos(b)
+        else:
+            print("YA EXISTE")
+
 
     # print(ARRAY_TOTAL)
 
