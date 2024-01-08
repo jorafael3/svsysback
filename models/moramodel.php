@@ -8,8 +8,12 @@ class MoraModel extends Model
     {
 
         $Evolucion_Morocidad_Grafico = $this->Evolucion_Morocidad_Grafico();
+        $Evolucion_Morocidad_Tabla = $this->Evolucion_Morocidad_Tabla();
+        // $CARTERA_POR_ESTADO = $this->CARTERA_POR_ESTADO();
         $A = array(
             "EVOLUCION_MOROSIDAD_GRAFICO" => $Evolucion_Morocidad_Grafico,
+            "EVOLUCION_MOROSIDAD_TABLA" => $Evolucion_Morocidad_Tabla,
+            // "CARTERA_POR_ESTADO" => $CARTERA_POR_ESTADO,
         );
         echo json_encode($A);
         exit();
@@ -19,17 +23,25 @@ class MoraModel extends Model
     {
 
         try {
-            $query = $this->db->connect_dobra()->prepare("SELECT
-            Date(FechaCorte) AS ReportDate,
-            SUM(Saldo) as Saldo ,
-            SUM(CASE WHEN Atraso > 30 THEN 1 ELSE 0 END) / COUNT(*) * 100 AS Atraso30
-            FROM
-                cli_creditos_mora
-            WHERE
-                OrigenCredito NOT IN ('REFINANCIAMIENTO', 'REPRESTAMO', 'REESTRUCTURA')
-                AND EstadoCredito <> 'CANCELADO'
-            GROUP BY
-            Date(FechaCorte)");
+            $query = $this->db->connect_dobra()->prepare("WITH RankedData AS (
+                SELECT
+                    *,
+                    ROW_NUMBER() OVER (PARTITION BY Identificacion ORDER BY FechaCorte DESC) AS RowNum
+                FROM
+                    cli_creditos_mora
+              
+            )
+            SELECT
+        Date(FechaCorte) AS ReportDate,
+        SUM(Saldo) as Saldo ,
+        SUM(CASE WHEN Atraso > 30 THEN 1 ELSE 0 END) / COUNT(*) * 100 AS Atraso30
+        FROM
+            RankedData
+        WHERE
+            OrigenCredito NOT IN ('REFINANCIAMIENTO', 'REPRESTAMO', 'REESTRUCTURA')
+            AND EstadoCredito <> 'CANCELADO'
+        GROUP BY
+        Date(FechaCorte)");
             if ($query->execute()) {
                 $result = $query->fetchAll(PDO::FETCH_ASSOC);
                 return $result;
@@ -43,6 +55,132 @@ class MoraModel extends Model
             exit();
         }
     }
+
+    function Evolucion_Morocidad_Tabla()
+    {
+
+        try {
+            $ARREGLO_DATOS = [];
+            $sql = 'WITH RankedData AS (
+                SELECT
+                    *,
+                    ROW_NUMBER() OVER (PARTITION BY Identificacion ORDER BY FechaCorte DESC) AS RowNum
+                FROM
+                    cli_creditos_mora                        
+            )
+            SELECT
+            DATEDIFF(date(FechaVencimiento), date(FechaCorte))as rango_dias,
+            case 
+                when DATEDIFF(date(FechaVencimiento), date(FechaCorte)) >= 1
+                    and DATEDIFF(date(FechaVencimiento), date(FechaCorte)) <=8
+                then "DE 1 A 8 DIAS"
+                when DATEDIFF(date(FechaVencimiento), date(FechaCorte)) >= 9
+                    and DATEDIFF(date(FechaVencimiento), date(FechaCorte)) <=15
+                then "DE 8 A 15 DIAS"
+                when DATEDIFF(date(FechaVencimiento), date(FechaCorte)) >= 16
+                    and DATEDIFF(date(FechaVencimiento), date(FechaCorte)) <=30
+                then "DE 15 A 30 DIAS"
+                when DATEDIFF(date(FechaVencimiento), date(FechaCorte)) >= 31
+                    and DATEDIFF(date(FechaVencimiento), date(FechaCorte)) <=45
+                then "DE 30 A 45 DIAS"
+                when DATEDIFF(date(FechaVencimiento), date(FechaCorte)) >= 46
+                    and DATEDIFF(date(FechaVencimiento), date(FechaCorte)) <=70
+                then "DE 45 A 70 DIAS"
+                when DATEDIFF(date(FechaVencimiento), date(FechaCorte)) >= 71
+                    and DATEDIFF(date(FechaVencimiento), date(FechaCorte)) <=90
+                then "DE 70 A 90 DIAS"
+                when DATEDIFF(date(FechaVencimiento), date(FechaCorte)) >= 91
+                    and DATEDIFF(date(FechaVencimiento), date(FechaCorte)) <=120
+                then "DE 90 A 120 DIAS"
+                when DATEDIFF(date(FechaVencimiento), date(FechaCorte)) >= 121
+                    and DATEDIFF(date(FechaVencimiento), date(FechaCorte)) <=150
+                then "DE 120 A 150 DIAS"
+                when DATEDIFF(date(FechaVencimiento), date(FechaCorte)) >= 151
+                    and DATEDIFF(date(FechaVencimiento), date(FechaCorte)) <=180
+                then "DE 150 A 180 DIAS"
+                when DATEDIFF(date(FechaVencimiento), date(FechaCorte)) >= 181
+                then "DE 180 DIAS"
+            end as Rango
+            ,
+            r1.*
+            FROM
+                RankedData r1
+            WHERE
+                RowNum = 1
+               AND NOT EXISTS (
+                    SELECT 1
+                    FROM RankedData r2
+                    WHERE r1.Identificacion = r2.Identificacion
+                      AND r2.RowNum > r1.RowNum
+                      AND r2.EstadoCredito = "CANCELADO"
+                )
+                AND r1.EstadoCredito = "VIGENTE"
+                
+                ';
+            $query = $this->db->connect_dobra()->prepare($sql);
+
+            if ($query->execute()) {
+                $result = $query->fetchAll(PDO::FETCH_ASSOC);
+                return $result;
+            } else {
+                $err = $query->errorInfo();
+                echo json_encode($err);
+                exit();
+            }
+        } catch (PDOException $e) {
+            $e = $e->getMessage();
+            echo json_encode($e);
+            exit();
+        }
+    }
+
+
+    function CARTERA_POR_ESTADO()
+    {
+
+        try {
+            $query = $this->db->connect_dobra()->prepare("WITH RankedData AS (
+                SELECT
+                    *,
+                    ROW_NUMBER() OVER (PARTITION BY Identificacion ORDER BY FechaCorte DESC) AS RowNum
+                FROM
+                    cli_creditos_mora
+            )
+            SELECT
+                EstadoCredito,
+                count(*) 
+            FROM
+                RankedData r1
+            where
+            RowNum = 1
+            and	NOT EXISTS (
+                    SELECT 1
+                    FROM RankedData r2
+                    WHERE r1.Identificacion = r2.Identificacion
+                      AND r2.RowNum > r1.RowNum
+                       AND r2.EstadoCredito = 'CANCELADO'
+                )
+                -- AND r1.EstadoCredito = 'VIGENTE'
+                group  by 
+                EstadoCredito");
+            if ($query->execute()) {
+                $result = $query->fetchAll(PDO::FETCH_ASSOC);
+                return $result;
+            } else {
+                $err = $query->errorInfo();
+                return $err;
+            }
+        } catch (PDOException $e) {
+            $e = $e->getMessage();
+            echo json_encode($e);
+            exit();
+        }
+    }
+
+
+
+
+
 
     function Descripcion_Colocacion($param)
     {
@@ -190,66 +328,6 @@ class MoraModel extends Model
         }
     }
 
-
-
-
-
-
-
-
-
-    //  WITH RankedData AS (
-    //     SELECT
-    //         *,
-    //         ROW_NUMBER() OVER (PARTITION BY Identificacion ORDER BY FechaCorte DESC) AS RowNum
-    //     FROM
-    //         cli_creditos_mora
-    //     WHERE
-    //         date(FechaCorte) BETWEEN '20231201' AND '20231231'
-    //         and MontoOriginal  >= 1000 and MontoOriginal < 1200
-    // )
-    // SELECT
-    //     *
-    // FROM
-    //     RankedData r1
-    // WHERE
-    //     RowNum = 1
-    //     AND NOT EXISTS (
-    //         SELECT 1
-    //         FROM RankedData r2
-    //         WHERE r1.Identificacion = r2.Identificacion
-    //           AND r2.RowNum > r1.RowNum
-    //           AND r2.EstadoCredito = 'CANCELADO'
-    //     )
-    //     AND r1.EstadoCredito = 'VIGENTE';
-
-    //  WITH RankedData AS (
-    //     SELECT
-    //         *,
-    //         ROW_NUMBER() OVER (PARTITION BY Identificacion ORDER BY FechaCorte DESC) AS RowNum
-    //     FROM
-    //         cli_creditos_mora
-    //     WHERE
-    //         date(FechaCorte) BETWEEN '20231201' AND '20231231'
-    //         and MontoOriginal  >= 1200 and MontoOriginal < 1500
-    // )
-    // SELECT
-    //     *
-    // FROM
-    //     RankedData r1
-    // WHERE
-    //     RowNum = 1
-    //     AND NOT EXISTS (
-    //         SELECT 1
-    //         FROM RankedData r2
-    //         WHERE r1.Identificacion = r2.Identificacion
-    //           AND r2.RowNum > r1.RowNum
-    //           AND r2.EstadoCredito = 'CANCELADO'
-    //     )
-    //     AND r1.EstadoCredito = 'VIGENTE';   
-
-
-
     function Cargar_Datos_Cliente($param)
     {
         try {
@@ -287,4 +365,6 @@ class MoraModel extends Model
             exit();
         }
     }
+
+    
 }
