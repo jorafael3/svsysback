@@ -1550,8 +1550,33 @@ class DespachoModel extends Model
             STR_TO_DATE(g.FECHA_VALIDEZ , '%d.%m.%Y') as FECHA_VALIDEZ,
             case 	
                 when STR_TO_DATE(g.FECHA_VALIDEZ  , '%d.%m.%Y') <= curdate() then 0 else 1 
-            end as VENCIDO
+            end as VENCIDO,
+            grdd.despachado,
+            grdd.despachado_fecha,
+            grdd.despachado_por,
+            grdd.cliente_id,
+            cc.CLIENTE_NOMBRE as cliente_nombre,
+            grdd.cliente_destino_id,
+            ccs.sucursal_nombre as cliente_destino_nombre,
+            grd.chofer_id,
+            grd.fecha_creado as fecha_ruta_creada,
+            uc.PLACA as chofer_placa,
+            uu.Nombre as chofer_nombre,
+            grdd.FACTURA,
+            grdd.ID as GRDD_ID
             from guias g 
+            left join gui_ruta_dia_detalle grdd 
+            on grdd.pedido_interno = g.PEDIDO_INTERNO 
+            left join gui_ruta_dia grd 
+            on grd.ID = grdd.ruta_dia_id
+            left join us_choferes uc 
+            on uc.usuario_id = grd.chofer_id 
+            left join us_usuarios uu 
+            on uu.Usuario_ID = uc.usuario_id
+            left join cli_clientes cc 
+            on cc.ID = grdd.cliente_id 
+            left join cli_clientes_sucursales ccs 
+            on ccs.ID = grdd.cliente_destino_id 
             where STR_TO_DATE(g.FECHA_DE_EMISION , '%d.%m.%Y') BETWEEN :inicio_mes AND :fin_mes
             and g.PEDIDO_INTERNO not in (select PEDIDO_INTERNO from gui_guias_placa ggp)
             order by STR_TO_DATE(g.FECHA_DE_EMISION , '%d.%m.%Y') desc ");
@@ -1584,7 +1609,20 @@ class DespachoModel extends Model
             ggp.FECHA_SALE_PLANTA,
             STR_TO_DATE(g.FECHA_DE_EMISION , '%d.%m.%Y') as FECHA_DE_EMISION,
             uu.Nombre,
-            ggp.placa
+            ggp.placa,
+            grdd.despachado,
+            grdd.despachado_fecha,
+            grdd.despachado_por,
+            grdd.cliente_id,
+            cc.CLIENTE_NOMBRE as cliente_nombre,
+            grdd.cliente_destino_id,
+            ccs.sucursal_nombre as cliente_destino_nombre,
+            uc.usuario_id  as chofer_id,
+            grd.fecha_creado as fecha_ruta_creada,
+            uc.PLACA as chofer_placa,
+            uu.Nombre as chofer_nombre,
+            grdd.FACTURA,
+            grdd.ID as GRDD_ID
             from gui_guias_placa ggp 
             left join guias g 
             on g.PEDIDO_INTERNO = ggp.pedido_interno
@@ -1593,7 +1631,15 @@ class DespachoModel extends Model
             left join us_choferes uc 
             on uc.PLACA = ggp.placa 
             left join us_usuarios uu 
-            on uu.Usuario_ID = uc.usuario_id 
+            on uu.Usuario_ID = uc.usuario_id
+            left join gui_ruta_dia_detalle grdd 
+            on grdd.pedido_interno = g.PEDIDO_INTERNO 
+            left join gui_ruta_dia grd 
+            on grd.ID = grdd.ruta_dia_id
+            left join cli_clientes cc 
+            on cc.ID = grdd.cliente_id 
+            left join cli_clientes_sucursales ccs 
+            on ccs.ID = grdd.cliente_destino_id 
             where date(ggp.FECHA_SALE_PLANTA) BETWEEN :inicio_mes AND :fin_mes
             and g.PEDIDO_INTERNO is not null
             order by date(ggp.FECHA_SALE_PLANTA) desc");
@@ -1639,6 +1685,36 @@ class DespachoModel extends Model
             } else {
                 $err = $query->errorInfo();
                 echo json_encode($err);
+                exit();
+            }
+        } catch (PDOException $e) {
+            $e = $e->getMessage();
+            echo json_encode([$e, 0, 0]);
+            exit();
+        }
+    }
+
+    function Actualizar_FActura($param)
+    {
+        try {
+            $GRDD_ID = $param["GRDD_ID"];
+            $FACTURA = $param["FACTURA"];
+            $query = $this->db->connect_dobra()->prepare("UPDATE gui_ruta_dia_detalle
+            SET
+                factura = :FACTURA
+            WHERE
+                ID = :ID
+                ");
+            $query->bindParam(":ID", $GRDD_ID, PDO::PARAM_STR);
+            $query->bindParam(":FACTURA", $FACTURA, PDO::PARAM_STR);
+
+            if ($query->execute()) {
+                $result = $query->fetchAll(PDO::FETCH_ASSOC);
+                echo json_encode([1, "FACTURA ACTUALIZADA"]);
+                exit();
+            } else {
+                $err = $query->errorInfo();
+                echo json_encode([0, $err]);
                 exit();
             }
         } catch (PDOException $e) {

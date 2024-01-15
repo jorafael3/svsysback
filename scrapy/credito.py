@@ -4,23 +4,22 @@ import pandas as pd
 import re
 import mysql.connector
 
-# conexion = mysql.connector.connect(
-#     host="localhost",
-#     user="root",
-#     password="",
-#     database="svsys"
-#     )
 conexion = mysql.connector.connect(
-    host="gator4166.hostgator.com",
-    user="salvacer_jorge",
-    password="Equilivre3*",
-    database="salvacer_svsys"
-)
+    host="localhost",
+    user="root",
+    password="",
+    database="svsys"
+    )
+# conexion = mysql.connector.connect(
+#     host="gator4166.hostgator.com",
+#     user="salvacer_jorge",
+#     password="Equilivre3*",
+#     database="salvacer_svsys"
+# )
 
 
 def quitar_x00(array):
     return [elemento.replace('\x00', '') if isinstance(elemento, str) else elemento for elemento in array]
-
 
 def mora():
 # Read the data from the TXT file
@@ -206,7 +205,7 @@ def Guardar_Datos(datos):
         # Captura cualquier excepción que ocurra durante la inserción
         print("Error durante la inserción:", str(e))
 
-mora()
+# mora()
 
 
 

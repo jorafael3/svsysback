@@ -110,7 +110,7 @@ def Buscar_Documentos():
             desde.clear()
             fecha_actual = datetime.now()
             # Calcula la fecha de hace 7 días
-            fecha_hace_7_dias = fecha_actual - timedelta(days=5)
+            fecha_hace_7_dias = fecha_actual - timedelta(days=7)
 
             # Formatea la fecha en "dd/mm/yyyy"
             fecha_formateada = fecha_hace_7_dias.strftime("%d/%m/%Y")

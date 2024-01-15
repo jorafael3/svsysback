@@ -171,6 +171,16 @@ class Despacho extends Controller
             die();
         }
     }
+
+    function Actualizar_FActura()
+    {
+        $param = $_POST['param'];
+        if ($param["TOKEN"] == constant("TOKEN_WEB")) {
+            $Ventas =  $this->model->Actualizar_FActura($param);
+        } else {
+            die();
+        }
+    }
     
 
     //*********************************************** */

@@ -15,6 +15,8 @@ class MoraModel extends Model
                 // Lee el contenido del archivo y cuenta las líneas
                 $line_count = count(file($file_path, FILE_SKIP_EMPTY_LINES));
                 // echo "El archivo existe y tiene $line_count líneas.\n";
+            } else {
+                echo json_encode("ERROR");
             }
 
             $query = $this->db->connect_dobra()->prepare("SELECT count(*) as cant FROM 
@@ -22,7 +24,7 @@ class MoraModel extends Model
             $query->execute();
             $result = $query->fetchAll(PDO::FETCH_ASSOC);
             $CANTIDAD_BASE = $result[0]["cant"];
-            // echo $line_count;
+            // echo json_encode($line_count);
 
             if ($CANTIDAD_BASE - $line_count == 0) {
                 $file_contents = file_get_contents($file_path);
@@ -33,7 +35,6 @@ class MoraModel extends Model
                 foreach ($file_lines as $line) {
                     $result[] = json_decode($line, true);
                 }
-
                 echo json_encode($result);
                 exit();
             } else {
@@ -54,11 +55,21 @@ class MoraModel extends Model
 
                     // Cierra el archivo
                     fclose($file);
-                    echo json_encode($result);
+
+                    $file_contents = file_get_contents($file_path);
+                    $file_lines = explode(PHP_EOL, $file_contents);
+                    $file_lines = array_filter($file_lines); // Elimina líneas vacías
+
+                    $res = [];
+                    foreach ($file_lines as $line) {
+                        $res[] = json_decode($line, true);
+                    }
+
+                    echo json_encode($res);
                     exit();
                 } else {
                     $err = $query->errorInfo();
-                    echo json_encode($$err);
+                    echo json_encode($err);
                     exit();
                 }
             }

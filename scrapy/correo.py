@@ -94,11 +94,16 @@ def main():
                     from_header = [header['value'] for header in msg['payload']['headers'] if header['name'] == 'From']
                     if from_header:
                             sender_email = from_header[0]
+                    date_header = [header['value'] for header in msg['payload']['headers'] if header['name'] == 'Date']
+                    if date_header:
+                        email_date = date_header[0]
                     # print(f'Sender: {sender_email}')
                     print("++++++++++++++++++++++++++++++")
                     # print(msg)
                     if(sender_email == "ecu-noreply-apps@holcim.com"):
-                        Obtener_Datos(msg["snippet"])
+                        email_date_obj = datetime.strptime(email_date, '%d %b %Y %H:%M:%S %z')
+                        formatted_date = email_date_obj.strftime('%Y')
+                        Obtener_Datos(msg["snippet"],formatted_date)
                     # print(f'Subject: {msg["subject"]}')
                     # print(f'From: {msg["from"]}')
                     # print(f'Date: {msg["internalDate"]}')
@@ -116,7 +121,7 @@ def main():
         guardar_log("ERROR " + str(error))
         enviar_correo(str(error))
 
-def Obtener_Datos(texto):
+def Obtener_Datos(texto,fecha_email):
         # print(texto)
         fecha_hora_actual = datetime.now()
         fecha_hora_formateada = fecha_hora_actual.strftime("%Y")
@@ -134,12 +139,13 @@ def Obtener_Datos(texto):
             if fecha_match:
                 fecha = fecha_match.group(1)
                 fecha_original = fecha
+                print(fecha_original)
                 fecha = fecha.split("-")
                 anio = fecha_hora_formateada
                 mes = fecha[2].split(" ")[0]
                 dia = fecha[1]
                 hora = fecha[2].split(" ")[1]
-                fecha = anio+"-"+mes+"-"+dia+" "+hora
+                fecha = fecha_email+"-"+mes+"-"+dia+" "+hora
                 # print(fecha)
             else:
                 print("No se encontró la fecha en el texto.")
