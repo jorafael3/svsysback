@@ -25,18 +25,18 @@ credential = 'C:\\xampp\\htdocs\\svsysback\\scrapy\\client_secret.json'
 
 datos_correo=[]
 
-# conexion = mysql.connector.connect(
-#     host="localhost",
-#     user="root",
-#     password="",
-#     database="svsys"
-#     )
 conexion = mysql.connector.connect(
-    host="gator4166.hostgator.com",
-    user="salvacer_jorge",
-    password="Equilivre3*",
-    database="salvacer_svsys"
-)
+    host="localhost",
+    user="root",
+    password="",
+    database="svsys"
+    )
+# conexion = mysql.connector.connect(
+#     host="gator4166.hostgator.com",
+#     user="salvacer_jorge",
+#     password="Equilivre3*",
+#     database="salvacer_svsys"
+# )
 
 
 def main():
@@ -279,7 +279,6 @@ def guardar_log(dato):
 
     except IOError:
         print("Error al escribir en el archivo.")
-
 
 
 if __name__ == '__main__':

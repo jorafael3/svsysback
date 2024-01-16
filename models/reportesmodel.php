@@ -11,25 +11,24 @@ class ReportesModel extends Model
     function Reporte_Clientes_General()
     {
         try {
-            $query = $this->db->connect_dobra()->prepare('SELECT
+            $query = $this->db->connect_dobra()->prepare('SELECT 
             cc.ID as CLIENTE_ID,
-            cc.CLIENTE_NOMBRE,
-            (select count(*) from gui_guias_despachadas ggd2 where ggd2.CLIENTE_ENTREGA_ID = cc.ID  ) as CANTIDAD_GUIAS_ENTREGADAS,
-            sum(ggf.factura_total) as FACTURADO,
-            count(ggf.factura_total) as FACTURADO_CANTIDAD
-            from 
-            cli_clientes cc 
-            left join gui_guias_despachadas ggd 
-            on ggd.CLIENTE_ENTREGA_ID = cc.ID
-            left join gui_guias_facturas ggf 
-            on ggf.pedido_interno = ggd.PEDIDO_INTERNO and ggf.CLIENTE_ID = ggd.CLIENTE_ENTREGA_ID 
-            group by 
-            cc.ID 
+            CLIENTE_NOMBRE,
+            count(grdd.ID) as GUIAS_ASIGNADAS,
+            count(ggp.FECHA_SALE_PLANTA) as GUIAS_RETIRADAS,
+            SUM(ifnull(grdd.despachado,0)) as GUIAS_DESPACHADAS,
+            SUM(ifnull( grdd.holcim,0)) as CEMENTO_DESPACHADO
+            from cli_clientes cc
+            left join gui_ruta_dia_detalle grdd 
+            on grdd.cliente_id = cc.ID
+            left join gui_guias_placa ggp 
+            on ggp.pedido_interno = grdd.pedido_interno 
+            group by cc.ID 
             ');
             if ($query->execute()) {
                 $result = $query->fetchAll(PDO::FETCH_ASSOC);
-                $ser = $this->Reporte_Clientes_General_servicios();
-                echo json_encode([$result, $ser]);
+                // $ser = $this->Reporte_Clientes_General_servicios();
+                echo json_encode($result);
                 exit();
             } else {
                 $err = $query->errorInfo();
