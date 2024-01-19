@@ -31,13 +31,13 @@ datos_correo=[]
 #     password="",
 #     database="svsys"
 #     )
+
 conexion = mysql.connector.connect(
     host="gator4166.hostgator.com",
     user="salvacer_jorge",
     password="Equilivre3*",
     database="salvacer_svsys"
 )
-
 
 def main():
     try:
@@ -279,8 +279,6 @@ def guardar_log(dato):
 
     except IOError:
         print("Error al escribir en el archivo.")
-
-
 
 if __name__ == '__main__':
     # while True:

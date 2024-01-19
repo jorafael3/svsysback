@@ -35,6 +35,16 @@ class Mora extends Controller
         }
     }
 
+    function Cargar_Creditos_Cancelados()
+    {
+        $param = $_POST['param'];
+        if ($param["TOKEN"] == constant("TOKEN_WEB")) {
+            $Ventas =  $this->model->Cargar_Creditos_Cancelados($param);
+        } else {
+            die();
+        }
+    }
+
 
     //************************************************* */
     //************************************************* */

@@ -73,6 +73,14 @@ class MoraModel extends Model
                     exit();
                 }
             }
+
+
+            // $Evolucion_Morocidad_Tabla = $this->Evolucion_Morocidad_Tabla();
+            // $A = array(
+            //     "Evolucion_Morocidad_Tabla" => $Evolucion_Morocidad_Tabla,
+            // );
+            // echo json_encode($Evolucion_Morocidad_Tabla);
+            // exit();
         } catch (PDOException $e) {
             $e = $e->getMessage();
             echo json_encode($e);
@@ -171,7 +179,40 @@ class MoraModel extends Model
                     
                 ';
 
-            $sql2 = 'SELECT * FROM cli_creditos_mora AS cr order by Cliente';
+            $sql2 = 'SELECT * FROM cli_creditos_mora AS cr 
+            order by Cliente
+            limit 10000';
+            $SQL3 = "SELECT
+            DATEDIFF(date(FechaVencimiento), date(FechaCorte)) AS rango_dias,
+            CASE 
+                WHEN DATEDIFF(date(FechaVencimiento), date(FechaCorte)) BETWEEN 1 AND 8 THEN 'DE 1 A 8 DIAS'
+                WHEN DATEDIFF(date(FechaVencimiento), date(FechaCorte)) BETWEEN 9 AND 15 THEN 'DE 8 A 15 DIAS'
+                WHEN DATEDIFF(date(FechaVencimiento), date(FechaCorte)) BETWEEN 16 AND 30 THEN 'DE 15 A 30 DIAS'
+                WHEN DATEDIFF(date(FechaVencimiento), date(FechaCorte)) BETWEEN 31 AND 45 THEN 'DE 30 A 45 DIAS'
+                WHEN DATEDIFF(date(FechaVencimiento), date(FechaCorte)) BETWEEN 46 AND 70 THEN 'DE 45 A 70 DIAS'
+                WHEN DATEDIFF(date(FechaVencimiento), date(FechaCorte)) BETWEEN 71 AND 90 THEN 'DE 70 A 90 DIAS'
+                WHEN DATEDIFF(date(FechaVencimiento), date(FechaCorte)) BETWEEN 91 AND 120 THEN 'DE 90 A 120 DIAS'
+                WHEN DATEDIFF(date(FechaVencimiento), date(FechaCorte)) BETWEEN 121 AND 150 THEN 'DE 120 A 150 DIAS'
+                WHEN DATEDIFF(date(FechaVencimiento), date(FechaCorte)) BETWEEN 151 AND 180 THEN 'DE 150 A 180 DIAS'
+                WHEN DATEDIFF(date(FechaVencimiento), date(FechaCorte)) > 180 THEN 'DE 180 DIAS'
+            END AS Rango,
+            cr.*
+        FROM
+            cli_creditos_mora cr
+        LEFT JOIN (
+            SELECT Identificacion, MAX(FechaCorte) AS MaxFechaCorte
+            FROM cli_creditos_mora
+            GROUP BY Identificacion
+        ) AS sub ON cr.Identificacion = sub.Identificacion AND cr.FechaCorte = sub.MaxFechaCorte
+        WHERE
+            cr.EstadoCredito = 'VIGENTE'
+            AND NOT EXISTS (
+                SELECT 1
+                FROM cli_creditos_mora r2
+                WHERE cr.Identificacion = r2.Identificacion
+                AND r2.FechaCorte > cr.FechaCorte
+                AND r2.EstadoCredito = 'CANCELADO'
+            )";
             $query = $this->db->connect_dobra()->prepare($sql2);
 
             if ($query->execute()) {
@@ -228,7 +269,6 @@ class MoraModel extends Model
             exit();
         }
     }
-
 
     function Descripcion_Colocacion($param)
     {
@@ -400,6 +440,47 @@ class MoraModel extends Model
                 $result = $query->fetchAll(PDO::FETCH_ASSOC);
                 echo json_encode($result);
                 exit();
+            } else {
+                $err = $query->errorInfo();
+                echo json_encode($err);
+                exit();
+            }
+        } catch (PDOException $e) {
+            $e = $e->getMessage();
+            echo json_encode($e);
+            exit();
+        }
+    }
+
+    function Cargar_Creditos_Cancelados($param)
+    {
+        try {
+
+            $query = $this->db->connect_dobra()->prepare("SELECT max(FechaCorte) as fecha from cli_creditos_mora ccm ");
+            // $query->bindParam(":RUC", $RUC, PDO::PARAM_STR);
+            // $query->bindParam(":RUC2", $RUC2, PDO::PARAM_STR);
+            // $query->bindParam(":fecha_ini", $FECHA_INI, PDO::PARAM_STR);
+            // $query->bindParam(":fecha_fin", $FECHA_FIN, PDO::PARAM_STR);
+            if ($query->execute()) {
+                $result = $query->fetchAll(PDO::FETCH_ASSOC);
+                $fecha = $result[0]["fecha"];
+
+                $query2 = $this->db->connect_dobra()->prepare("SELECT
+                 *  
+                from cli_creditos_mora ccm 
+                where date(FechaCorte) = :FechaCorte 
+                and EstadoCredito = 'CANCELADO'
+                ");
+                $query2->bindParam(":FechaCorte", $fecha, PDO::PARAM_STR);
+                if ($query2->execute()) {
+                    $result2 = $query2->fetchAll(PDO::FETCH_ASSOC);
+                    echo json_encode($result2);
+                    exit();
+                } else {
+                    $err = $query2->errorInfo();
+                    echo json_encode($err);
+                    exit();
+                }
             } else {
                 $err = $query->errorInfo();
                 echo json_encode($err);
