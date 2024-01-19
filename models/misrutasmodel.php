@@ -12,14 +12,17 @@ class MisRutasModel extends Model
             $USUARIO = 7;
             $query = $this->db->connect_dobra()->prepare("SELECT 
             grd.ID,
-            date(grd.fecha_creado) as FECHA_RUTA,
-            count( grdd.ruta_dia_id) as RUTAS_ASIGNADAS
+            date(gr.fecha_ruta) as FECHA_RUTA,
+            count( grdd.ruta_dia_id) as RUTAS_ASIGNADAS,
+            SUM(grdd.despachado)  as DESPACHADAS
             from gui_ruta_dia grd 
             left join gui_ruta_dia_detalle grdd 
             on grdd.ruta_dia_id = grd.ID 
+            left join gui_rutas gr 
+            on gr.ID = grd.ruta_id 
             where grd.chofer_id  = :USUARIO
-            group by FECHA_RUTA
-            order by FECHA_RUTA desc
+            group by date(gr.fecha_ruta)
+            order by date(gr.fecha_ruta) desc
 
                 ");
             $query->bindParam(":USUARIO", $USUARIO, PDO::PARAM_STR);
