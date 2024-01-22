@@ -17,19 +17,19 @@ from credito import mora
 SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
 credential = 'C:\\xampp\\htdocs\\svsysback\\scrapy\\client_secret.json'
 
-conexion = mysql.connector.connect(
-    host="localhost",
-    user="root",
-    password="",
-    database="svsys"
-)
-
 # conexion = mysql.connector.connect(
-#     host="gator4166.hostgator.com",
-#     user="salvacer_jorge",
-#     password="Equilivre3*",
-#     database="salvacer_svsys"
+#     host="localhost",
+#     user="root",
+#     password="",
+#     database="svsys"
 # )
+
+conexion = mysql.connector.connect(
+    host="gator4166.hostgator.com",
+    user="salvacer_jorge",
+    password="Equilivre3*",
+    database="salvacer_svsys"
+)
 
 def Fecha_maxima():
     cursor = conexion.cursor()
