@@ -458,7 +458,7 @@ class MoraModel extends Model
                 $fecha = $result[0]["fecha"];
 
                 $query2 = $this->db->connect_dobra()->prepare("SELECT
-                max(FechaCorte) as FechaCorte,
+                FechaCorte,
                 Identificacion,
                 Cliente,
                 NumeroCredito,
@@ -466,12 +466,12 @@ class MoraModel extends Model
                 OrigenCredito,
                 Oficina,
                 EstadoCredito,
-                Max(MontoOriginal) as MontoOriginal,
-                Max(PlazoOriginal) as PlazoOriginal,
+                MontoOriginal,
+                PlazoOriginal,
                 FechaDesembolso,
                 FechaCancelacion,
                 Atraso,
-                TipoCancelacion ,
+                TipoCancelacion,
                 DispositivoNotificacion,
                 Celular_01,
                 Celular_02,
@@ -480,15 +480,45 @@ class MoraModel extends Model
                 TelefonoNegocio_02,
                 TelefonoNegocio_03,
                 TelefonoDomicilio_01,
-                TelefonoDomicilio_02 ,
+                TelefonoDomicilio_02,
                 TelefonoDomicilio_03,
                 TelefonoLaboral_01,
                 TelefonoLaboral_02,
-                TelefonoLaboral_03 
-                from cli_creditos_mora ccm 
-                where EstadoCredito = 'CANCELADO'
-                or CuotasRestantes = 1
-                group by Identificacion
+                TelefonoLaboral_03
+            FROM (
+                SELECT
+                    FechaCorte,
+                    Identificacion,
+                    Cliente,
+                    NumeroCredito,
+                    NumeroCreditoNuevo,
+                    OrigenCredito,
+                    Oficina,
+                    EstadoCredito,
+                    MontoOriginal,
+                    PlazoOriginal,
+                    FechaDesembolso,
+                    FechaCancelacion,
+                    Atraso,
+                    TipoCancelacion,
+                    DispositivoNotificacion,
+                    Celular_01,
+                    Celular_02,
+                    Celular_03,
+                    TelefonoNegocio_01,
+                    TelefonoNegocio_02,
+                    TelefonoNegocio_03,
+                    TelefonoDomicilio_01,
+                    TelefonoDomicilio_02,
+                    TelefonoDomicilio_03,
+                    TelefonoLaboral_01,
+                    TelefonoLaboral_02,
+                    TelefonoLaboral_03,
+                    @rn := ROW_NUMBER() OVER (PARTITION BY Identificacion ORDER BY FechaCorte DESC) as RowNum
+                FROM cli_creditos_mora
+                ORDER BY Identificacion, FechaCorte DESC
+            ) ranked
+            WHERE RowNum = 1
                 ");
                 // $query2->bindParam(":FechaCorte", $fecha, PDO::PARAM_STR);
                 if ($query2->execute()) {
