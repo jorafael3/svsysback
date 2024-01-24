@@ -472,7 +472,7 @@ class MoraModel extends Model
                 FechaCancelacion,
                 CuotasRestantes,
                 Atraso,
-                TipoCancelacion,
+                ifnull(TipoCancelacion,'') as TipoCancelacion,
                 DispositivoNotificacion,
                 Celular_01,
                 Celular_02,
