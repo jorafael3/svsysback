@@ -448,95 +448,94 @@ class MoraModel extends Model
     {
         try {
 
-            $query = $this->db->connect_dobra()->prepare("SELECT max(FechaCorte) as fecha from cli_creditos_mora ccm ");
-            // $query->bindParam(":RUC", $RUC, PDO::PARAM_STR);
-            // $query->bindParam(":RUC2", $RUC2, PDO::PARAM_STR);
-            // $query->bindParam(":fecha_ini", $FECHA_INI, PDO::PARAM_STR);
-            // $query->bindParam(":fecha_fin", $FECHA_FIN, PDO::PARAM_STR);
-            if ($query->execute()) {
-                $result = $query->fetchAll(PDO::FETCH_ASSOC);
-                $fecha = $result[0]["fecha"];
+            $pdo = $this->db->connect_dobra();
+            $pdo->exec("SET @row_number = 0;");
+            $pdo->exec("SET @id = '';");
 
-                $query2 = $this->db->connect_dobra()->prepare("SELECT
-                FechaCorte,
-                Identificacion,
-                Cliente,
-                NumeroCredito,
-                NumeroCreditoNuevo,
-                OrigenCredito,
-                Oficina,
-                EstadoCredito,
-                MontoOriginal,
-                PlazoOriginal,
-                FechaDesembolso,
-                FechaCancelacion,
-                CuotasRestantes,
-                Atraso,
-                ifnull(TipoCancelacion,'') as TipoCancelacion,
-                DispositivoNotificacion,
-                Celular_01,
-                Celular_02,
-                Celular_03,
-                TelefonoNegocio_01,
-                TelefonoNegocio_02,
-                TelefonoNegocio_03,
-                TelefonoDomicilio_01,
-                TelefonoDomicilio_02,
-                TelefonoDomicilio_03,
-                TelefonoLaboral_01,
-                TelefonoLaboral_02,
-                TelefonoLaboral_03
-            FROM (
-                SELECT
-                    FechaCorte,
-                    Identificacion,
-                    Cliente,
-                    NumeroCredito,
-                    NumeroCreditoNuevo,
-                    OrigenCredito,
-                    Oficina,
-                    EstadoCredito,
-                    MontoOriginal,
-                    PlazoOriginal,
-                    FechaDesembolso,
-                    FechaCancelacion,
-                    CuotasRestantes,
-                    Atraso,
-                    TipoCancelacion,
-                    DispositivoNotificacion,
-                    Celular_01,
-                    Celular_02,
-                    Celular_03,
-                    TelefonoNegocio_01,
-                    TelefonoNegocio_02,
-                    TelefonoNegocio_03,
-                    TelefonoDomicilio_01,
-                    TelefonoDomicilio_02,
-                    TelefonoDomicilio_03,
-                    TelefonoLaboral_01,
-                    TelefonoLaboral_02,
-                    TelefonoLaboral_03,
-                    @rn := ROW_NUMBER() OVER (PARTITION BY Identificacion ORDER BY FechaCorte DESC) as RowNum
-                FROM cli_creditos_mora
-                ORDER BY Identificacion, FechaCorte DESC
-            ) ranked
-            WHERE RowNum = 1
+            $query2 = $pdo->query("
+                    SELECT
+                        FechaCorte,
+                        Identificacion,
+                        Cliente,
+                        NumeroCredito,
+                        NumeroCreditoNuevo,
+                        OrigenCredito,
+                        Oficina,
+                        EstadoCredito,
+                        MontoOriginal,
+                        PlazoOriginal,
+                        FechaDesembolso,
+                        FechaCancelacion,
+                        CuotasRestantes,
+                        Atraso,
+                        IFNULL(TipoCancelacion, '') as TipoCancelacion,
+                        DispositivoNotificacion,
+                        Celular_01,
+                        Celular_02,
+                        Celular_03,
+                        TelefonoNegocio_01,
+                        TelefonoNegocio_02,
+                        TelefonoNegocio_03,
+                        TelefonoDomicilio_01,
+                        TelefonoDomicilio_02,
+                        TelefonoDomicilio_03,
+                        TelefonoLaboral_01,
+                        TelefonoLaboral_02,
+                        TelefonoLaboral_03
+                    FROM (
+                        SELECT
+                            FechaCorte,
+                            Identificacion,
+                            Cliente,
+                            NumeroCredito,
+                            NumeroCreditoNuevo,
+                            OrigenCredito,
+                            Oficina,
+                            EstadoCredito,
+                            MontoOriginal,
+                            PlazoOriginal,
+                            FechaDesembolso,
+                            FechaCancelacion,
+                            CuotasRestantes,
+                            Atraso,
+                            TipoCancelacion,
+                            DispositivoNotificacion,
+                            Celular_01,
+                            Celular_02,
+                            Celular_03,
+                            TelefonoNegocio_01,
+                            TelefonoNegocio_02,
+                            TelefonoNegocio_03,
+                            TelefonoDomicilio_01,
+                            TelefonoDomicilio_02,
+                            TelefonoDomicilio_03,
+                            TelefonoLaboral_01,
+                            TelefonoLaboral_02,
+                            TelefonoLaboral_03,
+                            @row_number := IF(@id = Identificacion, @row_number + 1, 1) AS RowNum,
+                            @id := Identificacion AS dummy
+                        FROM cli_creditos_mora
+                        WHERE EstadoCredito = 'CANCELADO' OR CuotasRestantes = 1
+                        ORDER BY Identificacion, FechaCorte DESC
+                    ) ranked
+                    WHERE RowNum = 1;
                 ");
-                // $query2->bindParam(":FechaCorte", $fecha, PDO::PARAM_STR);
-                if ($query2->execute()) {
-                    $result2 = $query2->fetchAll(PDO::FETCH_ASSOC);
-                    echo json_encode($result2);
-                    exit();
-                } else {
-                    $err = $query2->errorInfo();
-                    echo json_encode($err);
-                    exit();
-                }
-            } else {
-                $err = $query->errorInfo();
-                echo json_encode($err);
-                exit();
-            }
+
+            $result2 = $query2->fetchAll(PDO::FETCH_ASSOC);
+            echo json_encode($result2);
+            exit();
+            // $query1 = $this->db->connect_dobra()->prepare("SELECT MAX(FechaCorte) AS fecha FROM cli_creditos_mora ccm");
+
+            // if ($query1->execute()) {
+            //     $result1 = $query1->fetchAll(PDO::FETCH_ASSOC);
+            //     $fecha = $result1[0]["fecha"];
+
+
+            // } else {
+            //     $err = $query1->errorInfo();
+            //     echo json_encode($err);
+            //     exit();
+            // }
         } catch (PDOException $e) {
             $e = $e->getMessage();
             echo json_encode($e);

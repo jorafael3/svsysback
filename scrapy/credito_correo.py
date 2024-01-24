@@ -79,72 +79,82 @@ def main():
         
             service = build('gmail', 'v1', credentials=creds)
             nextPageToken = None
-            # while True:
-            results = service.users().messages().list(
-                userId='me', 
-                labelIds=['INBOX'],
-                pageToken=nextPageToken
-                # q=f'after:{start_date_str} before:{end_date_str}'
-            ).execute()
-            messages = results.get('messages', [])
-            if not messages:
-                print('No messages found in the inbox.')
-                return
-            print('Messages in the inbox:')
+            while True:
+                results = service.users().messages().list(
+                    userId='me', 
+                    labelIds=['INBOX'],
+                    pageToken=nextPageToken
+                    # q=f'after:{start_date_str} before:{end_date_str}'
+                ).execute()
+                messages = results.get('messages', [])
+                if not messages:
+                    print('No messages found in the inbox.')
+                    return
+                print('Messages in the inbox:')
 
-            print('FECHA MAXIMA GUARDADA')
-            print(Fecha_maxima())
+                print('FECHA MAXIMA GUARDADA')
+                print(Fecha_maxima())
+                con = 0
+                for message in messages:
+                    # print(message)
+                    msg = service.users().messages().get(userId='me', id=message['id']).execute()
+                    from_header = [header['value'] for header in msg['payload']['headers'] if header['name'] == 'From']
+                    if from_header:
+                            sender_email = from_header[0]
+                    subject_header = [header['value'] for header in msg['payload']['headers'] if header['name'] == 'Subject']
+                    if subject_header:
+                        email_subject = subject_header[0]
+                    
+                    date_header = [header['value'] for header in msg['payload']['headers'] if header['name'] == 'Date']
+                    if date_header:
+                            email_date = date_header[0]
+                    if(sender_email == "sig@solidario.fin.ec"):
+                        # print(msg["snippet"])
+                        # print(f'Sender: {sender_email}')
+                        print("++++++++++++++++++++++++++++++")
+                        if(email_subject == "Reporte SALVACERO DOS"):
+                            print(f'Subject: {email_subject}')
+                            email_date_obj = datetime.strptime(email_date, '%d %b %Y %H:%M:%S %z')
+                            formatted_date = email_date_obj.strftime('%Y-%m-%d')
+                            print(f'Date: {formatted_date}')
+                            if formatted_date == Fecha_maxima():
+                                print("YA ESTA GUARDADO HASTA LA ULTA FECHA")
+                                break
+                            else:
+                                try:
+                                    attachment_name = 'SALVACERO DOS'+str(con)+'.txt'
+                                    with open("scrapy/cartera1/"+attachment_name, 'w'):
+                                        pass  # No es necesario escribir nada
 
-            for message in messages:
-                # print(message)
-                msg = service.users().messages().get(userId='me', id=message['id']).execute()
-                from_header = [header['value'] for header in msg['payload']['headers'] if header['name'] == 'From']
-                if from_header:
-                        sender_email = from_header[0]
-                subject_header = [header['value'] for header in msg['payload']['headers'] if header['name'] == 'Subject']
-                if subject_header:
-                    email_subject = subject_header[0]
-                
-                date_header = [header['value'] for header in msg['payload']['headers'] if header['name'] == 'Date']
-                if date_header:
-                        email_date = date_header[0]
-                if(sender_email == "sig@solidario.fin.ec"):
-                    # print(msg["snippet"])
-                    # print(f'Sender: {sender_email}')
-                    print("++++++++++++++++++++++++++++++")
-                    if(email_subject == "Reporte SALVACERO DOS"):
-                        print(f'Subject: {email_subject}')
-                        email_date_obj = datetime.strptime(email_date, '%d %b %Y %H:%M:%S %z')
-                        formatted_date = email_date_obj.strftime('%Y-%m-%d')
-                        print(f'Date: {formatted_date}')
-                        if formatted_date == Fecha_maxima():
-                            print("YA ESTA GUARDADO HASTA LA ULTA FECHA")
-                            break
-                        else:
-                            try:
-                                attachment_name = 'SALVACERO DOS.txt'
-                                message = service.users().messages().get(userId='me', id=message['id']).execute()
-                                for part in message['payload']['parts']:
-                                    if 'filename' in part:
-                                        if part['filename'] == attachment_name:
-                                            if 'data' in part['body']:
-                                                data=part['body']['data']
-                                            else:
-                                                att_id=part['body']['attachmentId']
-                                                att=service.users().messages().attachments().get(userId="me", messageId=message['id'],id=att_id).execute()
-                                                data=att['data']
-                                            # data = part['body']['data']
-                                            file_data = base64.urlsafe_b64decode(data.encode('UTF-8'))
-                                            decoded_content = file_data
-                                            # print(f'Contenido del archivo adjunto:\n{decoded_content}')
-                                            # Guarda el archivo adjunto en el directorio actual
-                                            with open("scrapy/cartera1/"+attachment_name, 'wb') as f:
-                                                f.write(decoded_content)
-                                            mora()
-                            except errors.HttpError as error:
-                                    print('An error occurred: %s' % error)
-                            
-                # nextPageToken = results.get('nextPageToken')
+                                    message = service.users().messages().get(userId='me', id=message['id']).execute()
+                                    for part in message['payload']['parts']:
+                                        if 'filename' in part:
+                                            if part['filename'] == "SALVACERO DOS.txt":
+                                                if 'data' in part['body']:
+                                                    data=part['body']['data']
+                                                else:
+                                                    att_id=part['body']['attachmentId']
+                                                    att=service.users().messages().attachments().get(userId="me", messageId=message['id'],id=att_id).execute()
+                                                    data=att['data']
+                                                # data = part['body']['data']
+                                                try:
+                                                
+                                                    file_data = base64.urlsafe_b64decode(data.encode('UTF-8'))
+                                                    decoded_content = file_data
+                                                    # print(f'Contenido del archivo adjunto:\n{decoded_content}')
+                                                    # Guarda el archivo adjunto en el directorio actual
+                                                    with open("scrapy/cartera1/"+attachment_name, 'wb') as f:
+                                                        f.write(decoded_content)
+                                                except Exception as e:
+                                                    print(f"Error al decodificar o escribir el archivo: {e}")
+                    # Añadir más detalles del error según sea necesario
+                                                # mora()
+                                    con = con + 1
+                                    
+                                except errors.HttpError as error:
+                                        print('An error occurred: %s' % error)
+                                
+                nextPageToken = results.get('nextPageToken')
 
         except HttpError as error:
             # TODO(developer) - Handle errors from gmail API.
