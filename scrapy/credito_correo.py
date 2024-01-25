@@ -79,6 +79,7 @@ def main():
         
             service = build('gmail', 'v1', credentials=creds)
             nextPageToken = None
+            con = 0
             while True:
                 results = service.users().messages().list(
                     userId='me', 
@@ -94,7 +95,6 @@ def main():
 
                 print('FECHA MAXIMA GUARDADA')
                 print(Fecha_maxima())
-                con = 0
                 for message in messages:
                     # print(message)
                     msg = service.users().messages().get(userId='me', id=message['id']).execute()
@@ -122,7 +122,7 @@ def main():
                                 break
                             else:
                                 try:
-                                    attachment_name = 'SALVACERO DOS'+str(con)+'.txt'
+                                    attachment_name = 'SALVACERODOS'+str(con)+'_'+str(formatted_date)+'.txt'
                                     with open("scrapy/cartera1/"+attachment_name, 'w'):
                                         pass  # No es necesario escribir nada
 
@@ -147,8 +147,8 @@ def main():
                                                         f.write(decoded_content)
                                                 except Exception as e:
                                                     print(f"Error al decodificar o escribir el archivo: {e}")
-                    # Añadir más detalles del error según sea necesario
-                                                # mora()
+                                                    # Añadir más detalles del error según sea necesario
+                                                    # mora()
                                     con = con + 1
                                     
                                 except errors.HttpError as error:
