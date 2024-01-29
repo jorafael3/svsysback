@@ -30,8 +30,6 @@ conexion = mysql.connector.connect(
 # DATABASE_URL = 'mysql+mysqlconnector://salvacer_jorge:Equilivre3*@gator4166.hostgator.com:3306/salvacer_svsys'
 # engine = sqlalchemy.create_engine(DATABASE_URL)
 
-
-
 def Obtener_tabla(texto):
     texto_limpio = texto.replace("PRODUCTO", "").replace("CANTIDAD", "")
     print(texto_limpio)

@@ -120,6 +120,18 @@ class Mora extends Controller
         }
     }
 
+    //*** FONDO DE GARANTIA */
+
+    function CLIENTES_FONDO_GARANTIA()
+    {
+        $param = $_POST['param'];
+        if ($param["TOKEN"] == constant("TOKEN_WEB")) {
+            $Ventas =  $this->model->CLIENTES_FONDO_GARANTIA($param);
+        } else {
+            die();
+        }
+    }
+
     function MOROSIDAD_CARTERA()
     {
         $param = $_POST['param'];

@@ -120,7 +120,7 @@ class Usuariosmodel extends Model
                 $US_DEPT = $param["US_DEPT"];
                 $US_SUCURSAL = $param["US_SUCURSAL"];
                 $user_Contrasena = hash("sha256", $US_PASS);
-                $query = $this->db->connect_dobra()->prepare('INSERT INTO svsys.us_usuarios 
+                $query = $this->db->connect_dobra()->prepare('INSERT INTO us_usuarios 
                 (
                     Usuario, 
                     Nombre, 

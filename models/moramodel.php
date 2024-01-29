@@ -481,7 +481,14 @@ class MoraModel extends Model
                         TelefonoDomicilio_03,
                         TelefonoLaboral_01,
                         TelefonoLaboral_02,
-                        TelefonoLaboral_03
+                        TelefonoLaboral_03,
+                        case 
+                            	when MontoOriginal between 0 and 500 then '1-500'
+                            	when MontoOriginal between 501 and 1000 then '500-1000'
+                            	when MontoOriginal between 1001 and 1500 then '1000-1500'
+                            	when MontoOriginal between 1501 and 2000 then '1500-2000'
+                            	when MontoOriginal > 2000 then '2000 >'
+                        end as RANGO
                     FROM (
                         SELECT
                             FechaCorte,
@@ -546,19 +553,45 @@ class MoraModel extends Model
 
     //* MOROSIDAD
 
-    function MOROSIDAD_POR_DIA()
+    function MOROSIDAD_POR_DIA($param)
     {
 
         try {
-            $query = $this->db->connect_dobra()->prepare("SELECT 
-            FechaCorte,
-            SUM(CASE WHEN EstadoCredito = 'VIGENTE' THEN 1 ELSE 0 END) AS VIGENTE,
-            SUM(CASE WHEN EstadoCredito = 'CANCELADO' THEN 1 ELSE 0 END) AS CANCELADO,
-            SUM(CASE WHEN EstadoCredito = 'VENCIDO' THEN 1 ELSE 0 END) AS VENCIDO,
-            count(*) as  TOTAL
-            from cli_creditos_mora ccm
-            group by FechaCorte
-            order by date(FechaCorte) desc");
+
+            $tipo = $param["tipo"];
+
+            if ($tipo == 1) {
+                $slq = "SELECT 
+                FechaCorte,
+                SUM(CASE WHEN EstadoCredito = 'VIGENTE' THEN 1 ELSE 0 END) AS VIGENTE,
+                SUM(CASE WHEN EstadoCredito = 'CANCELADO' THEN 1 ELSE 0 END) AS CANCELADO,
+                SUM(CASE WHEN EstadoCredito = 'VENCIDO' THEN 1 ELSE 0 END) AS VENCIDO,
+                count(*) as  TOTAL
+                from cli_creditos_mora ccm
+                group by FechaCorte
+                order by date(FechaCorte) desc";
+            } else if ($tipo == 2) {
+                $slq = "			SELECT 
+                DATE_FORMAT(FechaCorte, '%Y-%m') AS FechaCorte,
+                SUM(CASE WHEN EstadoCredito = 'VIGENTE' THEN 1 ELSE 0 END) AS VIGENTE,
+                SUM(CASE WHEN EstadoCredito = 'CANCELADO' THEN 1 ELSE 0 END) AS CANCELADO,
+                SUM(CASE WHEN EstadoCredito = 'VENCIDO' THEN 1 ELSE 0 END) AS VENCIDO,
+                count(*) as  TOTAL
+                from cli_creditos_mora ccm
+                group by month(date(FechaCorte))
+                ORDER BY MIN(FechaCorte) DESC;";
+            } else if ($tipo == 3) {
+                $slq = "SELECT 
+                DATE_FORMAT(FechaCorte, '%Y') AS FechaCorte,
+                SUM(CASE WHEN EstadoCredito = 'VIGENTE' THEN 1 ELSE 0 END) AS VIGENTE,
+                SUM(CASE WHEN EstadoCredito = 'CANCELADO' THEN 1 ELSE 0 END) AS CANCELADO,
+                SUM(CASE WHEN EstadoCredito = 'VENCIDO' THEN 1 ELSE 0 END) AS VENCIDO,
+                COUNT(*) AS TOTAL
+            FROM cli_creditos_mora ccm
+            GROUP BY year(FechaCorte)
+            ORDER BY FechaCorte DESC;";
+            }
+            $query = $this->db->connect_dobra()->prepare($slq);
             if ($query->execute()) {
                 $result = $query->fetchAll(PDO::FETCH_ASSOC);
                 echo json_encode($result);
@@ -575,18 +608,67 @@ class MoraModel extends Model
     }
 
 
-    function MOROSIDAD_CARTERA()
+    function MOROSIDAD_CARTERA($param)
     {
 
         try {
-            $query = $this->db->connect_dobra()->prepare("SELECT
-            FechaCorte,
-            SUM(CASE WHEN TipoCartera = 'CARTERA-BANCO' THEN 1 ELSE 0 END) AS CARTERABANCO,
-            SUM(CASE WHEN TipoCartera = 'FONDO-DE-GARANTIA' THEN 1 ELSE 0 END) AS FONDODEGARANTIA,
-            sum(Saldo) as SALDO
-            from cli_creditos_mora ccm
-            group by FechaCorte
-            order by date(FechaCorte) desc");
+            $tipo = $param["tipo"];
+
+            if ($tipo == 1) {
+                $slq = "SELECT
+                FechaCorte,
+                SUM(CASE WHEN TipoCartera = 'CARTERA-BANCO' THEN 1 ELSE 0 END) AS CARTERABANCO,
+                SUM(CASE WHEN TipoCartera = 'FONDO-DE-GARANTIA' THEN 1 ELSE 0 END) AS FONDODEGARANTIA,
+                sum(Saldo) as SALDO
+                from cli_creditos_mora ccm
+                group by FechaCorte
+                order by date(FechaCorte) desc";
+            } else if ($tipo == 2) {
+                $slq = "SELECT
+                DATE_FORMAT(FechaCorte, '%Y-%m') AS FechaCorte,
+                SUM(CASE WHEN TipoCartera = 'CARTERA-BANCO' THEN 1 ELSE 0 END) AS CARTERABANCO,
+                SUM(CASE WHEN TipoCartera = 'FONDO-DE-GARANTIA' THEN 1 ELSE 0 END) AS FONDODEGARANTIA,
+                sum(Saldo) as SALDO
+                from cli_creditos_mora ccm
+                group by month(FechaCorte)
+                order by MIN(date(FechaCorte)) desc";
+            } else if ($tipo == 3) {
+                $slq = "SELECT
+                DATE_FORMAT(FechaCorte, '%Y') AS FechaCorte,
+                SUM(CASE WHEN TipoCartera = 'CARTERA-BANCO' THEN 1 ELSE 0 END) AS CARTERABANCO,
+                SUM(CASE WHEN TipoCartera = 'FONDO-DE-GARANTIA' THEN 1 ELSE 0 END) AS FONDODEGARANTIA,
+                sum(Saldo) as SALDO
+                from cli_creditos_mora ccm
+                group by year(FechaCorte)
+                order by year(date(FechaCorte)) desc";
+            }
+            $query = $this->db->connect_dobra()->prepare($slq);
+            if ($query->execute()) {
+                $result = $query->fetchAll(PDO::FETCH_ASSOC);
+                echo json_encode($result);
+                exit();
+            } else {
+                $err = $query->errorInfo();
+                echo json_encode($err);
+                exit();
+            }
+        } catch (PDOException $e) {
+            $e = $e->getMessage();
+            return $e;
+        }
+    }
+
+    //*** FONDO DE GARANTIA */ */
+
+    function CLIENTES_FONDO_GARANTIA($param)
+    {
+        try {
+            $fecha = $this->OBTENER_ULTIMO_FECHA_CORTE();
+            $slq = "SELECT * from cli_creditos_mora ccm 
+            where TipoCartera = 'FONDO-DE-GARANTIA'
+            and FechaCorte = :FechaCorte";
+            $query = $this->db->connect_dobra()->prepare($slq);
+            $query->bindParam(":FechaCorte", $fecha, PDO::PARAM_STR);
             if ($query->execute()) {
                 $result = $query->fetchAll(PDO::FETCH_ASSOC);
                 echo json_encode($result);
@@ -604,19 +686,44 @@ class MoraModel extends Model
 
     //* COMPROTAMIOENTO
 
-    function COMPORTAMIENTO()
+    function COMPORTAMIENTO($param)
     {
 
         try {
-            $query = $this->db->connect_dobra()->prepare("SELECT
-            FechaCorte,
-            SUM(CASE WHEN OrigenCredito = 'NUEVO' THEN 1 ELSE 0 END) AS NUEVO,
-            SUM(CASE WHEN OrigenCredito = 'REPRESTAMO' THEN 1 ELSE 0 END) AS REPRESTAMO,
-            SUM(CASE WHEN OrigenCredito = 'REESTRUCTURA' THEN 1 ELSE 0 END) AS REESTRUCTURA,
-            SUM(CASE WHEN OrigenCredito = 'REFINANCIAMIENTO' THEN 1 ELSE 0 END) AS REFINANCIAMIENTO
-            from cli_creditos_mora ccm
-            group by date(FechaCorte)
-            order by date(FechaCorte) desc");
+            $tipo = $param["tipo"];
+
+            if ($tipo == 1) {
+                $slq = "SELECT
+                FechaCorte,
+                SUM(CASE WHEN OrigenCredito = 'NUEVO' and EstadoCredito = 'VIGENTE' and CuotaImpaga = 1 THEN 1 ELSE 0 END) AS NUEVO,
+                SUM(CASE WHEN OrigenCredito = 'REPRESTAMO' THEN 1 ELSE 0 END) AS REPRESTAMO,
+                SUM(CASE WHEN OrigenCredito = 'REESTRUCTURA' THEN 1 ELSE 0 END) AS REESTRUCTURA,
+                SUM(CASE WHEN OrigenCredito = 'REFINANCIAMIENTO' THEN 1 ELSE 0 END) AS REFINANCIAMIENTO
+                from cli_creditos_mora ccm
+                group by date(FechaCorte)
+                order by date(FechaCorte) desc";
+            } else if ($tipo == 2) {
+                $slq = "SELECT
+                DATE_FORMAT(FechaCorte, '%Y-%m') AS FechaCorte,
+                SUM(CASE WHEN OrigenCredito = 'NUEVO' and EstadoCredito = 'VIGENTE' and CuotaImpaga = 1 THEN 1 ELSE 0 END) AS NUEVO,
+                SUM(CASE WHEN OrigenCredito = 'REPRESTAMO' THEN 1 ELSE 0 END) AS REPRESTAMO,
+                SUM(CASE WHEN OrigenCredito = 'REESTRUCTURA' THEN 1 ELSE 0 END) AS REESTRUCTURA,
+                SUM(CASE WHEN OrigenCredito = 'REFINANCIAMIENTO' THEN 1 ELSE 0 END) AS REFINANCIAMIENTO
+                from cli_creditos_mora ccm
+                group by month(FechaCorte)
+                order by MIN(date(FechaCorte)) desc";
+            } else if ($tipo == 3) {
+                $slq = "SELECT
+                DATE_FORMAT(FechaCorte, '%Y') AS FechaCorte,
+                SUM(CASE WHEN OrigenCredito = 'NUEVO' and EstadoCredito = 'VIGENTE' and CuotaImpaga = 1 THEN 1 ELSE 0 END) AS NUEVO,
+                SUM(CASE WHEN OrigenCredito = 'REPRESTAMO' THEN 1 ELSE 0 END) AS REPRESTAMO,
+                SUM(CASE WHEN OrigenCredito = 'REESTRUCTURA' THEN 1 ELSE 0 END) AS REESTRUCTURA,
+                SUM(CASE WHEN OrigenCredito = 'REFINANCIAMIENTO' THEN 1 ELSE 0 END) AS REFINANCIAMIENTO
+                from cli_creditos_mora ccm
+                group by year(FechaCorte)
+                order by year(date(FechaCorte)) desc";
+            }
+            $query = $this->db->connect_dobra()->prepare($slq);
             if ($query->execute()) {
                 $result = $query->fetchAll(PDO::FETCH_ASSOC);
                 echo json_encode($result);
