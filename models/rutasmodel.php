@@ -252,20 +252,22 @@ class RutasModel extends Model
             date_default_timezone_set('America/Guayaquil');
             $Fecha_Hoy = date("Y-m-d");
             $CREADO_POR = $param["CREADO_POR"];
+            $FECHA_NUEVA_RUTA = $param["FECHA_NUEVA_RUTA"];
             $query = $this->db->connect_dobra()->prepare('SELECT date(fecha_ruta)
             FROM gui_rutas
             where date(fecha_ruta) = :fecha');
-            $query->bindParam(":fecha", $Fecha_Hoy, PDO::PARAM_STR);
+            $query->bindParam(":fecha", $FECHA_NUEVA_RUTA, PDO::PARAM_STR);
 
             if ($query->execute()) {
                 $result = $query->fetchAll(PDO::FETCH_ASSOC);
                 if (count($result) > 0) {
-                    echo json_encode([0, "Ruta ya creada"]);
+                    echo json_encode([0, "La ruta de esta fecha ya esta creada"]);
                     exit();
                 } else {
                     $query2 = $this->db->connect_dobra()->prepare('INSERT into
-                        gui_rutas (creado_por)values(:creado)');
+                        gui_rutas (creado_por,fecha_ruta)values(:creado,:fecha_ruta)');
                     $query2->bindParam(":creado", $CREADO_POR, PDO::PARAM_STR);
+                    $query2->bindParam(":fecha_ruta", $FECHA_NUEVA_RUTA, PDO::PARAM_STR);
                     if ($query2->execute()) {
                         echo json_encode([1, "Ruta Creada"]);
                         exit();

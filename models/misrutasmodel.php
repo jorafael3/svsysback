@@ -8,8 +8,8 @@ class MisRutasModel extends Model
     function Cargar_Mis_Rutas($param)
     {
         try {
-            // $USUARIO = $param["USUARIO"];]
-            $USUARIO = 7;
+            $USUARIO = $param["USUARIO_ID"];
+            // $USUARIO = 7;
             $query = $this->db->connect_dobra()->prepare("SELECT 
             grd.ID,
             date(gr.fecha_ruta) as FECHA_RUTA,
