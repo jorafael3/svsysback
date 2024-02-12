@@ -294,7 +294,7 @@ def Guardar(DATOS,archivo,cartera,nombre_tabla):
 
 
 
-def main():
+def main_credito():
 
     SIG1 = Lista_Archivos_SIG1()
     ING1 = Lista_Ingresada_1()
@@ -321,4 +321,4 @@ def main():
             DATOS = mora_2(ruta)
             Guardar(DATOS,s2,2,nombre_tabla)
 
-main()
+# main_credito()

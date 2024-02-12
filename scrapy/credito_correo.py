@@ -13,6 +13,7 @@ from datetime import datetime
 import base64
 from apiclient import errors
 from credito import mora
+from credito_guardar_txt import main_credito
 # If modifying these scopes, delete the file token.json.
 SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
 credential = 'C:\\xampp\\htdocs\\svsysback\\scrapy\\client_secret.json'
@@ -150,7 +151,7 @@ def main(lista2,lista1):
                                 elif email_subject == "Reporte SALVACERO CIA LTDA":
                                     path_cartera = path_SIG1
                                     lista_cartera = LISTA_SIG1
-                                print("found_attachment:", lista_cartera)
+                                # print("found_attachment:", lista_cartera)
 
                                 if attachment_name in lista_cartera:
                                     print("PROCESO TERMINADO")
@@ -204,7 +205,7 @@ def ejecutar():
     LISTA_SIG1 = Lista_Archivos_SIG1()
     LISTA_SIG2 = Lista_Archivos_SIG2()
     main(LISTA_SIG2,LISTA_SIG1)
-    
+    main_credito()
 
 
 ejecutar()
