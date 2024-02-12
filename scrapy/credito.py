@@ -108,6 +108,9 @@ def mora():
 
     # print(ARRAY_TOTAL)
 
+
+
+
 def Validar_Datos(fecha,ruc):
     cursor = conexion.cursor()
     sql = """

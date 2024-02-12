@@ -30,6 +30,7 @@ conexion = mysql.connector.connect(
     password="Equilivre3*",
     database="salvacer_svsys"
 )
+# LISTA_SIG2 = []
 
 def Fecha_maxima():
     cursor = conexion.cursor()
@@ -44,8 +45,19 @@ def Fecha_maxima():
         # lista.append(res)
         return (res[0])
 
+def Lista_Archivos_SIG1():
+    directorio = 'C:/xampp/htdocs/svsysback/scrapy/cartera1'
+    lista = os.listdir(directorio)
+    return lista
 
-def main():
+def Lista_Archivos_SIG2():
+    directorio = 'C:/xampp/htdocs/svsysback/scrapy/cartera2'
+    lista = os.listdir(directorio)
+    return lista
+
+def main(lista2,lista1):
+    LISTA_SIG1 = lista1
+    LISTA_SIG2 = lista2
     try:
         creds = None
         start_date_str = ''  # Inicializa las variables
@@ -72,31 +84,32 @@ def main():
             end_date = datetime.utcnow()
             # Calcula la fecha de inicio para "hoy"
             start_date = end_date - timedelta(days=7)
-
             # Convierte las fechas a formato RFC3339
             start_date_str = start_date.strftime('%Y-%m-%dT%H:%M:%SZ')
             end_date_str = end_date.strftime('%Y-%m-%dT%H:%M:%SZ')
         
             service = build('gmail', 'v1', credentials=creds)
             nextPageToken = None
-            con = 0
-            while True:
-                results = service.users().messages().list(
-                    userId='me', 
-                    labelIds=['INBOX'],
-                    pageToken=nextPageToken
-                    # q=f'after:{start_date_str} before:{end_date_str}'
-                ).execute()
-                messages = results.get('messages', [])
-                if not messages:
-                    print('No messages found in the inbox.')
-                    return
-                print('Messages in the inbox:')
+            con = True
+            found_attachment = False
+            # while con == True:
+            results = service.users().messages().list(
+                userId='me', 
+                labelIds=['INBOX'],
+                pageToken=nextPageToken
+                # q=f'after:{start_date_str} before:{end_date_str}'
+            ).execute()
+            messages = results.get('messages', [])
+            if not messages:
+                print('No messages found in the inbox.')
+                return
+            print('Messages in the inbox:',len(messages))
 
-                print('FECHA MAXIMA GUARDADA')
-                print(Fecha_maxima())
-                for message in messages:
-                    # print(message)
+                # print('FECHA MAXIMA GUARDADA')
+                # print(Fecha_maxima())
+                # print(len(messages))
+                
+            for message in messages:
                     msg = service.users().messages().get(userId='me', id=message['id']).execute()
                     from_header = [header['value'] for header in msg['payload']['headers'] if header['name'] == 'From']
                     if from_header:
@@ -108,28 +121,50 @@ def main():
                     date_header = [header['value'] for header in msg['payload']['headers'] if header['name'] == 'Date']
                     if date_header:
                             email_date = date_header[0]
+
                     if(sender_email == "sig@solidario.fin.ec"):
                         # print(msg["snippet"])
-                        # print(f'Sender: {sender_email}')
-                        print("++++++++++++++++++++++++++++++")
-                        if(email_subject == "Reporte SALVACERO DOS"):
-                            print(f'Subject: {email_subject}')
+                        print("++++++++++++++++++++++++++++++++++++++") 
+                        print("CORREO", email_date)
+
+                        path_SIG1 = "scrapy/cartera1/"
+                        path_SIG2 = "scrapy/cartera2/"
+                        # lista_reporte = ["Reporte SALVACERO DOS"]
+                        lista_reporte = ["Reporte SALVACERO DOS","Reporte SALVACERO CIA LTDA"]
+
+
+                        if email_subject in lista_reporte:
+                            print(f'REPORTE: {email_subject}')
                             email_date_obj = datetime.strptime(email_date, '%d %b %Y %H:%M:%S %z')
                             formatted_date = email_date_obj.strftime('%Y-%m-%d')
                             print(f'Date: {formatted_date}')
-                            if formatted_date == Fecha_maxima():
-                                print("YA ESTA GUARDADO HASTA LA ULTA FECHA")
-                                break
-                            else:
-                                try:
-                                    attachment_name = 'SALVACERODOS'+str(con)+'_'+str(formatted_date)+'.txt'
-                                    with open("scrapy/cartera1/"+attachment_name, 'w'):
-                                        pass  # No es necesario escribir nada
 
+                            try:
+                                # attachment_name = 'SALVACERODOS'+str(con)+'_'+str(formatted_date)+'.txt'
+                                attachment_name = str(formatted_date)+'.txt'
+                                path_cartera = ""
+                                lista_cartera = []
+                                if email_subject == "Reporte SALVACERO DOS":
+                                    path_cartera = path_SIG2
+                                    lista_cartera = LISTA_SIG2
+                                elif email_subject == "Reporte SALVACERO CIA LTDA":
+                                    path_cartera = path_SIG1
+                                    lista_cartera = LISTA_SIG1
+                                print("found_attachment:", lista_cartera)
+
+                                if attachment_name in lista_cartera:
+                                    print("PROCESO TERMINADO")
+                                    # found_attachment = True
+                                    # break
+                                else:
+                                    # print(attachment_name,"")
+                                    with open(path_cartera+attachment_name, 'w'):
+                                        pass  # No es necesario escribir nada
+                                
                                     message = service.users().messages().get(userId='me', id=message['id']).execute()
                                     for part in message['payload']['parts']:
                                         if 'filename' in part:
-                                            if part['filename'] == "SALVACERO DOS.txt":
+                                            if part['filename'] == "SALVACERO DOS.txt" or part['filename'] == "SALVACERO.txt":
                                                 if 'data' in part['body']:
                                                     data=part['body']['data']
                                                 else:
@@ -138,23 +173,20 @@ def main():
                                                     data=att['data']
                                                 # data = part['body']['data']
                                                 try:
-                                                
                                                     file_data = base64.urlsafe_b64decode(data.encode('UTF-8'))
                                                     decoded_content = file_data
                                                     # print(f'Contenido del archivo adjunto:\n{decoded_content}')
                                                     # Guarda el archivo adjunto en el directorio actual
-                                                    with open("scrapy/cartera1/"+attachment_name, 'wb') as f:
+                                                    with open(path_cartera+attachment_name, 'wb') as f:
                                                         f.write(decoded_content)
                                                 except Exception as e:
                                                     print(f"Error al decodificar o escribir el archivo: {e}")
                                                     # Añadir más detalles del error según sea necesario
                                                     # mora()
-                                    con = con + 1
                                     
-                                except errors.HttpError as error:
-                                        print('An error occurred: %s' % error)
-                                
-                nextPageToken = results.get('nextPageToken')
+                            except errors.HttpError as error:
+                                    print('An error occurred: %s' % error)  
+                # nextPageToken = results.get('nextPageToken')
 
         except HttpError as error:
             # TODO(developer) - Handle errors from gmail API.
@@ -168,4 +200,11 @@ def main():
         # enviar_correo(str(error))
 
 
-main()
+def ejecutar():
+    LISTA_SIG1 = Lista_Archivos_SIG1()
+    LISTA_SIG2 = Lista_Archivos_SIG2()
+    main(LISTA_SIG2,LISTA_SIG1)
+    
+
+
+ejecutar()
