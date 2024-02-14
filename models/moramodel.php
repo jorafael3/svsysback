@@ -444,36 +444,62 @@ class MoraModel extends Model
         }
     }
 
+
+
     function Cargar_Creditos_Cancelados($param)
     {
         try {
-
+            $TIPO_CARTERA = $param["TIPO_CARTERA"];
+            if ($TIPO_CARTERA == 1) {
+                $sql = "
+                SELECT
+                    *,
+                    IFNULL(TipoCancelacion, '') as TipoCancelacion,
+                    case 
+                            when MontoOriginal between 0 and 500 then '1-500'
+                            when MontoOriginal between 501 and 1000 then '500-1000'
+                            when MontoOriginal between 1001 and 1500 then '1000-1500'
+                            when MontoOriginal between 1501 and 2000 then '1500-2000'
+                            when MontoOriginal > 2000 then '2000 >'
+                    end as RANGO
+                FROM (
+                    SELECT
+                        *,
+                        @row_number := IF(@id = Identificacion, @row_number + 1, 1) AS RowNum,
+                        @id := Identificacion AS dummy
+                    FROM cli_creditos_mora_1
+                    WHERE EstadoCredito = 'CANCELADO' or (EstadoCredito ='VIGENTE' and CuotasRestantes = 1)
+                    ORDER BY Identificacion, FechaCorte DESC
+                ) ranked
+                WHERE RowNum = 1;";
+            } else if ($TIPO_CARTERA == 2) {
+                $sql = "
+                SELECT
+                    *,
+                    IFNULL(TipoCancelacion, '') as TipoCancelacion,
+                    case 
+                            when MontoOriginal between 0 and 500 then '1-500'
+                            when MontoOriginal between 501 and 1000 then '500-1000'
+                            when MontoOriginal between 1001 and 1500 then '1000-1500'
+                            when MontoOriginal between 1501 and 2000 then '1500-2000'
+                            when MontoOriginal > 2000 then '2000 >'
+                    end as RANGO
+                FROM (
+                    SELECT
+                        *,
+                        @row_number := IF(@id = Identificacion, @row_number + 1, 1) AS RowNum,
+                        @id := Identificacion AS dummy
+                    FROM cli_creditos_mora_2
+                    WHERE EstadoCredito = 'CANCELADO' or (EstadoCredito ='VIGENTE' and CuotasRestantes = 1)
+                    ORDER BY Identificacion, FechaCorte DESC
+                ) ranked
+                WHERE RowNum = 1;";
+            }
             $pdo = $this->db->connect_dobra();
             $pdo->exec("SET @row_number = 0;");
             $pdo->exec("SET @id = '';");
 
-            $query2 = $pdo->query("
-                    SELECT
-                        *,
-                        IFNULL(TipoCancelacion, '') as TipoCancelacion,
-                        case 
-                            	when MontoOriginal between 0 and 500 then '1-500'
-                            	when MontoOriginal between 501 and 1000 then '500-1000'
-                            	when MontoOriginal between 1001 and 1500 then '1000-1500'
-                            	when MontoOriginal between 1501 and 2000 then '1500-2000'
-                            	when MontoOriginal > 2000 then '2000 >'
-                        end as RANGO
-                    FROM (
-                        SELECT
-                            *,
-                            @row_number := IF(@id = Identificacion, @row_number + 1, 1) AS RowNum,
-                            @id := Identificacion AS dummy
-                        FROM cli_creditos_mora
-                        WHERE EstadoCredito = 'CANCELADO' OR CuotasRestantes = 1
-                        ORDER BY Identificacion, FechaCorte DESC
-                    ) ranked
-                    WHERE RowNum = 1;
-                ");
+            $query2 = $pdo->query($sql);
 
             $result2 = $query2->fetchAll(PDO::FETCH_ASSOC);
             echo json_encode($result2);
@@ -506,6 +532,14 @@ class MoraModel extends Model
         try {
 
             $tipo = $param["tipo"];
+            $TIPO_CARTERA = $param["TIPO_CARTERA"];
+
+            if ($TIPO_CARTERA == 1) {
+                $TABLA = "cli_creditos_mora_1";
+            } else {
+                $TABLA = "cli_creditos_mora_2";
+            }
+
 
             if ($tipo == 1) {
                 $slq = "SELECT 
@@ -514,7 +548,7 @@ class MoraModel extends Model
                 SUM(CASE WHEN EstadoCredito = 'CANCELADO' THEN 1 ELSE 0 END) AS CANCELADO,
                 SUM(CASE WHEN EstadoCredito = 'VENCIDO' THEN 1 ELSE 0 END) AS VENCIDO,
                 count(*) as  TOTAL
-                from cli_creditos_mora ccm
+                from " . $TABLA . " ccm
                 group by FechaCorte
                 order by date(FechaCorte) desc";
             } else if ($tipo == 2) {
@@ -524,7 +558,7 @@ class MoraModel extends Model
                 SUM(CASE WHEN EstadoCredito = 'CANCELADO' THEN 1 ELSE 0 END) AS CANCELADO,
                 SUM(CASE WHEN EstadoCredito = 'VENCIDO' THEN 1 ELSE 0 END) AS VENCIDO,
                 count(*) as  TOTAL
-                from cli_creditos_mora ccm
+                from " . $TABLA . " ccm
                 group by month(date(FechaCorte))
                 ORDER BY MIN(FechaCorte) DESC;";
             } else if ($tipo == 3) {
@@ -534,7 +568,7 @@ class MoraModel extends Model
                 SUM(CASE WHEN EstadoCredito = 'CANCELADO' THEN 1 ELSE 0 END) AS CANCELADO,
                 SUM(CASE WHEN EstadoCredito = 'VENCIDO' THEN 1 ELSE 0 END) AS VENCIDO,
                 COUNT(*) AS TOTAL
-            FROM cli_creditos_mora ccm
+            FROM " . $TABLA . " ccm
             GROUP BY year(FechaCorte)
             ORDER BY FechaCorte DESC;";
             }
