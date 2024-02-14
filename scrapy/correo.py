@@ -21,7 +21,8 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.application import MIMEApplication
 # If modifying these scopes, delete the file token.json.
 SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
-credential = 'C:\\xampp\\htdocs\\svsysback\\scrapy\\client_secret.json'
+credential = 'client_secret.json'
+# credential = 'C:\\xampp\\htdocs\\svsysback\\scrapy\\client_secret.json'
 
 datos_correo=[]
 
