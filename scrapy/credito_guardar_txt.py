@@ -2,18 +2,18 @@ import mysql.connector
 import os.path
 
 
-conexion = mysql.connector.connect(
-    host="localhost",
-    user="root",
-    password="",
-    database="svsys"
-    )
 # conexion = mysql.connector.connect(
-#     host="gator4166.hostgator.com",
-#     user="salvacer_jorge",
-#     password="Equilivre3*",
-#     database="salvacer_svsys"
-# )
+#     host="localhost",
+#     user="root",
+#     password="",
+#     database="svsys"
+#     )
+conexion = mysql.connector.connect(
+    host="gator4166.hostgator.com",
+    user="salvacer_jorge",
+    password="Equilivre3*",
+    database="salvacer_svsys"
+)
 
 # ARRAY_TOTAL = []
 
@@ -304,7 +304,7 @@ def main_credito():
             print("YA GUARDADO", s1)
         else:
             ruta = 'C:/xampp/htdocs/svsysback/scrapy/cartera1/'+s1
-            nombre_tabla = 'cli_creditos_mora_1'
+            nombre_tabla = 'cli_creditos_mora'
             print(ruta)
             DATOS = mora_1(ruta)
             Guardar(DATOS,s1,1,nombre_tabla)

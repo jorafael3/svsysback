@@ -467,7 +467,7 @@ class MoraModel extends Model
                         *,
                         @row_number := IF(@id = Identificacion, @row_number + 1, 1) AS RowNum,
                         @id := Identificacion AS dummy
-                    FROM cli_creditos_mora_1
+                    FROM cli_creditos_mora
                     WHERE EstadoCredito = 'CANCELADO' or (EstadoCredito ='VIGENTE' and CuotasRestantes = 1)
                     ORDER BY Identificacion, FechaCorte DESC
                 ) ranked
@@ -535,7 +535,7 @@ class MoraModel extends Model
             $TIPO_CARTERA = $param["TIPO_CARTERA"];
 
             if ($TIPO_CARTERA == 1) {
-                $TABLA = "cli_creditos_mora_1";
+                $TABLA = "cli_creditos_mora";
             } else {
                 $TABLA = "cli_creditos_mora_2";
             }

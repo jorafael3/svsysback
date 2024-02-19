@@ -9,7 +9,6 @@ header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers
 class Mora extends Controller
 {
 
-
     function __construct()
     {
         parent::__construct();
