@@ -40,12 +40,12 @@ options.add_experimental_option("prefs", prefs)
 ser = Service()
 driver = webdriver.Chrome(service=ser, options=options)
 # driver = webdriver.Chrome()
-conexion = mysql.connector.connect(
-    host="localhost",
-    user="root",
-    password="",
-    database="svsys"
-    )
+# conexion = mysql.connector.connect(
+#     host="localhost",
+#     user="root",
+#     password="",
+#     database="svsys"
+#     )
 # conexion = mysql.connector.connect(
 #     host="gator4166.hostgator.com",
 #     user="salvacer_jorge",
