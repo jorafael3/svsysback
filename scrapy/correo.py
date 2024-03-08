@@ -23,7 +23,7 @@ from email.mime.application import MIMEApplication
 SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
 credential = 'client_secret.json'
 # credential = 'C:\\xampp\\htdocs\\svsysback\\scrapy\\client_secret.json'
-
+ 
 datos_correo=[]
 
 # conexion = mysql.connector.connect(
