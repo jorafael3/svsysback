@@ -218,6 +218,7 @@ def enviar_correo():
 #************************************
 #********* LEER DOCUMENTOS **********
 #************************************
+            
 def Obtener_tabla(texto):
     texto_limpio = texto.replace("PRODUCTO", "").replace("CANTIDAD", "")
 
