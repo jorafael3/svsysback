@@ -5,7 +5,14 @@ import patoolib
 import re
 from datetime import datetime
 import shutil
+import mysql.connector
 
+conexion = mysql.connector.connect(
+    host="localhost",
+    user="root",
+    password="",
+    database="svsys"
+    )
 
 # Datos de conexión al servidor SFTP
 sftp_host = 'ftp.solidario-online.com'
@@ -123,11 +130,184 @@ def mover_archivos():
                     shutil.move(ruta_original, ruta_destino)
                     print(f"Archivo '{archivo}' renombrado y movido a '{directorio_destino}'.")
 
+def Ya_ingresado(archivo):
+    cursor = conexion.cursor()
+    sql = """
+        select * from cli_creditos_mora_archivo_ingresado
+        where archivo =  '"""+archivo+"""' 
+        and cartera = 2
+    """
+    cursor.execute(sql)
+    resultados = cursor.fetchall()
+    # if(len(res))
+    return (len(resultados))
+
+def leer_Archivos():
+
+    directorio_principal = "scrapy/cartera3/"
+    for archivo_rar in os.listdir(directorio_principal)[:1]:
+
+        ingreso = Ya_ingresado(archivo_rar)
+        # print(ingreso)
+        if ingreso == 0:
+            print("ARCHIVO YA INGRESADO")
+        else:
+            with open(directorio_principal+archivo_rar, 'r') as file:
+                lineas = file.readlines()
+                # print(lineas)
+            campos = [
+                "FechaCorte", "Identificacion", "Cliente", "NumeroCredito", "NumeroCreditoNuevo",
+                "Oficina", "OrigenCredito", "EstadoCredito", "TipoCartera", "TipoTablaAmortizacion",
+                "TipoGracia", "PeriodosGracia", "MontoOriginal", "PlazoOriginal", "Saldo", "ValorAPagar",
+                "ValorCuota", "FechaDesembolso", "FechaPrimerVencimiento", "FechaVencimiento",
+                "FechaCancelacion", "Atraso", "AtrasoMaximo", "CuotasRestantes", "CuotaImpaga",
+                "TipoCancelacion", "DispositivoNotificacion", "Celular_01", "Celular_02", "Celular_03",
+                "TelefonoNegocio_01", "TelefonoNegocio_02", "TelefonoNegocio_03", "TelefonoDomicilio_01",
+                "TelefonoDomicilio_02", "TelefonoDomicilio_03", "TelefonoLaboral_01", "TelefonoLaboral_02",
+                "TelefonoLaboral_03"
+            ]
+    # Lista para almacenar los diccionarios
+            lista_diccionarios = []
+            # Iterar sobre las líneas leídas del archivo
+            # for linea in lineas:
+            #     # Dividir la línea en sus campos utilizando la coma como delimitador
+            #     valores = linea.strip().split(',')
+            #     # Crear un diccionario para almacenar los campos de la línea
+            #     diccionario = {}
+            #     # Asignar cada valor a su campo correspondiente en el diccionario
+            #     for campo, valor in zip(campos, valores):
+            #         diccionario[campo] = valor
+            #     # Agregar el diccionario a la lista
+            #     lista_diccionarios.append(diccionario)
+            # # Mostrar la lista de diccionarios resultante
+            for linea in lineas:
+                # print(linea)
+                # Dividir la línea en sus campos utilizando la coma como delimitador
+                valores = linea.strip().split(',')
+                if(len(valores) <10):
+                    valores = linea.strip().split('\t')
+
+                # print((valores))
+                if(valores[6].strip() == "CANCELADO"):
+
+                    diccionario = {
+                    "FechaCorte": valores[0],
+                    "Identificacion": valores[1],
+                    "Cliente": valores[2],
+                    "NumeroCredito": valores[3],
+                    "NumeroCreditoNuevo": valores[22],
+                    "Oficina": valores[4],
+                    "OrigenCredito": valores[5],
+                    "EstadoCredito": valores[6],
+                    "TipoCartera": valores[7],
+                    "TipoTablaAmortizacion": valores[8],
+                    "TipoGracia": "-1",
+                    "PeriodosGracia": 0,
+                    "MontoOriginal": valores[9],
+                    "PlazoOriginal": valores[10],
+                    "Saldo": valores[11],
+                    "ValorAPagar": valores[12],
+                    "ValorCuota": valores[13],
+                    "FechaDesembolso": valores[14],
+                    "FechaPrimerVencimiento": valores[15],
+                    "FechaVencimiento": valores[16],
+                    "FechaCancelacion": valores[17],
+                    "Atraso": valores[18],
+                    "AtrasoMaximo": valores[19],
+                    "CuotasRestantes": valores[20],
+                    "CuotaImpaga": 0, #FALTA CAMPO
+                    "TipoCancelacion": valores[21],
+                    "DispositivoNotificacion": valores[26], 
+                    "Celular_01": valores[27],
+                    "Celular_02": valores[28],
+                    "Celular_03": valores[29],
+                    "TelefonoNegocio_01": valores[30],
+                    "TelefonoNegocio_02": valores[31],
+                    "TelefonoNegocio_03": valores[32],
+                    "TelefonoDomicilio_01": valores[33],
+                    "TelefonoDomicilio_02": valores[34],
+                    "TelefonoDomicilio_03": valores[35],
+                    "TelefonoLaboral_01": valores[36],
+                    "TelefonoLaboral_02": valores[37],
+                    "TelefonoLaboral_03": valores[38]
+                }
+                    print(diccionario)
+    
+    # Agregar el diccionario a la lista
+                    lista_diccionarios.append(diccionario)
+
+
+            # print((lista_diccionarios))
+
+            tabla = "cli_creditos_mora_2"
+            archivo = archivo_rar
+            cartera = 2
+            Guardar(lista_diccionarios,archivo,cartera,tabla)
+    
+def Guardar(DATOS,archivo,cartera,nombre_tabla):
+    cursor = conexion.cursor()
+    # Nombre de la tabla en la base de datos
+    # Consulta SQL para insertar datos en la tabla
+    consulta_insertar = f"""
+        INSERT INTO {nombre_tabla} 
+        (
+          FechaCorte, Identificacion, Cliente, NumeroCredito, NumeroCreditoNuevo, Oficina,
+            OrigenCredito, EstadoCredito, TipoCartera, TipoTablaAmortizacion, TipoGracia,
+            PeriodosGracia, MontoOriginal, PlazoOriginal, Saldo, ValorAPagar, ValorCuota,
+            FechaDesembolso, FechaPrimerVencimiento, FechaVencimiento, FechaCancelacion,
+            Atraso, AtrasoMaximo, CuotasRestantes, CuotaImpaga, TipoCancelacion, 
+            DispositivoNotificacion, Celular_01, Celular_02, Celular_03,
+            TelefonoNegocio_01, TelefonoNegocio_02, TelefonoNegocio_03,
+            TelefonoDomicilio_01, TelefonoDomicilio_02, TelefonoDomicilio_03,
+            TelefonoLaboral_01, TelefonoLaboral_02, TelefonoLaboral_03
+
+        ) 
+        VALUES 
+        (
+            %(FechaCorte)s, %(Identificacion)s, %(Cliente)s, %(NumeroCredito)s, %(NumeroCreditoNuevo)s,
+            %(Oficina)s, %(OrigenCredito)s, %(EstadoCredito)s, %(TipoCartera)s, %(TipoTablaAmortizacion)s,
+            %(TipoGracia)s, %(PeriodosGracia)s, %(MontoOriginal)s, %(PlazoOriginal)s, %(Saldo)s, %(ValorAPagar)s,
+            %(ValorCuota)s, %(FechaDesembolso)s, %(FechaPrimerVencimiento)s, %(FechaVencimiento)s,
+            %(FechaCancelacion)s, %(Atraso)s, %(AtrasoMaximo)s, %(CuotasRestantes)s, %(CuotaImpaga)s,
+            %(TipoCancelacion)s, %(DispositivoNotificacion)s, 
+            %(Celular_01)s, %(Celular_02)s, %(Celular_03)s, 
+            %(TelefonoNegocio_01)s, %(TelefonoNegocio_02)s, %(TelefonoNegocio_03)s,
+            %(TelefonoDomicilio_01)s, %(TelefonoDomicilio_02)s, %(TelefonoDomicilio_03)s,
+            %(TelefonoDomicilio_01)s, %(TelefonoDomicilio_02)s, %(TelefonoDomicilio_03)s
+
+         )
+    """
+    # Insertar los datos en la tabla de la base de datos
+    cursor.executemany(consulta_insertar, DATOS)
+    # Confirmar los cambios y cerrar la conexión
+
+
+
+    nombre_tabla2 = 'cli_creditos_mora_archivo_ingresado'
+
+    consulta_insertar2 = f"""
+        INSERT INTO {nombre_tabla2} (
+            archivo, cartera
+        ) 
+        VALUES (
+             %s, %s
+        )
+    """
+    valores = (
+            archivo, 
+            cartera        
+            )
+    cursor.execute(consulta_insertar2,valores)
+
+    conexion.commit()
+    # conexion.close()
+    print("Los datos se han insertado correctamente en la tabla de MySQL.")
 
 def main():
     # listar_archivos_sftp()
     # desconmprimir()
-    mover_archivos()
+    # mover_archivos()
+    leer_Archivos()
 
 
 main()

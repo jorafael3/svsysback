@@ -261,9 +261,9 @@ def Guardar(DATOS,archivo,cartera,nombre_tabla):
             %(ValorCuota)s, %(FechaDesembolso)s, %(FechaPrimerVencimiento)s, %(FechaVencimiento)s,
             %(FechaCancelacion)s, %(Atraso)s, %(AtrasoMaximo)s, %(CuotasRestantes)s, %(CuotaImpaga)s,
             %(TipoCancelacion)s, %(DispositivoNotificacion)s, %(Celular_01)s, %(Celular_02)s, %(Celular_03)s,
-            %(TelefonoNegocio_01)s, %(TelefonoNegocio_02)s, %(TelefonoNegocio_03)s, %(TelefonoDomicilio_01)s,
-            %(TelefonoDomicilio_02)s, %(TelefonoDomicilio_03)s, %(TelefonoLaboral_01)s, %(TelefonoLaboral_02)s,
-            %(TelefonoLaboral_03)s
+            %(TelefonoNegocio_01)s, %(TelefonoNegocio_02)s, %(TelefonoNegocio_03)s, 
+            %(TelefonoDomicilio_01)s, %(TelefonoDomicilio_02)s, %(TelefonoDomicilio_03)s, 
+            %(TelefonoLaboral_01)s, %(TelefonoLaboral_02)s, %(TelefonoLaboral_03)s
         )
     """
     # Insertar los datos en la tabla de la base de datos
