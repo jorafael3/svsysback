@@ -145,11 +145,11 @@ def Ya_ingresado(archivo):
 def leer_Archivos():
 
     directorio_principal = "scrapy/cartera3/"
-    for archivo_rar in os.listdir(directorio_principal)[:1]:
+    for archivo_rar in os.listdir(directorio_principal):
 
         ingreso = Ya_ingresado(archivo_rar)
         # print(ingreso)
-        if ingreso == 0:
+        if ingreso > 0:
             print("ARCHIVO YA INGRESADO")
         else:
             with open(directorio_principal+archivo_rar, 'r') as file:
@@ -304,9 +304,9 @@ def Guardar(DATOS,archivo,cartera,nombre_tabla):
     print("Los datos se han insertado correctamente en la tabla de MySQL.")
 
 def main():
-    # listar_archivos_sftp()
-    # desconmprimir()
-    # mover_archivos()
+    listar_archivos_sftp()
+    desconmprimir()
+    mover_archivos()
     leer_Archivos()
 
 

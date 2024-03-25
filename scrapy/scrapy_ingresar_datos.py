@@ -360,6 +360,6 @@ def ejecutar():
     Leer_pdf()
     time.sleep(5)
     print("MOVIENDO ARCHIVOS")
-    # mover_archivos()
+    mover_archivos()
 
 ejecutar()
